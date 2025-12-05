@@ -7,194 +7,160 @@
 
 <style>
 
-/* -----------------------------------------------------------
-                      PALETA PREMIUM
------------------------------------------------------------ */
+/* ---------------------------------------------------
+   PALETA PREMIUM PRETO + DOURADO
+--------------------------------------------------- */
 :root{
-  --preto:#0a0a0a;
-  --preto2:#141414;
+  --bg:#0d0d0d;
+  --card:#161616;
   --gold:#d4af37;
   --gold2:#b88e1a;
   --white:#f5f5f5;
-  --radius:20px;
-  --shadow:0 10px 30px rgba(0,0,0,.4);
-  --transition:.35s cubic-bezier(0.17, 0.84, 0.44, 1);
+  --radius:16px;
+  --shadow:0 6px 20px rgba(0,0,0,.45);
+  --transition:.25s ease;
 }
 
 body{
   margin:0;
-  padding:0;
-  background:var(--preto);
-  font-family:"Inter",sans-serif;
-  color:white;
-  overflow:hidden;
+  background:var(--bg);
+  font-family:Inter, sans-serif;
+  color:var(--white);
 }
 
-/* -----------------------------------------------------------
-                     SISTEMA DE TELAS
------------------------------------------------------------ */
+/* ---------------------------------------------------
+   SISTEMA DE TELAS
+--------------------------------------------------- */
 .screen{
-  width:100%;
-  height:100vh;
-  position:absolute;
-  top:0;
-  left:100%;
-  background:var(--preto);
-  padding:25px 20px;
-  overflow-y:auto;
-  transition:var(--transition);
+  display:none;
+  padding:22px;
+  animation:fade .25s ease;
 }
 
-.screen.active{
-  left:0;
-}
+.screen.active{ display:block; }
 
-.screen.hideLeft{
-  left:-100%;
-}
+@keyframes fade{ from{opacity:0;} to{opacity:1;} }
 
-/* -----------------------------------------------------------
-                         TÍTULOS
------------------------------------------------------------ */
+/* ---------------------------------------------------
+   TÍTULOS
+--------------------------------------------------- */
 .title{
-  text-align:center;
+  font-size:22px;
   color:var(--gold);
-  font-size:26px;
-  margin-top:10px;
-  margin-bottom:20px;
-  font-weight:700;
+  text-align:center;
+  font-weight:600;
+  margin-bottom:10px;
 }
 
 .subtitle{
   text-align:center;
-  font-size:15px;
-  color:#cfcfcf;
-  margin-bottom:30px;
+  font-size:14px;
+  color:#bbb;
+  margin-bottom:20px;
 }
 
-/* -----------------------------------------------------------
-                    BOTÃO PRIMÁRIO
------------------------------------------------------------ */
+/* ---------------------------------------------------
+   BOTÕES
+--------------------------------------------------- */
 .btn{
   width:100%;
-  padding:16px;
+  padding:14px;
+  margin-top:18px;
   background:var(--gold);
-  color:black;
-  font-size:18px;
-  font-weight:700;
   border:none;
   border-radius:var(--radius);
-  margin-top:25px;
+  font-size:17px;
+  font-weight:700;
+  color:black;
   cursor:pointer;
   transition:var(--transition);
 }
 
-.btn:hover{
-  background:var(--gold2);
+.btn:hover{ background:var(--gold2); }
+
+.btnBack{
+  background:#444;
+  color:white;
 }
 
-/* -----------------------------------------------------------
-                         CARDS DE VALOR
------------------------------------------------------------ */
+.btnBack:hover{
+  background:#666;
+}
+
+/* ---------------------------------------------------
+   CARDS DE VALOR
+--------------------------------------------------- */
 .values{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:14px;
-  margin-top:20px;
+  gap:12px;
 }
 
 .cardValor{
-  background:var(--preto2);
+  background:var(--card);
   border:2px solid var(--gold);
   border-radius:var(--radius);
-  padding:22px 0;
+  padding:14px 0;
   text-align:center;
-  font-size:22px;
+  font-size:20px;
   font-weight:600;
   cursor:pointer;
   transition:var(--transition);
 }
 
-.cardValor:hover{
-  background:var(--gold2);
-}
-
+.cardValor:hover{ background:#222; }
 .cardValor.sel{
   background:var(--gold);
   color:black;
 }
 
-/* -----------------------------------------------------------
-                      CAMPOS DE ENTRADA
------------------------------------------------------------ */
+/* ---------------------------------------------------
+   CAMPOS
+--------------------------------------------------- */
 input, select{
   width:100%;
-  padding:16px;
-  margin-top:18px;
-  border-radius:var(--radius);
+  padding:13px;
+  margin-top:14px;
+  background:var(--card);
   border:2px solid var(--gold);
-  background:var(--preto2);
-  font-size:17px;
+  border-radius:var(--radius);
+  font-size:16px;
   color:white;
-  outline:none;
 }
 
-/* -----------------------------------------------------------
-                        VOUCHER CARD
------------------------------------------------------------ */
-.voucherCard{
-  background:var(--preto2);
-  border:2px solid var(--gold);
+/* ---------------------------------------------------
+   RESUMO / VOUCHER
+--------------------------------------------------- */
+.box{
+  background:var(--card);
+  padding:18px;
   border-radius:var(--radius);
-  padding:22px;
-  margin-top:15px;
+  border:2px solid var(--gold);
   box-shadow:var(--shadow);
+  margin-bottom:15px;
 }
 
-.voucherCard h3{
-  margin-top:0;
-  color:var(--gold);
+.box h3{
+  margin:0 0 12px;
   text-align:center;
+  color:var(--gold);
 }
 
 .line{
-  margin:10px 0;
-  font-size:17px;
+  font-size:16px;
+  margin-bottom:6px;
 }
 
-/* -----------------------------------------------------------
-                         PIX BOX
------------------------------------------------------------ */
-.pixBox{
-  background:var(--preto2);
-  border:2px solid var(--gold);
-  border-radius:var(--radius);
-  padding:22px;
-  text-align:center;
-  margin-top:30px;
-}
-
-.pixCode{
-  font-size:20px;
-  margin:15px 0;
-  color:var(--gold);
-  font-weight:700;
-}
-
-.cancel{
-  background:#b00000 !important;
-  color:white !important;
-}
+#pixArea{ display:none; }
 
 </style>
 </head>
 <body>
 
-<!-- ============================================================
-                        TELA 1 — SELECIONAR VALOR
-============================================================ -->
-<div class="screen active" id="tela1">
-
+<!-- ====================================================
+              TELA 1 — VALOR
+==================================================== -->
+<div class="screen active" id="t1">
   <div class="title">1º Passo</div>
   <div class="subtitle">Selecione o valor do voucher</div>
 
@@ -206,139 +172,129 @@ input, select{
     <div class="cardValor" onclick="selectValor(200)">R$ 200</div>
     <div class="cardValor" onclick="outroValor()">Outro</div>
   </div>
-
 </div>
 
-<!-- POPUP OUTRO VALOR -->
-<div class="screen" id="telaOutro">
-  <div class="title">Digite o valor</div>
-  <input id="campoOutro" inputmode="numeric" oninput="maskValor(this)">
+<!-- ====================================================
+              TELA 1.1 — OUTRO VALOR
+==================================================== -->
+<div class="screen" id="t1b">
+  <div class="title">Informe o valor</div>
+  <input id="outroInput" inputmode="numeric" oninput="maskValor(this)">
   <button class="btn" onclick="confirmarOutro()">Confirmar</button>
-  <button class="btn cancel" onclick="voltar(2)">Voltar</button>
+  <button class="btn btnBack" onclick="show('t1')">Voltar</button>
 </div>
 
-<!-- ============================================================
-                        TELA 2 — DADOS
-============================================================ -->
-<div class="screen" id="tela2">
-
+<!-- ====================================================
+              TELA 2 — DADOS
+==================================================== -->
+<div class="screen" id="t2">
   <div class="title">2º Passo</div>
   <div class="subtitle">Preencha seus dados</div>
 
   <input id="nome" placeholder="Nome completo">
   <input id="whats" placeholder="WhatsApp" oninput="maskWhats(this)">
+  <input id="emailComprador" placeholder="Seu e-mail">
 
-  <select id="presente" onchange="toggleEmail()">
+  <select id="presente" onchange="togglePresente()">
     <option value="">É presente?</option>
     <option value="nao">Não</option>
     <option value="sim">Sim</option>
   </select>
 
-  <input id="emailPresente" placeholder="Email de quem vai receber" style="display:none;">
+  <input id="emailPresente" placeholder="Email do presenteado" style="display:none;">
 
-  <button class="btn" onclick="ir(3)">Avançar</button>
-
+  <button class="btn" onclick="validateT2()">Avançar</button>
+  <button class="btn btnBack" onclick="show('t1')">Voltar</button>
 </div>
 
-<!-- ============================================================
-                        TELA 3 — REVISÃO
-============================================================ -->
-<div class="screen" id="tela3">
-
+<!-- ====================================================
+              TELA 3 — REVISÃO
+==================================================== -->
+<div class="screen" id="t3">
   <div class="title">3º Passo</div>
-  <div class="subtitle">Revise e confirme</div>
+  <div class="subtitle">Revise as informações</div>
 
-  <div class="voucherCard">
-    <h3>Voucher Selecionado</h3>
-    <div class="line" id="rev_valor"></div>
-    <div class="line" id="rev_nome"></div>
-    <div class="line" id="rev_destino"></div>
-  </div>
-
-  <button class="btn" onclick="ir(4)">Confirmar e Gerar Pagamento</button>
-  <button class="btn cancel" onclick="voltar(2)">Editar Dados</button>
-
-</div>
-
-<!-- ============================================================
-                        TELA 4 — PAGAMENTO
-============================================================ -->
-<div class="screen" id="tela4">
-
-  <div class="title">Pagamento PIX</div>
-  <div class="subtitle">Finalize para concluir seu voucher</div>
-
-  <div class="voucherCard">
+  <div class="box">
     <h3>Resumo</h3>
-    <div class="line" id="pag_valor"></div>
-    <div class="line" id="pag_nome"></div>
-    <div class="line" id="pag_destino"></div>
+    <div class="line" id="r_valor"></div>
+    <div class="line" id="r_nome"></div>
+    <div class="line" id="r_email"></div>
+    <div class="line" id="r_presente"></div>
   </div>
 
-  <div class="pixBox">
-    <h3 style="color:var(--gold); margin:0;">CHAVE PIX</h3>
-    <div class="pixCode" id="pixCode">SUA_CHAVE_PIX_AQUI</div>
-    <button class="btn" onclick="copiarPix()">Copiar chave</button>
-  </div>
-
-  <button class="btn cancel" onclick="reset()">Cancelar e voltar ao início</button>
-
+  <button class="btn" onclick="validateT3()">Enviar e Realizar Pagamento</button>
+  <button class="btn btnBack" onclick="show('t2')">Voltar</button>
 </div>
 
+<!-- ====================================================
+              TELA PIX — APÓS REGISTRO
+==================================================== -->
+<div class="screen" id="t4">
+  <div class="title">Pagamento PIX</div>
 
-<!-- ============================================================
-                        SCRIPT
-============================================================ -->
+  <div class="box">
+    <h3>Voucher Registrado</h3>
+    <div class="line">
+      Seu voucher foi registrado.<br>
+      Realize o pagamento para ativação.
+    </div>
+    <div class="line" id="emailsResumo"></div>
+  </div>
+
+  <div class="box" id="pixArea">
+    <h3>CHAVE PIX</h3>
+    <div class="line" id="pixCode">SUA_CHAVE_PIX_AQUI</div>
+    <button class="btn" onclick="copyPix()">Copiar chave PIX</button>
+  </div>
+
+  <button class="btn btnBack" onclick="resetAll()">Voltar ao início</button>
+</div>
+
 <script>
 
 let valor = 0;
 
-/* -----------------------------------------------------------
-                     TELAS (ANIMAÇÃO)
------------------------------------------------------------ */
-function ir(n){
-  document.querySelector('.screen.active').classList.add('hideLeft');
-  document.querySelector('.screen.active').classList.remove('active');
-
-  document.getElementById("tela"+n).classList.add("active");
+/* ---------------------------------------------------
+               CONTROLE DE TELAS
+--------------------------------------------------- */
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
 }
 
-function voltar(n){
-  document.querySelector('.screen.active').classList.remove('active');
-
-  let t = document.getElementById("tela"+n);
-  t.classList.remove('hideLeft');
-  t.classList.add('active');
-}
-
-/* -----------------------------------------------------------
-                     SELEÇÃO VALOR
------------------------------------------------------------ */
+/* ---------------------------------------------------
+                SELEÇÃO DE VALOR
+--------------------------------------------------- */
 function selectValor(v){
   valor = v;
-  document.querySelectorAll(".cardValor").forEach(c=>c.classList.remove("sel"));
-  event.target.classList.add("sel");
-  ir(2);
+  document.querySelectorAll('.cardValor').forEach(c=>c.classList.remove('sel'));
+  event.target.classList.add('sel');
+  show('t2');
 }
 
-/* OUTRO VALOR */
-function outroValor(){ ir("Outro"); }
+function outroValor(){ show('t1b'); }
 
 function maskValor(i){
   let v = i.value.replace(/\D/g,"");
-  v = (v/100).toFixed(2).replace(".",",");
-  i.value = "R$ " + v;
+  v = (v/100).toFixed(2).replace('.',',');
+  i.value = "R$ "+v;
 }
 
 function confirmarOutro(){
-  let campo = document.getElementById("campoOutro").value;
-  valor = Number(campo.replace(/\D/g,""))/100;
-  ir(2);
+  let v = document.getElementById("outroInput").value;
+  valor = Number(v.replace(/\D/g,""))/100;
+  show('t2');
 }
 
-/* -----------------------------------------------------------
-                      DADOS / PRESENTE
------------------------------------------------------------ */
+/* ---------------------------------------------------
+                 VALIDAR TELA 2
+--------------------------------------------------- */
+function togglePresente(){
+  let p = document.getElementById("presente").value;
+  document.getElementById("emailPresente").style.display =
+    p==="sim" ? "block" : "none";
+}
+
 function maskWhats(i){
   let v = i.value.replace(/\D/g,"");
   v = v.replace(/^(\d{2})(\d)/,"($1) $2");
@@ -346,64 +302,85 @@ function maskWhats(i){
   i.value = v;
 }
 
-function toggleEmail(){
-  document.getElementById("emailPresente").style.display =
-    document.getElementById("presente").value === "sim" ? "block" : "none";
-}
-
-/* -----------------------------------------------------------
-                         REVISÃO
------------------------------------------------------------ */
-function ir3(){
-  ir(3);
-}
-
-function ir(n){
-
-  if(n===3){
-    document.getElementById("rev_valor").innerHTML =
-      "<b>Valor:</b> R$ "+valor.toFixed(2).replace(".",",");
-
-    document.getElementById("rev_nome").innerHTML =
-      "<b>Comprador:</b> "+document.getElementById("nome").value;
-
-    let p = document.getElementById("presente").value;
-    document.getElementById("rev_destino").innerHTML =
-      p==="sim" ? "<b>Presente para:</b> "+document.getElementById("emailPresente").value : "";
+function validateT2(){
+  if(!document.getElementById("nome").value ||
+     !document.getElementById("whats").value ||
+     !document.getElementById("emailComprador").value){
+      alert("Preencha todos os campos.");
+      return;
   }
 
-  if(n===4){
-    document.getElementById("pag_valor").innerHTML =
-      "<b>Valor:</b> R$ "+valor.toFixed(2).replace(".",",");
+  // Preenche resumo
+  document.getElementById("r_valor").innerHTML =
+    "<b>Valor:</b> R$ "+valor.toFixed(2).replace('.',',');
 
-    document.getElementById("pag_nome").innerHTML =
-      "<b>Comprador:</b> "+document.getElementById("nome").value;
+  document.getElementById("r_nome").innerHTML =
+    "<b>Nome:</b> "+document.getElementById("nome").value;
 
-    let p = document.getElementById("presente").value;
-    document.getElementById("pag_destino").innerHTML =
-      p==="sim" ? "<b>Presente para:</b> "+document.getElementById("emailPresente").value : "";
+  document.getElementById("r_email").innerHTML =
+    "<b>Email:</b> "+document.getElementById("emailComprador").value;
 
-  }
+  let p = document.getElementById("presente").value;
+  document.getElementById("r_presente").innerHTML =
+    p==="sim"
+    ? "<b>Presente para:</b> "+document.getElementById("emailPresente").value
+    : "";
 
-  document.querySelector('.screen.active').classList.add('hideLeft');
-  document.querySelector('.screen.active').classList.remove('active');
-  document.getElementById("tela"+n).classList.add("active");
+  show('t3');
 }
 
-/* -----------------------------------------------------------
-                         PIX
------------------------------------------------------------ */
-function copiarPix(){
+/* ---------------------------------------------------
+             AO CLICAR "ENVIAR E REALIZAR PAGAMENTO"
+--------------------------------------------------- */
+function validateT3(){
+
+  // ENVIA PARA PLANILHA
+  fetch("URL_DO_WEBAPP",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      acao:"registrar",
+      valor:valor,
+      nomeComprador:document.getElementById("nome").value,
+      emailComprador:document.getElementById("emailComprador").value,
+      whats:document.getElementById("whats").value,
+      presente:document.getElementById("presente").value,
+      emailPresente:document.getElementById("emailPresente").value
+    })
+  })
+  .then(r=>r.json())
+  .then(res=>{
+
+    document.getElementById("emailsResumo").innerHTML =
+      "<b>E-mails cadastrados:</b><br>"+
+      document.getElementById("emailComprador").value+
+      (document.getElementById("presente").value==="sim"
+        ? "<br>"+document.getElementById("emailPresente").value
+        : "");
+
+    show('t4');
+
+    // Libera PIX
+    document.getElementById("pixArea").style.display = "block";
+  });
+}
+
+/* ---------------------------------------------------
+                    PIX
+--------------------------------------------------- */
+function copyPix(){
   navigator.clipboard.writeText(
     document.getElementById("pixCode").innerText
   );
   alert("Chave copiada!");
 }
 
-/* -----------------------------------------------------------
-                         RESET
------------------------------------------------------------ */
-function reset(){ location.reload(); }
+/* ---------------------------------------------------
+                    RESET
+--------------------------------------------------- */
+function resetAll(){
+  location.reload();
+}
 
 </script>
 
