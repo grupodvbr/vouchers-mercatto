@@ -2,87 +2,80 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Voucher – Grupo DV</title>
+<title>Voucher • Grupo DV</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <style>
 
-/* ============================ */
-/*        TEMA PREMIUM          */
-/* ============================ */
+/* =============================== */
+/* TEMA PREMIUM PRETO + DOURADO */
+/* =============================== */
 :root{
-  --bg:#0a0a0a;
-  --card:#151515;
+  --bg:#0b0b0b;
+  --card:#171717;
   --gold:#d4af37;
   --gold2:#b88e1a;
   --white:#f5f5f5;
   --radius:14px;
-  --shadow:0 6px 18px rgba(0,0,0,.45);
+  --shadow:0 6px 18px rgba(0,0,0,.4);
 }
 
-/* ============================ */
-/*        BASE GERAL            */
-/* ============================ */
 body{
   margin:0;
+  padding:0;
   background:var(--bg);
   font-family:'Inter',sans-serif;
   color:white;
-  -webkit-tap-highlight-color:transparent;
   overflow-x:hidden;
 }
 
+/* =============================== */
+/* TELAS PASSO A PASSO */
+/* =============================== */
 .screen{
   display:none;
-  padding:20px;
+  padding:22px;
   animation:fade .25s ease;
 }
 .screen.active{ display:block; }
 
-@keyframes fade{ from{opacity:.2;} to{opacity:1;} }
+@keyframes fade{ from{opacity:0;} to{opacity:1;} }
 
-/* ============================ */
-/*    TITULOS E SUBTITULOS      */
-/* ============================ */
+/* =============================== */
 .title{
-  text-align:center;
   font-size:20px;
-  color:var(--gold);
   font-weight:700;
-  margin-bottom:6px;
+  text-align:center;
+  color:var(--gold);
 }
 .subtitle{
   text-align:center;
   font-size:13px;
-  color:#bbb;
-  margin-bottom:18px;
+  color:#bcbcbc;
+  margin-bottom:20px;
 }
 
-/* ============================ */
-/*            BOTÕES            */
-/* ============================ */
+/* =============================== */
 .btn{
   width:100%;
   padding:12px;
-  margin-top:16px;
-  font-size:16px;
-  font-weight:700;
   border:none;
   border-radius:var(--radius);
   background:var(--gold);
+  font-size:16px;
+  font-weight:700;
   color:black;
+  margin-top:16px;
 }
 .btn:hover{ background:var(--gold2); }
 
 .btnBack{
-  background:#444;
+  background:#333;
   color:white;
 }
 
-/* ============================ */
-/*           CAMPOS             */
-/* ============================ */
-input, select{
+/* =============================== */
+input,select{
   width:100%;
   padding:11px;
   margin-top:14px;
@@ -94,56 +87,44 @@ input, select{
   outline:none;
 }
 
-/* ============================ */
-/*            VALORES           */
-/* ============================ */
+/* =============================== */
 .values{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:10px;
 }
-
 .cardValor{
   background:var(--card);
   border:2px solid var(--gold);
+  padding:12px 0;
   border-radius:var(--radius);
-  padding:14px 0;
   text-align:center;
   font-size:18px;
-  font-weight:600;
   cursor:pointer;
-  transition:.25s;
 }
-.cardValor:hover{ background:#222; }
 .cardValor.sel{
   background:var(--gold);
   color:black;
 }
 
-/* ============================ */
-/*         CAIXA RESUMO         */
-/* ============================ */
+/* =============================== */
 .box{
   background:var(--card);
-  padding:16px;
   border-radius:var(--radius);
   border:2px solid var(--gold);
+  padding:16px;
   box-shadow:var(--shadow);
-  margin-bottom:16px;
 }
 .box h3{
   text-align:center;
-  margin:0 0 10px;
   color:var(--gold);
+  margin-top:0;
 }
-.line{
-  font-size:15px;
-  margin-bottom:5px;
-}
+.line{ font-size:15px; margin-bottom:6px; }
 
-/* ============================ */
-/*       OVERLAY LOADING        */
-/* ============================ */
+/* =============================== */
+/* OVERLAY DE LOADING */
+/* =============================== */
 .overlay{
   position:fixed;
   top:0; left:0;
@@ -152,32 +133,30 @@ input, select{
   display:none;
   justify-content:center;
   align-items:center;
-  z-index:999;
+  z-index:900;
 }
 .loader{
-  width:55px;
-  height:55px;
-  border:5px solid var(--gold2);
+  width:50px;
+  height:50px;
+  border:4px solid var(--gold2);
   border-top-color:var(--gold);
   border-radius:50%;
   animation:spin .8s linear infinite;
 }
-@keyframes spin{ to{ transform:rotate(360deg);} }
+@keyframes spin{ to{transform:rotate(360deg);} }
 
 </style>
 </head>
 <body>
 
-<!-- ========================= -->
-<!--   OVERLAY LOADING         -->
-<!-- ========================= -->
+<!-- OVERLAY -->
 <div class="overlay" id="overlay">
   <div class="loader"></div>
 </div>
 
-<!-- ========================= -->
-<!--    TELA 1 — VALOR         -->
-<!-- ========================= -->
+<!-- =============================== -->
+<!-- TELA 1 — VALOR -->
+<!-- =============================== -->
 <div class="screen active" id="t1">
   <div class="title">1º Passo</div>
   <div class="subtitle">Escolha o valor do voucher</div>
@@ -192,25 +171,25 @@ input, select{
   </div>
 </div>
 
-<!-- ========================= -->
-<!--   TELA 1b — OUTRO VALOR   -->
-<!-- ========================= -->
+<!-- =============================== -->
+<!-- TELA 1B — OUTRO VALOR -->
+<!-- =============================== -->
 <div class="screen" id="t1b">
-  <div class="title">Informe o valor</div>
+  <div class="title">Digite o valor</div>
   <input id="outroValor" inputmode="numeric" oninput="maskValor(this)">
   <button class="btn" onclick="confirmarOutro()">Confirmar</button>
   <button class="btn btnBack" onclick="show('t1')">Voltar</button>
 </div>
 
-<!-- ========================= -->
-<!--     TELA 2 — DADOS        -->
-<!-- ========================= -->
+<!-- =============================== -->
+<!-- TELA 2 — DADOS -->
+<!-- =============================== -->
 <div class="screen" id="t2">
   <div class="title">2º Passo</div>
-  <div class="subtitle">Preencha seus dados</div>
+  <div class="subtitle">Insira seus dados</div>
 
   <input id="nome" placeholder="Nome completo">
-  <input id="whats" inputmode="numeric" placeholder="WhatsApp" oninput="maskWhats(this)">
+  <input id="whats" placeholder="WhatsApp" inputmode="numeric" oninput="maskWhats(this)">
   <input id="emailComprador" placeholder="Seu e-mail">
 
   <select id="presente" onchange="togglePresente()">
@@ -225,12 +204,12 @@ input, select{
   <button class="btn btnBack" onclick="show('t1')">Voltar</button>
 </div>
 
-<!-- ========================= -->
-<!--     TELA 3 — REVISÃO      -->
-<!-- ========================= -->
+<!-- =============================== -->
+<!-- TELA 3 — REVISÃO -->
+<!-- =============================== -->
 <div class="screen" id="t3">
   <div class="title">3º Passo</div>
-  <div class="subtitle">Revise suas informações</div>
+  <div class="subtitle">Revise as informações</div>
 
   <div class="box">
     <h3>Resumo</h3>
@@ -240,26 +219,26 @@ input, select{
     <div class="line" id="r_presente"></div>
   </div>
 
-  <button class="btn" onclick="registrarVoucher()">Enviar e Realizar Pagamento</button>
+  <button class="btn" onclick="registrarGAS()">Enviar e Realizar Pagamento</button>
   <button class="btn btnBack" onclick="show('t2')">Voltar</button>
 </div>
 
-<!-- ========================= -->
-<!--     TELA 4 — PIX          -->
-<!-- ========================= -->
+<!-- =============================== -->
+<!-- TELA 4 — PIX -->
+<!-- =============================== -->
 <div class="screen" id="t4">
   <div class="title">Pagamento PIX</div>
 
   <div class="box">
     <h3>Voucher Registrado</h3>
-    <div class="line">Realize o pagamento para ativar o voucher.</div>
+    <div class="line">Realize o pagamento para ativar:</div>
     <div class="line" id="resumoEmails"></div>
   </div>
 
   <div class="box">
     <h3>CHAVE PIX</h3>
     <div class="line" id="pixCode">SUA_CHAVE_PIX_AQUI</div>
-    <button class="btn" onclick="copyPix()">Copiar</button>
+    <button class="btn" onclick="copyPix()">Copiar chave</button>
   </div>
 
   <button class="btn btnBack" onclick="resetAll()">Voltar ao início</button>
@@ -269,17 +248,13 @@ input, select{
 
 let valor = 0;
 
-/* --------------------------
-      CONTROLE DE TELAS
---------------------------- */
+/* -------------------------------------- */
 function show(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 
-/* --------------------------
-        SELEÇÃO VALOR
---------------------------- */
+/* -------------------------------------- */
 function selectValor(v){
   valor = v;
   document.querySelectorAll('.cardValor').forEach(c=>c.classList.remove('sel'));
@@ -294,33 +269,23 @@ function maskValor(i){
 }
 
 function confirmarOutro(){
-  let v = document.getElementById("outroValor").value;
-  valor = Number(v.replace(/\D/g,""))/100;
+  valor = Number(outroValor.value.replace(/\D/g,""))/100;
   show('t2');
 }
 
-/* --------------------------
-       DADOS / PRESENTE
---------------------------- */
-function togglePresente(){
-  document.getElementById("emailPresente").style.display =
-    document.getElementById("presente").value==="sim" ? "block" : "none";
-}
-
+/* -------------------------------------- */
 function maskWhats(i){
   let v = i.value.replace(/\D/g,"");
-
-  if(v.length > 11) v = v.slice(0,11);
-
   v = v.replace(/^(\d{2})(\d)/,"($1) $2");
   v = v.replace(/(\d{5})(\d)/,"$1-$2");
-
   i.value = v;
 }
 
-/* --------------------------
-         VALIDAR TELA 2
---------------------------- */
+function togglePresente(){
+  emailPresente.style.display = presente.value==="sim" ? "block" : "none";
+}
+
+/* -------------------------------------- */
 function validateT2(){
   if(!nome.value || !whats.value || !emailComprador.value){
     alert("Preencha todos os campos.");
@@ -331,29 +296,32 @@ function validateT2(){
   r_nome.innerHTML = "<b>Nome:</b> "+nome.value;
   r_email.innerHTML = "<b>Email:</b> "+emailComprador.value;
 
-  if(presente.value==="sim"){
-    r_presente.innerHTML = "<b>Presente para:</b> "+emailPresente.value;
-  } else r_presente.innerHTML = "";
+  r_presente.innerHTML = presente.value==="sim"
+    ? "<b>Presente para:</b> "+emailPresente.value
+    : "";
 
   show('t3');
 }
 
-/* --------------------------
-        REGISTRAR NO GAS
---------------------------- */
-function registrarVoucher(){
+/* -------------------------------------- */
+/* AQUI VOCÊ COLOCA A URL DO GAS  ↓↓↓↓↓  */
+/* -------------------------------------- */
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzgMEe4P3xHvl0O_ATKTWdlE44u5joX6AYuazrlnMB3Wup2Mg7aKZL1K0VAfR4gxY0upA/exec";
 
-  document.getElementById("overlay").style.display="flex";
+/* -------------------------------------- */
+function registrarGAS(){
 
-  fetch("https://script.google.com/macros/s/AKfycbxqXaN_o3M5SkFsIdEEIHL2SdCSfxtE4TZRJTszFMt5qyjbvnCWAkFPoIE7X5B0YcwYdQ/exec",{
+  overlay.style.display="flex";
+
+  fetch(GAS_URL,{
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({
       acao:"registrar",
       valor,
       nomeComprador:nome.value,
-      emailComprador:emailComprador.value,
       whats:whats.value,
+      emailComprador:emailComprador.value,
       presente:presente.value,
       emailPresente:emailPresente.value
     })
@@ -361,28 +329,24 @@ function registrarVoucher(){
   .then(r=>r.json())
   .then(res=>{
 
-    document.getElementById("overlay").style.display="none";
+    overlay.style.display="none";
 
     resumoEmails.innerHTML =
       "<b>E-mails cadastrados:</b><br>"+
       emailComprador.value+
-      (presente.value==="sim"?"<br>"+emailPresente.value:"");
+      (presente.value==="sim" ? "<br>"+emailPresente.value : "");
 
-    show("t4");
+    show('t4');
   });
 }
 
-/* --------------------------
-              PIX
---------------------------- */
+/* -------------------------------------- */
 function copyPix(){
   navigator.clipboard.writeText(pixCode.innerText);
-  alert("Chave copiada!");
+  alert("Chave PIX copiada!");
 }
 
-/* --------------------------
-         RESET TOTAL
---------------------------- */
+/* -------------------------------------- */
 function resetAll(){ location.reload(); }
 
 </script>
