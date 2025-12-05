@@ -1,38 +1,50 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>Vouchers • Sistema Premium</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<title>Voucher • Grupo DV</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+
 <style>
 
-/* ========================== */
-/* PALETA PRETO + DOURADO */
-/* ========================== */
-:root {
-  --preto:#0e0e0e;
+/* ================================
+   PALETA PREMIUM PRETO + DOURADO
+================================ */
+:root{
+  --preto:#0c0c0c;
   --preto2:#1a1a1a;
   --dourado:#d4af37;
   --dourado2:#b8921a;
-  --texto:#f7f7f7;
+  --texto:#f8f8f8;
   --radius:18px;
-  --shadow:0 8px 25px rgba(0,0,0,.35);
+  --shadow:0 10px 30px rgba(0,0,0,0.35);
 }
 
 body{
   margin:0;
   background:var(--preto);
-  color:var(--texto);
   font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color:var(--texto);
 }
 
-/* ========================== */
-/* BANNER COM VÍDEO */
-/* ========================== */
+/* ================================
+   INSTRUÇÕES (PASSOS)
+================================ */
+.passos{
+  padding:18px;
+  text-align:center;
+  font-size:18px;
+  color:var(--dourado);
+  font-weight:600;
+}
 
+/* ================================
+   BANNER
+================================ */
 .banner{
   width:100%;
-  height:220px;
+  height:190px;
   background:#000;
   overflow:hidden;
 }
@@ -43,40 +55,41 @@ body{
   object-fit:cover;
 }
 
-/* ========================== */
-/* TÍTULO */
-/* ========================== */
+/* ================================
+   TÍTULO SEÇÃO
+================================ */
 h2{
   text-align:center;
-  margin:25px 0 10px;
-  font-size:26px;
+  margin:18px 0 5px;
   color:var(--dourado);
+  font-size:22px;
 }
 
-/* ========================== */
-/* CARDS DE VALOR */
-/* ========================== */
+/* ================================
+   VALORES
+================================ */
 .valores{
+  padding:16px;
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:15px;
-  padding:20px;
+  gap:14px;
 }
 
 .cardValor{
   background:var(--preto2);
   border:2px solid var(--dourado);
   border-radius:var(--radius);
-  padding:18px;
   text-align:center;
-  font-size:22px;
+  padding:16px;
+  font-size:20px;
   font-weight:600;
-  cursor:pointer;
+  user-select:none;
   transition:.2s;
 }
 
 .cardValor:hover{
   background:var(--dourado2);
+  color:#000;
 }
 
 .cardValor.selecionado{
@@ -84,9 +97,9 @@ h2{
   color:#000;
 }
 
-/* ========================== */
-/* POPUP BASE */
-/* ========================== */
+/* ================================
+   POPUP GENÉRICO
+================================ */
 .popup{
   position:fixed;
   top:0; left:0;
@@ -94,102 +107,124 @@ h2{
   display:none;
   justify-content:center;
   align-items:center;
-  backdrop-filter:blur(6px);
   background:rgba(0,0,0,.55);
+  backdrop-filter:blur(6px);
   z-index:50;
 }
 
 .popupBox{
+  width:90%;
+  max-width:420px;
   background:var(--preto2);
   border:2px solid var(--dourado);
   border-radius:var(--radius);
-  padding:25px;
-  width:85%;
-  max-width:420px;
+  padding:22px;
+  color:white;
   box-shadow:var(--shadow);
 }
 
 .popupBox h3{
   margin-top:0;
-  color:var(--dourado);
   text-align:center;
+  color:var(--dourado);
 }
 
 input, select{
   width:100%;
   padding:14px;
-  margin-top:10px;
+  background:#000;
   border-radius:var(--radius);
   border:2px solid var(--dourado);
-  background:#000;
-  color:#fff;
-  font-size:17px;
-  outline:none;
+  font-size:18px;
+  color:white;
+  margin-top:12px;
 }
 
 button{
   width:100%;
-  padding:15px;
+  padding:14px;
   margin-top:15px;
   border-radius:var(--radius);
-  border:none;
   font-size:18px;
-  font-weight:bold;
+  font-weight:600;
+  border:none;
   cursor:pointer;
   background:var(--dourado);
   color:#000;
 }
 
-/* ========================== */
-.termo{
-  text-align:center;
-  margin:20px 0;
-  font-size:14px;
-  color:var(--dourado);
-  text-decoration:underline;
-  cursor:pointer;
-}
-
-/* ========================== */
-/* TELA DE PAGAMENTO */
-/* ========================== */
+/* ================================
+   TELA DE PAGAMENTO
+================================ */
 .pagamento{
   display:none;
-  padding:25px;
+  padding:18px;
+}
+
+.voucher{
+  background:var(--preto2);
+  padding:20px;
+  border-radius:var(--radius);
+  border:2px solid var(--dourado);
+  margin-bottom:20px;
+  text-align:center;
+  box-shadow:var(--shadow);
+}
+
+.voucher h3{
+  color:var(--dourado);
+  margin:0;
+}
+
+.voucher small{
+  font-size:14px;
+  color:#aaa;
 }
 
 .pixBox{
   background:var(--preto2);
+  padding:20px;
   border:2px solid var(--dourado);
   border-radius:var(--radius);
-  padding:20px;
   text-align:center;
 }
 
-.pixBox h3{
-  color:var(--dourado);
-  margin-top:0;
-}
-
-#copyPix{
-  margin-top:12px;
+/* ================================
+   BOTÕES
+================================ */
+.cancelar{
+  background:#a80000 !important;
+  color:white !important;
+  margin-top:25px;
 }
 
 </style>
-
 </head>
 <body>
 
-<!-- ================ BANNER VIDEO ================= -->
+<!-- ================================
+        PASSOS
+================================ -->
+<div class="passos">
+  1º Selecione o valor <br>
+  2º Preencha os dados <br>
+  3º Realize o pagamento
+</div>
+
+<!-- ================================
+        BANNER
+================================ -->
 <div class="banner">
   <video autoplay muted loop>
     <source src="video.mp4" type="video/mp4">
   </video>
 </div>
 
-<h2>Escolha o valor do voucher</h2>
+<!-- ================================
+        SELEÇÃO DE VALORES
+================================ -->
+<h2>Escolha o valor</h2>
 
-<!-- ================ CARDS VALORES ================= -->
 <div class="valores">
   <div class="cardValor" onclick="selectValor(50)">R$ 50</div>
   <div class="cardValor" onclick="selectValor(80)">R$ 80</div>
@@ -199,150 +234,218 @@ button{
   <div class="cardValor" onclick="outroValor()">Outro valor</div>
 </div>
 
-<div class="termo" onclick="openPopup('popupTermo')">Termos e Condições</div>
-
-<!-- ============================================================= -->
-<!-- POPUP: OUTRO VALOR -->
-<!-- ============================================================= -->
+<!-- ================================
+      POPUP OUTRO VALOR
+================================ -->
 <div class="popup" id="popupOutro">
   <div class="popupBox">
-    <h3>Digite o valor</h3>
-    <input type="text" id="inputOutroValor" oninput="mascaraValor(this)" inputmode="numeric">
-    <button onclick="confirmarOutroValor()">Confirmar</button>
+    <h3>Informe o valor</h3>
+    <input id="inputOutro" inputmode="numeric" oninput="maskValor(this)">
+    <button onclick="confirmarOutro()">Confirmar</button>
     <button onclick="closePopup('popupOutro')">Cancelar</button>
   </div>
 </div>
 
-<!-- ============================================================= -->
-<!-- POPUP: TERMOS -->
-<!-- ============================================================= -->
-<div class="popup" id="popupTermo">
-  <div class="popupBox" style="max-height:70vh; overflow:auto;">
-    <h3>Termos e Condições</h3>
-    <p>Lorem ipsum dolor sit amet... (você insere o termo completo depois)</p>
-    <button onclick="closePopup('popupTermo')">Fechar</button>
-  </div>
-</div>
-
-<!-- ============================================================= -->
-<!-- POPUP: DADOS DO COMPRADOR -->
-<!-- ============================================================= -->
+<!-- ================================
+      POPUP DADOS
+================================ -->
 <div class="popup" id="popupDados">
   <div class="popupBox">
     <h3>Seus dados</h3>
-    <input id="nomeComprador" type="text" placeholder="Nome completo">
-    <input id="whatsComprador" type="text" placeholder="WhatsApp" oninput="mascaraWhats(this)">
-    <select id="presente" onchange="toggleEmailPresente()">
+
+    <input id="nome" placeholder="Nome completo">
+    <input id="whats" placeholder="WhatsApp" oninput="maskWhats(this)">
+
+    <select id="presente" onchange="togglePresente()">
       <option value="">É presente?</option>
       <option value="nao">Não</option>
       <option value="sim">Sim</option>
     </select>
-    <input id="emailPresente" type="email" placeholder="Email de quem receberá" style="display:none;">
+
+    <input id="emailPresente" placeholder="Email do presenteado" style="display:none;">
+
     <button onclick="finalizarDados()">Continuar</button>
   </div>
 </div>
 
-<!-- ============================================================= -->
-<!-- TELA PAGAMENTO -->
-<!-- ============================================================= -->
+<!-- ================================
+       TELA PAGAMENTO FINAL
+================================ -->
 <div class="pagamento" id="telaPagamento">
-  <div class="pixBox">
-    <h3>Pagamento via PIX</h3>
-    <p id="valorFinal"></p>
-    <p><b>Chave PIX:</b></p>
-    <p id="pixCode">SUACHAVEPIX_AQUI</p>
-    <button id="copyPix" onclick="copyPix()">Copiar chave</button>
-    <br><br>
-    <p>Código do Voucher:</p>
-    <p><b id="codigoVoucher"></b></p>
+
+  <!-- VOUCHER -->
+  <div class="voucher" onclick="editarDados()">
+    <h3>Voucher</h3>
+    <p id="voucherValor"></p>
+    <p id="voucherNome"></p>
+    <p id="voucherPresente"></p>
+    <small>Toque para editar os dados</small>
   </div>
+
+  <!-- CHAVE PIX -->
+  <div class="pixBox">
+    <h3>Pague via PIX</h3>
+    <p id="pixCode">SUA_CHAVE_PIX_AQUI</p>
+    <button onclick="copiarPix()">Copiar chave</button>
+  </div>
+
+  <button class="cancelar" onclick="cancelar()">Cancelar e voltar ao início</button>
+
 </div>
 
-<!-- ============================================================= -->
-<!-- SCRIPTS -->
-<!-- ============================================================= -->
+<!-- ================================
+         SCRIPTS
+================================ -->
 <script>
 
-let valorSelecionado = 0;
+let valor = 0;
+let codigoGerado = "";
 
-/* ============ Seleção de valor sugerido ============ */
+/* -----------------------
+   Seleção valor
+----------------------- */
 function selectValor(v){
-  document.querySelectorAll(".cardValor").forEach(c => c.classList.remove("selecionado"));
+  valor = v;
+  document.querySelectorAll(".cardValor").forEach(c=>c.classList.remove("selecionado"));
   event.target.classList.add("selecionado");
-  valorSelecionado = v;
   openPopup("popupDados");
 }
 
-/* ============ Outro valor ============ */
+/* -----------------------
+   Outro valor
+----------------------- */
 function outroValor(){
   openPopup("popupOutro");
-  setTimeout(()=>document.getElementById("inputOutroValor").focus(),300);
+  setTimeout(()=>document.getElementById("inputOutro").focus(),300);
 }
 
-/* ============ Máscara de valor ============ */
-function mascaraValor(i){
+function maskValor(i){
   let v = i.value.replace(/\D/g,"");
   v = (v/100).toFixed(2)+"";
   v = v.replace(".",",");
   i.value = "R$ " + v;
 }
 
-/* ============ Confirmar outro valor digitado ============ */
-function confirmarOutroValor(){
-  let campo = document.getElementById("inputOutroValor").value;
-  if(!campo){return;}
-  valorSelecionado = Number(campo.replace(/\D/g,""))/100;
+function confirmarOutro(){
+  let v = document.getElementById("inputOutro").value;
+  if(!v){return;}
+  valor = Number(v.replace(/\D/g,""))/100;
   closePopup("popupOutro");
   openPopup("popupDados");
 }
 
-/* ============ Popups ============ */
+/* -----------------------
+   Popups
+----------------------- */
 function openPopup(id){ document.getElementById(id).style.display="flex"; }
 function closePopup(id){ document.getElementById(id).style.display="none"; }
 
-/* ============ WhatsApp máscara ============ */
-function mascaraWhats(i){
+/* -----------------------
+   WhatsApp máscara
+----------------------- */
+function maskWhats(i){
   let v = i.value.replace(/\D/g,"");
   v = v.replace(/^(\d{2})(\d)/g,"($1) $2");
   v = v.replace(/(\d{5})(\d)/,"$1-$2");
   i.value = v;
 }
 
-/* ============ Mostrar campo email se presente ============ */
-function toggleEmailPresente(){
-  let sel = document.getElementById("presente").value;
-  document.getElementById("emailPresente").style.display = sel === "sim" ? "block" : "none";
+/* -----------------------
+   Exibir campo presente
+----------------------- */
+function togglePresente(){
+  let s = document.getElementById("presente").value;
+  document.getElementById("emailPresente").style.display = s==="sim" ? "block" : "none";
 }
 
-/* ============ Finalizar dados e mostrar pagamento ============ */
+/* -----------------------
+   Finalizar dados
+----------------------- */
 function finalizarDados(){
-  const nome = document.getElementById("nomeComprador").value;
-  const whats = document.getElementById("whatsComprador").value;
+
+  const nome = document.getElementById("nome").value;
+  const whats = document.getElementById("whats").value;
+
   if(!nome || !whats){
-    alert("Preencha seu nome e WhatsApp.");
+    alert("Preencha nome e WhatsApp.");
     return;
   }
 
-  // gerar código do voucher
-  let codigo = "VCH-" + Math.random().toString(36).substring(2,8).toUpperCase();
+  // Solicitar código ao GAS
+  fetch("URL_DO_SEU_WEBAPP",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({ acao:"gerarCodigo" })
+  })
+  .then(r=>r.json())
+  .then(res=>{
 
-  document.getElementById("valorFinal").innerHTML = 
-    "<b>Voucher de:</b> R$ "+valorSelecionado.toFixed(2).replace(".",",");
+    codigoGerado = res.codigo;
 
-  document.getElementById("codigoVoucher").innerText = codigo;
+    // Registrar na planilha como pendente
+    fetch("URL_DO_SEU_WEBAPP",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        acao:"registrar",
+        valor:valor,
+        nomeComprador:nome,
+        whats:whats,
+        presente:document.getElementById("presente").value,
+        emailPresente:document.getElementById("emailPresente").value,
+        codigo:codigoGerado
+      })
+    });
 
-  closePopup("popupDados");
-  document.getElementById("telaPagamento").style.display="block";
-
-  // TODO: enviar para GAS
+    // Mostrar pagamento
+    mostrarPagamento();
+  });
 }
 
-/* ============ Copiar PIX ============ */
-function copyPix(){
+/* -----------------------
+   Mostrar pagamento
+----------------------- */
+function mostrarPagamento(){
+
+  document.getElementById("voucherValor").innerHTML =
+    "<b>Valor:</b> R$ "+valor.toFixed(2).replace(".",",");
+
+  document.getElementById("voucherNome").innerHTML =
+    "<b>Comprador:</b> "+document.getElementById("nome").value;
+
+  const pre = document.getElementById("presente").value;
+  if(pre==="sim"){
+    document.getElementById("voucherPresente").innerHTML =
+      "<b>Presente para:</b> "+document.getElementById("emailPresente").value;
+  } else {
+    document.getElementById("voucherPresente").innerHTML = "";
+  }
+
+  document.getElementById("telaPagamento").style.display="block";
+}
+
+/* -----------------------
+   Editar dados tocando no voucher
+----------------------- */
+function editarDados(){
+  openPopup("popupDados");
+}
+
+/* -----------------------
+   Copiar PIX
+----------------------- */
+function copiarPix(){
   navigator.clipboard.writeText(
     document.getElementById("pixCode").innerText
   );
-  alert("Chave PIX copiada!");
+  alert("Chave copiada!");
+}
+
+/* -----------------------
+   Cancelar tudo
+----------------------- */
+function cancelar(){
+  location.reload();
 }
 
 </script>
