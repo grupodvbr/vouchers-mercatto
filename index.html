@@ -31,7 +31,7 @@ body{
 /* ======================== */
 .screen{
   display:none;
-  padding:18px;
+  padding:16px;
   animation:fade .25s ease;
 }
 .screen.active{ display:block; }
@@ -44,19 +44,20 @@ body{
   color:var(--gold);
   font-size:20px;
   font-weight:600;
+  margin-bottom:2px;
 }
 .subtitle{
   text-align:center;
   font-size:13px;
   color:#aaa;
-  margin-bottom:15px;
+  margin-bottom:12px;
 }
 
 /* ======================== */
 input,select{
   width:100%;
-  padding:9px;
-  margin-top:12px;
+  padding:8px;
+  margin-top:10px;
   background:var(--card);
   border:2px solid var(--gold);
   border-radius:var(--radius);
@@ -66,20 +67,25 @@ input,select{
 }
 
 /* ======================== */
+/*    CARDS DE VALOR        */
+/* ======================== */
 .values{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:10px;
+  gap:8px;
 }
+
 .cardValor{
-  padding:12px 0;
+  padding:8px 0;              /* REDUZIDO */
   background:var(--card);
   border:2px solid var(--gold);
   border-radius:var(--radius);
   text-align:center;
-  font-size:17px;
+  font-size:17px;             /* MANTÉM A FONTE */
   cursor:pointer;
+  transition:.25s;
 }
+
 .cardValor.sel{
   background:var(--gold);
   color:black;
@@ -88,7 +94,7 @@ input,select{
 /* ======================== */
 .btn{
   width:100%;
-  padding:12px;
+  padding:11px;
   margin-top:14px;
   border:none;
   background:var(--gold);
@@ -105,14 +111,14 @@ input,select{
 /* ======================== */
 .box{
   background:var(--card);
-  padding:14px;
+  padding:12px;
   border-radius:var(--radius);
   border:2px solid var(--gold);
 }
 .box h3{
   text-align:center;
   color:var(--gold);
-  margin:0 0 10px;
+  margin:0 0 8px;
 }
 .line{ font-size:14px; }
 
@@ -128,9 +134,9 @@ input,select{
   z-index:999;
 }
 .loader{
-  width:45px;
-  height:45px;
-  border:5px solid #555;
+  width:40px;
+  height:40px;
+  border:4px solid #555;
   border-top-color:var(--gold);
   border-radius:50%;
   animation:spin .7s linear infinite;
@@ -147,6 +153,12 @@ input,select{
   display:none;
   font-size:14px;
   text-align:center;
+}
+
+/* EVITA ESTICAR NA HORIZONTAL */
+*{
+  max-width:100%;
+  box-sizing:border-box;
 }
 
 </style>
@@ -268,8 +280,6 @@ input,select{
 let valor = 0;
 
 /* =========================== */
-/* FUNÇÕES DE TELAS */
-/* =========================== */
 function show(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -329,7 +339,7 @@ function validateT2(){
 }
 
 /* =========================== */
-/* AQUI COLOCA A URL DO GAS   */
+/* GAS URL COMPATÍVEL COM SEU GAS */
 /* =========================== */
 const GAS_URL = "https://script.google.com/macros/s/AKfycbwJeulKcK4qjOGxgGzIysvb0QRInLXzJcnq2x5J-A4pmEdUAv6wuA5JwiUwG8NgZNln/exec";
 
