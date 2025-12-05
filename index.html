@@ -1,179 +1,91 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <title>Voucher • Grupo DV</title>
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
 <style>
 
-/* ============================================================
-                    TEMA BLACK & GOLD PREMIUM
-============================================================ */
+/* -----------------------------------------------------------
+                      PALETA PREMIUM
+----------------------------------------------------------- */
 :root{
-  --black:#0b0b0b;
-  --black2:#141414;
+  --preto:#0a0a0a;
+  --preto2:#141414;
   --gold:#d4af37;
-  --gold2:#b9931a;
+  --gold2:#b88e1a;
   --white:#f5f5f5;
   --radius:20px;
-  --shadow:0 10px 35px rgba(0,0,0,.55);
-  --transition:all .25s ease;
+  --shadow:0 10px 30px rgba(0,0,0,.4);
+  --transition:.35s cubic-bezier(0.17, 0.84, 0.44, 1);
 }
 
 body{
   margin:0;
   padding:0;
-  background:var(--black);
-  font-family:'Inter',sans-serif;
-  color:var(--white);
-  -webkit-tap-highlight-color:transparent;
-}
-
-/* ============================================================
-                            HEADER
-============================================================ */
-.header{
-  text-align:center;
-  padding:20px 16px 0;
-  font-size:22px;
-  font-weight:600;
-  color:var(--gold);
-  letter-spacing:.5px;
-}
-
-/* ============================================================
-                         PASSOS (ETAPAS)
-============================================================ */
-.steps{
-  margin-top:10px;
-  padding:0 16px;
-  text-align:center;
-  font-size:15px;
-  color:#cfcfcf;
-  line-height:1.6;
-}
-
-/* ============================================================
-                           BANNER
-============================================================ */
-.banner{
-  width:100%;
-  height:220px;
-  border-radius:0 0 18px 18px;
+  background:var(--preto);
+  font-family:"Inter",sans-serif;
+  color:white;
   overflow:hidden;
-  margin-top:16px;
-  box-shadow:var(--shadow);
 }
 
-.banner video{
+/* -----------------------------------------------------------
+                     SISTEMA DE TELAS
+----------------------------------------------------------- */
+.screen{
   width:100%;
-  height:100%;
-  object-fit:cover;
-}
-
-/* ============================================================
-                       SEÇÃO DE VALORES
-============================================================ */
-.sectionTitle{
-  text-align:center;
-  margin:25px 0 15px;
-  font-size:20px;
-  color:var(--gold);
-  font-weight:600;
-}
-
-.valores{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:14px;
-  padding:0 18px 40px;
-}
-
-.valueCard{
-  background:var(--black2);
-  border:2px solid var(--gold);
-  border-radius:var(--radius);
-  padding:20px 0;
-  text-align:center;
-  font-size:20px;
-  font-weight:600;
-  cursor:pointer;
+  height:100vh;
+  position:absolute;
+  top:0;
+  left:100%;
+  background:var(--preto);
+  padding:25px 20px;
+  overflow-y:auto;
   transition:var(--transition);
 }
 
-.valueCard:hover{
-  background:var(--gold2);
-  color:black;
+.screen.active{
+  left:0;
 }
 
-.valueCard.selected{
-  background:var(--gold);
-  color:black;
+.screen.hideLeft{
+  left:-100%;
 }
 
-/* ============================================================
-                            POPUP
-============================================================ */
-.popup{
-  position:fixed;
-  top:0; left:0;
-  width:100%; height:100%;
-  background:rgba(0,0,0,.65);
-  backdrop-filter:blur(6px);
-  display:none;
-  justify-content:center;
-  align-items:center;
-  z-index:20;
-}
-
-.popupBox{
-  width:88%;
-  max-width:440px;
-  background:var(--black2);
-  border:2px solid var(--gold);
-  border-radius:var(--radius);
-  padding:25px;
-  animation:pop .25s ease;
-  box-shadow:var(--shadow);
-}
-
-@keyframes pop{
-  from{ transform:scale(.85); opacity:0; }
-  to{ transform:scale(1); opacity:1; }
-}
-
-.popupBox h3{
+/* -----------------------------------------------------------
+                         TÍTULOS
+----------------------------------------------------------- */
+.title{
   text-align:center;
-  margin-top:0;
   color:var(--gold);
-  font-size:20px;
+  font-size:26px;
+  margin-top:10px;
+  margin-bottom:20px;
+  font-weight:700;
 }
 
-input,select{
-  width:100%;
-  padding:14px;
-  margin-top:14px;
-  border-radius:var(--radius);
-  background:#000;
-  border:2px solid var(--gold);
-  color:white;
-  font-size:17px;
+.subtitle{
+  text-align:center;
+  font-size:15px;
+  color:#cfcfcf;
+  margin-bottom:30px;
 }
 
+/* -----------------------------------------------------------
+                    BOTÃO PRIMÁRIO
+----------------------------------------------------------- */
 .btn{
   width:100%;
-  padding:15px;
-  margin-top:18px;
-  border-radius:var(--radius);
-  border:none;
-  text-align:center;
-  font-size:18px;
-  font-weight:600;
-  cursor:pointer;
+  padding:16px;
   background:var(--gold);
   color:black;
+  font-size:18px;
+  font-weight:700;
+  border:none;
+  border-radius:var(--radius);
+  margin-top:25px;
+  cursor:pointer;
   transition:var(--transition);
 }
 
@@ -181,64 +93,97 @@ input,select{
   background:var(--gold2);
 }
 
-/* CANCELAR */
-.btnCancel{
-  background:#bb0000 !important;
-  color:white !important;
+/* -----------------------------------------------------------
+                         CARDS DE VALOR
+----------------------------------------------------------- */
+.values{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  margin-top:20px;
 }
 
-/* ============================================================
-                     TELA DE PAGAMENTO
-============================================================ */
-.paymentScreen{
-  display:none;
-  padding:18px;
-  margin-bottom:40px;
+.cardValor{
+  background:var(--preto2);
+  border:2px solid var(--gold);
+  border-radius:var(--radius);
+  padding:22px 0;
+  text-align:center;
+  font-size:22px;
+  font-weight:600;
+  cursor:pointer;
+  transition:var(--transition);
 }
 
-/* Voucher card */
-.voucher{
-  background:var(--black2);
+.cardValor:hover{
+  background:var(--gold2);
+}
+
+.cardValor.sel{
+  background:var(--gold);
+  color:black;
+}
+
+/* -----------------------------------------------------------
+                      CAMPOS DE ENTRADA
+----------------------------------------------------------- */
+input, select{
+  width:100%;
+  padding:16px;
+  margin-top:18px;
+  border-radius:var(--radius);
+  border:2px solid var(--gold);
+  background:var(--preto2);
+  font-size:17px;
+  color:white;
+  outline:none;
+}
+
+/* -----------------------------------------------------------
+                        VOUCHER CARD
+----------------------------------------------------------- */
+.voucherCard{
+  background:var(--preto2);
   border:2px solid var(--gold);
   border-radius:var(--radius);
   padding:22px;
-  margin-bottom:25px;
-  text-align:center;
+  margin-top:15px;
   box-shadow:var(--shadow);
-  cursor:pointer;
-  transition:.25s;
 }
 
-.voucher:hover{
-  background:#1f1f1f;
-}
-
-.voucher h3{
-  margin:0;
+.voucherCard h3{
+  margin-top:0;
   color:var(--gold);
-  font-size:20px;
+  text-align:center;
 }
 
-.infoLine{
-  margin-top:12px;
+.line{
+  margin:10px 0;
   font-size:17px;
-  color:#ddd;
 }
 
-/* PIX */
-.pix{
-  background:var(--black2);
+/* -----------------------------------------------------------
+                         PIX BOX
+----------------------------------------------------------- */
+.pixBox{
+  background:var(--preto2);
   border:2px solid var(--gold);
   border-radius:var(--radius);
-  padding:20px;
+  padding:22px;
   text-align:center;
+  margin-top:30px;
 }
 
 .pixCode{
-  margin:10px 0;
-  font-size:18px;
-  font-weight:600;
+  font-size:20px;
+  margin:15px 0;
   color:var(--gold);
+  font-weight:700;
+}
+
+.cancel{
+  background:#b00000 !important;
+  color:white !important;
 }
 
 </style>
@@ -246,199 +191,221 @@ input,select{
 <body>
 
 <!-- ============================================================
-                            HEADER
+                        TELA 1 — SELECIONAR VALOR
 ============================================================ -->
-<div class="header">VOUCHER PREMIUM</div>
-<div class="steps">
-  <b>1º</b> Selecione o valor <br>
-  <b>2º</b> Preencha os dados <br>
-  <b>3º</b> Realize o pagamento
-</div>
+<div class="screen active" id="tela1">
 
-<!-- ============================================================
-                            BANNER
-============================================================ -->
-<div class="banner">
-  <video autoplay muted loop>
-    <source src="video.mp4" type="video/mp4">
-  </video>
-</div>
+  <div class="title">1º Passo</div>
+  <div class="subtitle">Selecione o valor do voucher</div>
 
-<!-- ============================================================
-                     SEÇÃO DE VALORES
-============================================================ -->
-<div class="sectionTitle">Escolha o valor</div>
-
-<div class="valores">
-  <div class="valueCard" onclick="selectValor(50)">R$ 50</div>
-  <div class="valueCard" onclick="selectValor(80)">R$ 80</div>
-  <div class="valueCard" onclick="selectValor(100)">R$ 100</div>
-  <div class="valueCard" onclick="selectValor(150)">R$ 150</div>
-  <div class="valueCard" onclick="selectValor(200)">R$ 200</div>
-  <div class="valueCard" onclick="openPopup('popupOutro')">Outro Valor</div>
-</div>
-
-<!-- ============================================================
-                    POPUP OUTRO VALOR
-============================================================ -->
-<div class="popup" id="popupOutro">
-  <div class="popupBox">
-    <h3>Digite o valor</h3>
-    <input id="outroValor" inputmode="numeric" oninput="maskValor(this)">
-    <button class="btn" onclick="confirmarOutroValor()">Confirmar</button>
-    <button class="btn btnCancel" onclick="closePopup('popupOutro')">Fechar</button>
-  </div>
-</div>
-
-<!-- ============================================================
-                      POPUP DADOS
-============================================================ -->
-<div class="popup" id="popupDados">
-  <div class="popupBox">
-    <h3>Seus Dados</h3>
-
-    <input id="nome" placeholder="Nome completo">
-    <input id="whats" placeholder="WhatsApp" oninput="maskWhats(this)">
-
-    <select id="presentear" onchange="toggleEmail()">
-      <option value="">É presente?</option>
-      <option value="nao">Não</option>
-      <option value="sim">Sim</option>
-    </select>
-
-    <input id="emailPresente" placeholder="Email de quem vai receber" style="display:none;">
-
-    <button class="btn" onclick="finalizarDados()">Continuar</button>
-  </div>
-</div>
-
-<!-- ============================================================
-                     TELA DE PAGAMENTO
-============================================================ -->
-<div class="paymentScreen" id="telaPagamento">
-
-  <div class="voucher" onclick="editar()">
-    <h3>Voucher</h3>
-    <div class="infoLine" id="v_valor"></div>
-    <div class="infoLine" id="v_nome"></div>
-    <div class="infoLine" id="v_destino"></div>
-    <small style="color:#888;">Toque para editar</small>
+  <div class="values">
+    <div class="cardValor" onclick="selectValor(50)">R$ 50</div>
+    <div class="cardValor" onclick="selectValor(80)">R$ 80</div>
+    <div class="cardValor" onclick="selectValor(100)">R$ 100</div>
+    <div class="cardValor" onclick="selectValor(150)">R$ 150</div>
+    <div class="cardValor" onclick="selectValor(200)">R$ 200</div>
+    <div class="cardValor" onclick="outroValor()">Outro</div>
   </div>
 
-  <div class="pix">
-    <h3 style="color:var(--gold); margin:0;">Pagamento PIX</h3>
+</div>
+
+<!-- POPUP OUTRO VALOR -->
+<div class="screen" id="telaOutro">
+  <div class="title">Digite o valor</div>
+  <input id="campoOutro" inputmode="numeric" oninput="maskValor(this)">
+  <button class="btn" onclick="confirmarOutro()">Confirmar</button>
+  <button class="btn cancel" onclick="voltar(2)">Voltar</button>
+</div>
+
+<!-- ============================================================
+                        TELA 2 — DADOS
+============================================================ -->
+<div class="screen" id="tela2">
+
+  <div class="title">2º Passo</div>
+  <div class="subtitle">Preencha seus dados</div>
+
+  <input id="nome" placeholder="Nome completo">
+  <input id="whats" placeholder="WhatsApp" oninput="maskWhats(this)">
+
+  <select id="presente" onchange="toggleEmail()">
+    <option value="">É presente?</option>
+    <option value="nao">Não</option>
+    <option value="sim">Sim</option>
+  </select>
+
+  <input id="emailPresente" placeholder="Email de quem vai receber" style="display:none;">
+
+  <button class="btn" onclick="ir(3)">Avançar</button>
+
+</div>
+
+<!-- ============================================================
+                        TELA 3 — REVISÃO
+============================================================ -->
+<div class="screen" id="tela3">
+
+  <div class="title">3º Passo</div>
+  <div class="subtitle">Revise e confirme</div>
+
+  <div class="voucherCard">
+    <h3>Voucher Selecionado</h3>
+    <div class="line" id="rev_valor"></div>
+    <div class="line" id="rev_nome"></div>
+    <div class="line" id="rev_destino"></div>
+  </div>
+
+  <button class="btn" onclick="ir(4)">Confirmar e Gerar Pagamento</button>
+  <button class="btn cancel" onclick="voltar(2)">Editar Dados</button>
+
+</div>
+
+<!-- ============================================================
+                        TELA 4 — PAGAMENTO
+============================================================ -->
+<div class="screen" id="tela4">
+
+  <div class="title">Pagamento PIX</div>
+  <div class="subtitle">Finalize para concluir seu voucher</div>
+
+  <div class="voucherCard">
+    <h3>Resumo</h3>
+    <div class="line" id="pag_valor"></div>
+    <div class="line" id="pag_nome"></div>
+    <div class="line" id="pag_destino"></div>
+  </div>
+
+  <div class="pixBox">
+    <h3 style="color:var(--gold); margin:0;">CHAVE PIX</h3>
     <div class="pixCode" id="pixCode">SUA_CHAVE_PIX_AQUI</div>
-    <button class="btn" onclick="copiarPix()">Copiar chave PIX</button>
+    <button class="btn" onclick="copiarPix()">Copiar chave</button>
   </div>
 
-  <button class="btn btnCancel" onclick="resetar()">Cancelar e voltar ao início</button>
+  <button class="btn cancel" onclick="reset()">Cancelar e voltar ao início</button>
 
 </div>
 
 
 <!-- ============================================================
-                          SCRIPT
+                        SCRIPT
 ============================================================ -->
 <script>
 
 let valor = 0;
-let codigo = "";
 
-/* ---------------------- MASKS ---------------------- */
-function maskValor(i){
-  let v = i.value.replace(/\D/g,"");
-  v = (v/100).toFixed(2);
-  i.value = "R$ " + v.replace(".",",");
+/* -----------------------------------------------------------
+                     TELAS (ANIMAÇÃO)
+----------------------------------------------------------- */
+function ir(n){
+  document.querySelector('.screen.active').classList.add('hideLeft');
+  document.querySelector('.screen.active').classList.remove('active');
+
+  document.getElementById("tela"+n).classList.add("active");
 }
 
+function voltar(n){
+  document.querySelector('.screen.active').classList.remove('active');
+
+  let t = document.getElementById("tela"+n);
+  t.classList.remove('hideLeft');
+  t.classList.add('active');
+}
+
+/* -----------------------------------------------------------
+                     SELEÇÃO VALOR
+----------------------------------------------------------- */
+function selectValor(v){
+  valor = v;
+  document.querySelectorAll(".cardValor").forEach(c=>c.classList.remove("sel"));
+  event.target.classList.add("sel");
+  ir(2);
+}
+
+/* OUTRO VALOR */
+function outroValor(){ ir("Outro"); }
+
+function maskValor(i){
+  let v = i.value.replace(/\D/g,"");
+  v = (v/100).toFixed(2).replace(".",",");
+  i.value = "R$ " + v;
+}
+
+function confirmarOutro(){
+  let campo = document.getElementById("campoOutro").value;
+  valor = Number(campo.replace(/\D/g,""))/100;
+  ir(2);
+}
+
+/* -----------------------------------------------------------
+                      DADOS / PRESENTE
+----------------------------------------------------------- */
 function maskWhats(i){
   let v = i.value.replace(/\D/g,"");
-  v = v.replace(/^(\d{2})(\d)/g,"($1) $2");
+  v = v.replace(/^(\d{2})(\d)/,"($1) $2");
   v = v.replace(/(\d{5})(\d)/,"$1-$2");
   i.value = v;
 }
 
-/* ---------------------- POPUP CONTROL ---------------------- */
-function openPopup(id){ document.getElementById(id).style.display="flex"; }
-function closePopup(id){ document.getElementById(id).style.display="none"; }
-
-/* ---------------------- VALOR ---------------------- */
-function selectValor(v){
-  valor = v;
-
-  document.querySelectorAll(".valueCard")
-    .forEach(c=>c.classList.remove("selected"));
-
-  event.target.classList.add("selected");
-
-  openPopup("popupDados");
-}
-
-function confirmarOutroValor(){
-  let v = document.getElementById("outroValor").value;
-  if(!v) return;
-
-  valor = Number(v.replace(/\D/g,""))/100;
-
-  closePopup("popupOutro");
-  openPopup("popupDados");
-}
-
-/* ---------------------- PRESENTE ---------------------- */
 function toggleEmail(){
   document.getElementById("emailPresente").style.display =
-    document.getElementById("presentear").value === "sim" ? "block" : "none";
+    document.getElementById("presente").value === "sim" ? "block" : "none";
 }
 
-/* ---------------------- FINALIZAR DADOS ---------------------- */
-function finalizarDados(){
+/* -----------------------------------------------------------
+                         REVISÃO
+----------------------------------------------------------- */
+function ir3(){
+  ir(3);
+}
 
-  const nome = document.getElementById("nome").value;
-  const whats = document.getElementById("whats").value;
+function ir(n){
 
-  if(!nome || !whats){
-    alert("Preencha nome e WhatsApp.");
-    return;
+  if(n===3){
+    document.getElementById("rev_valor").innerHTML =
+      "<b>Valor:</b> R$ "+valor.toFixed(2).replace(".",",");
+
+    document.getElementById("rev_nome").innerHTML =
+      "<b>Comprador:</b> "+document.getElementById("nome").value;
+
+    let p = document.getElementById("presente").value;
+    document.getElementById("rev_destino").innerHTML =
+      p==="sim" ? "<b>Presente para:</b> "+document.getElementById("emailPresente").value : "";
   }
 
-  // Gera código via GAS depois
+  if(n===4){
+    document.getElementById("pag_valor").innerHTML =
+      "<b>Valor:</b> R$ "+valor.toFixed(2).replace(".",",");
 
-  // Exibe voucher final
-  document.getElementById("v_valor").innerHTML =
-    "<b>Valor:</b> R$ "+valor.toFixed(2).replace(".",",");
+    document.getElementById("pag_nome").innerHTML =
+      "<b>Comprador:</b> "+document.getElementById("nome").value;
 
-  document.getElementById("v_nome").innerHTML =
-    "<b>Comprador:</b> "+nome;
+    let p = document.getElementById("presente").value;
+    document.getElementById("pag_destino").innerHTML =
+      p==="sim" ? "<b>Presente para:</b> "+document.getElementById("emailPresente").value : "";
 
-  let pres = document.getElementById("presentear").value;
-
-  if(pres === "sim"){
-    document.getElementById("v_destino").innerHTML =
-      "<b>Presente para:</b> "+document.getElementById("emailPresente").value;
-  } else {
-    document.getElementById("v_destino").innerHTML = "";
   }
 
-  closePopup("popupDados");
-  document.getElementById("telaPagamento").style.display="block";
+  document.querySelector('.screen.active').classList.add('hideLeft');
+  document.querySelector('.screen.active').classList.remove('active');
+  document.getElementById("tela"+n).classList.add("active");
 }
 
-/* ---------------------- EDITAR ---------------------- */
-function editar(){
-  openPopup("popupDados");
-}
-
-/* ---------------------- PIX ---------------------- */
+/* -----------------------------------------------------------
+                         PIX
+----------------------------------------------------------- */
 function copiarPix(){
-  navigator.clipboard.writeText(document.getElementById("pixCode").innerText);
-  alert("Chave PIX copiada!");
+  navigator.clipboard.writeText(
+    document.getElementById("pixCode").innerText
+  );
+  alert("Chave copiada!");
 }
 
-/* ---------------------- RESET ---------------------- */
-function resetar(){
-  location.reload();
-}
+/* -----------------------------------------------------------
+                         RESET
+----------------------------------------------------------- */
+function reset(){ location.reload(); }
 
 </script>
+
 </body>
 </html>
