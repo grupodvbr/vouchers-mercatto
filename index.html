@@ -231,14 +231,9 @@ button:hover{background:white;}
   </div>
 </div>
 
-<!-- IMPRESSÃO -->
+<!-- IMPRESSÃO (TÉRMICA) -->
 <div id="printArea" class="hidden">
-  <h3 style="font-family:'Great Vibes';text-align:center;">Voucher Mercatto</h3>
   <div id="printContent"></div>
-  <p>Data/Hora: <span id="printData"></span></p>
-  <p>Responsável: <span id="printUser"></span></p>
-  <br><br>
-  ____________________________<br>Assinatura
 </div>
 
 <script>
@@ -307,7 +302,7 @@ function maskValor(el){
 }
 
 /* ============================================================
-   🔥 NOVA FUNÇÃO: GERAR CÓDIGO ÚNICO SEM REPETIR
+   CÓDIGO ÚNICO (NUNCA REPETE)
 ============================================================ */
 async function gerarCodigoUnico(){
   while(true){
@@ -315,10 +310,10 @@ async function gerarCodigoUnico(){
 
     const { data } = await sb.from("vouchers")
       .select("codigo")
-      .eq("codigo",codigo);
+      .eq("codigo", codigo);
 
     if(!data || data.length === 0){
-      return codigo; // ✔ nunca repete
+      return codigo;
     }
   }
 }
@@ -342,12 +337,13 @@ async function emitir(){
     return;
   }
 
-  // ✔ Gera código único REAL
   let codigo = await gerarCodigoUnico();
+  let operador = localStorage.getItem("sessionUser");
 
   const { error } = await sb.from("vouchers").insert([{
     codigo, cliente:nome, cpf:cpfv, telefone:tel,
     valor:val, data_emissao:new Date().toISOString(),
+    usuario_emissao:operador,
     status:"ATIVO"
   }]);
 
@@ -440,7 +436,8 @@ function abrirPopupResgatado(v){
     <p><b>Valor:</b> R$ ${v.valor}</p>
     <p><b>Emitido:</b> ${formatarData(v.data_emissao)}</p>
     <p><b>Resgatado:</b> ${formatarData(v.data_resgate)}</p>
-    <p><b>Responsável:</b> ${v.usuario_resgate}</p>
+    <p><b>Operador Emissão:</b> ${v.usuario_emissao || "-"}</p>
+    <p><b>Operador Resgate:</b> ${v.usuario_resgate || "-"}</p>
   `;
   popupDetalhes.style.display="flex";
 }
@@ -461,40 +458,87 @@ async function resgatar(codigo){
     })
     .eq("codigo",codigo);
 
-  gerarComprovante(codigo);
+  await gerarComprovante(codigo);
   imprimirComprovante();
   hideLoad();
 }
 
 /* ============================================================
-   COMPROVANTE
+   COMPROVANTE — IMPRESSORA TÉRMICA 58mm
 ============================================================ */
 async function gerarComprovante(codigo){
   const { data } = await sb.from("vouchers")
     .select("*")
-    .eq("codigo",codigo);
+    .eq("codigo", codigo);
 
   let v=data[0];
 
-  printContent.innerHTML=`
-    Cliente: ${v.cliente}<br>
-    Valor: R$ ${v.valor}<br>
-    Código: ${v.codigo}<br>
+  let operadorResgate = localStorage.getItem("sessionUser");
+  let dataResgate = new Date().toLocaleString("pt-BR");
+  let dataEmissao = new Date(v.data_emissao).toLocaleString("pt-BR");
+
+  printContent.innerHTML = `
+    <div style="font-family:monospace; font-size:13px; width:240px;">
+      <center>
+        <b>VOUCHER MERCATTO</b><br>
+        ------------------------------<br>
+      </center>
+
+      Cliente: ${v.cliente}<br>
+      CPF: ${v.cpf || "-"}<br>
+      Tel: ${v.telefone || "-"}<br>
+      Valor: R$ ${v.valor}<br>
+      Código: ${v.codigo}<br>
+      Emitido: ${dataEmissao}<br>
+      Operador Emissão: ${v.usuario_emissao || "-"}<br>
+      ------------------------------<br>
+
+      <b>RESGATE</b><br>
+      Data/Hora: ${dataResgate}<br>
+      Operador: ${operadorResgate}<br>
+
+      ------------------------------<br>
+      Obrigado pela preferência!
+      <br><br>
+    </div>
   `;
-  printData.innerText=formatarData(v.data_resgate);
-  printUser.innerText=v.usuario_resgate;
 }
 
 function imprimirComprovante(){
-  let w=window.open("","","width=260,height=600");
-  w.document.write(printArea.innerHTML);
-  w.print();
-  w.close();
+  let conteudo = printContent.innerHTML;
+
+  let w = window.open("", "", "width=260,height=600");
+
+  w.document.write(`
+    <html>
+      <head>
+        <style>
+          body {
+            font-family: monospace;
+            font-size: 13px;
+            padding: 0;
+            margin: 0;
+          }
+        </style>
+      </head>
+      <body>
+        ${conteudo}
+        <script>
+          window.onload = function(){
+            window.print();
+            window.close();
+          }
+        <\/script>
+      </body>
+    </html>
+  `);
 }
 
+/* UTIL */
 function formatarData(dt){
   return new Date(dt).toLocaleString("pt-BR");
 }
 </script>
+
 </body>
 </html>
