@@ -75,7 +75,7 @@
 }
 .card h2{ color:var(--gold);margin-bottom:18px; }
 
-input{
+input, select{
   width:100%;padding:13px;margin-bottom:13px;
   border:1px solid var(--gold2);background:#1a1a1a;
   color:white;border-radius:12px;font-size:15px;
@@ -101,12 +101,20 @@ button{
   background:linear-gradient(to right, #000 0%, #0a0a0a 45%, #111 45%, #fdf6e3 100%);
 }
 
+/* RESULT CARD */
+.result-card{
+  margin-top:12px;padding:15px;background:#121212;
+  border-left:4px solid var(--gold);border-radius:10px;
+  line-height:1.6;font-size:15px;
+}
+
 /* POPUP */
 .popup{
   position:fixed;inset:0;
   background:rgba(0,0,0,0.7);
   display:none;justify-content:center;align-items:center;
 }
+
 .popup-box{
   background:#111;padding:26px;width:420px;border-radius:14px;
   border:2px solid var(--gold);
@@ -158,7 +166,7 @@ button{
 
       <button onclick="emitir()">Emitir Voucher</button>
 
-      <!-- 🔥 VOUCHER PREMIUM ATUALIZADO -->
+      <!-- 🔥 VOUCHER PREMIUM -->
       <div id="voucherPNG">
 
         <!-- LADO PRETO -->
@@ -170,15 +178,15 @@ button{
           <h1 style="font-size:42px;font-weight:800;letter-spacing:2px;">GIFT</h1>
           <h2 style="font-size:34px;color:#d4af37;margin-top:-10px;letter-spacing:3px;">VOUCHER</h2>
 
-          <p id="vouch_nome" style="margin-top:20px;"></p>
+          <p id="vouch_nome"></p>
           <p id="vouch_codigo"></p>
           <p id="vouch_valor" style="font-weight:700;color:#d4af37;"></p>
         </div>
 
-        <!-- CURVA DOURADA -->
+        <!-- CURVA -->
         <div style="
           position:absolute;left:44%;top:0;width:90px;height:100%;
-          background:linear-gradient(135deg,#b48a2b 0%,#d4af37 50%,#f7e7b0 100%);
+          background:linear-gradient(135deg,#b48a2b,#d4af37,#f7e7b0);
           clip-path:polygon(0 0,100% 0,70% 100%,0% 100%);
         "></div>
 
@@ -187,8 +195,6 @@ button{
           position:absolute;left:50%;top:0;width:50%;height:100%;
           padding:35px;color:#5a4d29;
         ">
-
-          <!-- Fundo do título -->
           <div style="
             background:rgba(0,0,0,0.35);
             width:max-content;padding:4px 10px;
@@ -199,7 +205,6 @@ button{
             </p>
           </div>
 
-          <!-- Valor -->
           <h1 style="
             font-size:70px;margin-top:10px;font-weight:300;
             color:#a8852b;font-family:'Great Vibes';
@@ -207,13 +212,12 @@ button{
             R$ <span id="valorGrande"></span>
           </h1>
 
-          <!-- Código de barras -->
+          <!-- Código de Barras -->
           <div style="margin-top:5px;">
             <svg id="barcode"></svg>
-
-            <p id="codigoNumerico"
-               style="text-align:center;margin-top:4px;
-               font-size:16px;font-weight:700;color:#8a6f2a;">
+            <p id="codigoNumerico" style="
+              text-align:center;margin-top:4px;
+              font-size:16px;font-weight:700;color:#8a6f2a;">
             </p>
           </div>
 
@@ -228,6 +232,7 @@ button{
     <!-- CONSULTA -->
     <div class="card">
       <h2>Consultar Voucher</h2>
+
       <input id="consultaCodigo" placeholder="Código" onkeydown="enterConsulta(event)">
       <button onclick="consultar()">Consultar</button>
       <div id="consultaResultado"></div>
@@ -245,7 +250,7 @@ button{
   </div>
 </div>
 
-<!-- ÁREA DE IMPRESSÃO -->
+<!-- IMPRESSÃO -->
 <div id="printArea" class="hidden"><div id="printContent"></div></div>
 
 <script>
@@ -404,12 +409,26 @@ async function consultar(){
     abrirPopupResgatado(v); return;
   }
 
-  consultaResultado.innerHTML=`
+  consultaResultado.innerHTML = `
     <div class="result-card">
-      <b>Cliente:</b> ${v.cliente}<br>
-      <b>Valor:</b> R$ ${v.valor}<br><br>
-      <button onclick="resgatar('${v.codigo}')">Resgatar</button>
-    </div>`;
+        <b>Cliente:</b> ${v.cliente}<br>
+        <b>Código:</b> ${v.codigo}<br>
+        <b>Valor:</b> R$ ${v.valor}<br>
+        <b>Emitido em:</b> ${new Date(v.data_emissao).toLocaleString("pt-BR")}<br>
+        <b>Emitido por:</b> ${v.usuario_emissao || "—"}<br><br>
+
+        <label><b>Forma de Pagamento:</b></label>
+        <select id="formaPag${v.codigo}">
+          <option value="PIX">PIX</option>
+          <option value="DINHEIRO">DINHEIRO</option>
+          <option value="CARTÃO">CARTÃO</option>
+          <option value="DÉBITO">DÉBITO</option>
+        </select>
+
+        <br><br>
+        <button onclick="resgatar('${v.codigo}')">Resgatar</button>
+    </div>
+  `;
 }
 
 /* POPUP */
@@ -430,26 +449,26 @@ function fecharPopup(){ popupDetalhes.style.display="none"; }
 async function resgatar(codigo){
   showLoad();
   let user = localStorage.getItem("sessionUser");
-  let pagamento = prompt("Forma de pagamento:\nPIX / Dinheiro / Cartão");
-  if(!pagamento) pagamento="NÃO INFORMADO";
+
+  let formaPag = document.getElementById(`formaPag${codigo}`).value;
 
   await sb.from("vouchers")
     .update({
       status:"RESGATADO",
       data_resgate:new Date().toISOString(),
       usuario_resgate:user,
-      forma_pagamento: pagamento
+      forma_pagamento: formaPag
     })
     .eq("codigo",codigo);
 
-  await gerarComprovante(codigo, pagamento);
+  await gerarComprovante(codigo, formaPag);
   imprimirComprovante();
 
   hideLoad();
 }
 
 /* ============================================================
-   RECIBO TÉRMICO | CHAR MELHOR + ASSINATURA
+   RECIBO TÉRMICO PROFISSIONAL + ASSINATURA
 ============================================================ */
 async function gerarComprovante(codigo,pagamento){
   const { data } = await sb.from("vouchers")
@@ -473,7 +492,7 @@ async function gerarComprovante(codigo,pagamento){
 
       Cliente: ${v.cliente}<br>
       CPF: ${v.cpf || "-"}<br>
-      Telefone: ${v.telefone || "-"}<br>
+      Tel: ${v.telefone || "-"}<br>
       Código: ${v.codigo}<br>
       Valor: R$ ${v.valor}<br>
       Emitido: ${dataEmissao}<br>
@@ -486,9 +505,7 @@ async function gerarComprovante(codigo,pagamento){
       Forma Pagamento: ${pagamento}<br>
       ------------------------------<br>
 
-      <br>
-      Assinatura do Cliente:<br><br>
-
+      <br>Assinatura do Cliente:<br><br>
       __________________________<br>
       ${v.cliente}<br>
 
