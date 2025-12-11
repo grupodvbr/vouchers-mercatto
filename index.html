@@ -11,9 +11,9 @@
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <style>
-/* ==============================
-   VISUAL PREMIUM GRUPO DV
-============================== */
+/* =====================================================
+   ESTILO PREMIUM GRUPO DV — PAINEL AZUL CORPORATIVO
+====================================================== */
 :root{
   --p:#0b1e39;
   --p2:#102742;
@@ -26,55 +26,31 @@
   --shadow:0 4px 14px rgba(0,0,0,0.08);
 }
 
-*{
-  margin:0; padding:0; box-sizing:border-box;
-  font-family:"Inter";
-}
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Inter";}
+body{background:var(--bg);padding:25px;}
 
-body{
-  background:var(--bg);
-  padding:25px;
-}
-
-/* ==============================
-   TÍTULO
-============================== */
 h1{
-  font-size:26px;
-  color:var(--p);
-  margin-bottom:20px;
-  font-weight:800;
+  font-size:28px;color:var(--p);margin-bottom:25px;font-weight:800;
 }
 
-/* ==============================
-   LAYOUT
-============================== */
 .container{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:25px;
+  display:grid;grid-template-columns:1fr 1fr;gap:30px;
 }
 
-/* ==============================
-   CARD AZUL (IGUAL AO DAS COTAÇÕES)
-============================== */
 .card{
   background:var(--card);
   border-radius:var(--radius);
-  padding:22px;
+  padding:25px;
   box-shadow:var(--shadow);
   border:1px solid var(--border);
 }
 
 .card-blue{
   background:#dce7ff;
-  border-left:6px solid #1e3a8a;
+  border-left:6px solid var(--blue);
 }
 
-/* ==============================
-   CAMPOS
-============================== */
-input,select{
+input, select{
   width:100%;
   padding:12px;
   border-radius:10px;
@@ -85,40 +61,40 @@ input,select{
 
 button{
   padding:12px 22px;
-  background:var(--p);
+  background:var(--blue);
   border:none;
   color:white;
-  border-radius:10px;
+  border-radius:12px;
   font-weight:700;
   cursor:pointer;
   transition:.2s;
 }
+button:hover{background:var(--p2);}
 
-button:hover{
-  background:var(--p2);
-}
-
-/* ==============================
-   RESULTADO DA CONSULTA
-============================== */
 .result-card{
   margin-top:15px;
   padding:18px;
   background:#eef3ff;
-  border-left:6px solid #1e3a8a;
+  border-left:6px solid var(--blue);
   border-radius:12px;
 }
 
-/* ==============================
-   PNG DO VOUCHER
-============================== */
 #voucherPNG{
-  width:320px;
+  width:330px;
   padding:20px;
   background:white;
   border-radius:15px;
-  border:2px solid #1e3a8a;
+  border:2px solid var(--blue);
   display:none;
+  margin-top:20px;
+}
+
+/* Comprovante de resgate */
+#printArea{
+  display:none;
+  width:280px;
+  font-size:14px;
+  padding:10px;
 }
 
 </style>
@@ -129,9 +105,9 @@ button:hover{
 
 <div class="container">
 
-  <!-- =============================
-       EMISSÃO DO VOUCHER
-  ============================== -->
+  <!-- ====================================================
+       EMISSÃO
+  ==================================================== -->
   <div class="card">
     <h2 style="color:var(--p)">Emitir Voucher</h2>
 
@@ -142,25 +118,28 @@ button:hover{
 
     <button onclick="emitirVoucher()">Emitir Voucher</button>
 
-    <!-- Gerar PNG -->
+    <!-- PNG -->
     <div id="voucherPNG">
-      <h3 style="text-align:center;color:#1e3a8a;">VOUCHER</h3>
+      <img src="logo.png" style="width:120px;margin:auto;display:block;margin-bottom:10px;">
+      <h3 style="text-align:center;color:#1e3a8a;">VOUCHER OFICIAL</h3>
       <p id="vouch_nome"></p>
       <p id="vouch_codigo"></p>
       <p id="vouch_valor"></p>
       <svg id="barcode"></svg>
     </div>
 
-    <button id="btnDownload" style="margin-top:12px;display:none;" onclick="baixarPNG()">Baixar PNG</button>
+    <button id="btnDownload" style="margin-top:12px;display:none;" onclick="baixarPNG()">Salvar PNG</button>
+    <button id="btnWhats" style="margin-top:12px;display:none;background:#25d366;" onclick="enviarWhatsapp()">Enviar WhatsApp</button>
+
   </div>
 
-  <!-- =============================
-       CONSULTA DO VOUCHER
-  ============================== -->
+  <!-- ====================================================
+       CONSULTA
+  ==================================================== -->
   <div class="card card-blue">
     <h2 style="color:var(--p)">Consultar Voucher</h2>
 
-    <input id="consultaCodigo" placeholder="Digite o código" oninput="limparConsulta()">
+    <input id="consultaCodigo" placeholder="Digite o código" onkeydown="enterConsultar(event)">
     <button onclick="consultarVoucher()">Consultar</button>
 
     <div id="consultaResultado"></div>
@@ -168,18 +147,27 @@ button:hover{
 
 </div>
 
+<!-- ====================================================
+     ÁREA PARA IMPRESSÃO DO RESGATE
+==================================================== -->
+<div id="printArea">
+  <h3>Comprovante de Resgate</h3>
+  <div id="printContent"></div>
+  <p>Data: <span id="printData"></span></p>
+</div>
+
 <script>
-/* ===========================================
-   CONEXÃO SUPABASE
-=========================================== */
+/* ==========================================================
+   SUPABASE
+========================================================== */
 const sb = supabase.createClient(
   "https://ckkqcxbzfkjzicvoeehw.supabase.co",
   "sb_publishable_djiQsCSrnLUm0iA_eNjjMw__7rfP11m"
 );
 
-/* ===========================================
+/* ==========================================================
    MÁSCARAS
-=========================================== */
+========================================================== */
 function maskCPF(el){
   el.value = el.value.replace(/\D/g,"")
     .replace(/(\d{3})(\d)/,"$1.$2")
@@ -193,58 +181,64 @@ function maskPhone(el){
     .replace(/(\d{5})(\d)/,"$1-$2");
 }
 
-/* ===========================================
+/* ==========================================================
    GERAR CÓDIGO ALEATÓRIO
-=========================================== */
+========================================================== */
 function gerarCodigo(){
   return Math.floor(100000000 + Math.random()*900000000).toString();
 }
 
-/* ===========================================
+/* ==========================================================
    EMITIR VOUCHER
-=========================================== */
+========================================================== */
+let ultimoVoucher = null;
+
 async function emitirVoucher(){
 
-  let cliente = document.getElementById("cliente").value.trim();
-  let cpf = document.getElementById("cpf").value.trim();
-  let telefone = document.getElementById("telefone").value.trim();
-  let valor = document.getElementById("valor").value.trim();
+  let cliente = cliente.value.trim();
+  let cpfVal = cpf.value.trim();
+  let tel = telefone.value.trim();
+  let valorVal = valor.value.trim();
 
-  if(!cliente || !cpf || !valor){ alert("Preencha os campos obrigatórios!"); return; }
+  if(!cliente || !cpfVal || !valorVal){
+    alert("Preencha todos os campos obrigatórios!");
+    return;
+  }
 
   let codigo = gerarCodigo();
   let agora = new Date().toISOString();
 
-  let { error } = await sb.from("vouchers").insert([
-    {
-      codigo,
-      cliente,
-      cpf,
-      telefone,
-      valor,
-      data_emissao: agora,
-      status:"ATIVO"
-    }
-  ]);
+  let { error } = await sb.from("vouchers").insert([{
+    codigo,
+    cliente,
+    cpf: cpfVal,
+    telefone: tel,
+    valor: valorVal,
+    status: "ATIVO",
+    data_emissao: agora
+  }]);
 
-  if(error){ alert("Erro ao emitir voucher"); return; }
+  if(error){ alert("Erro ao emitir voucher!"); return; }
 
-  renderVoucherPNG(cliente, valor, codigo);
+  ultimoVoucher = { cliente, valor: valorVal, codigo, telefone: tel };
+
+  renderVoucherPNG(cliente, valorVal, codigo);
 }
 
-/* ===========================================
-   GERAR PNG DO VOUCHER
-=========================================== */
+/* ==========================================================
+   PNG DO VOUCHER
+========================================================== */
 function renderVoucherPNG(nome, valor, codigo){
 
-  document.getElementById("vouch_nome").innerHTML = "<b>Cliente:</b> " + nome;
-  document.getElementById("vouch_valor").innerHTML = "<b>Valor:</b> R$ " + valor;
-  document.getElementById("vouch_codigo").innerHTML = "<b>Código:</b> " + codigo;
+  vouch_nome.innerHTML = "<b>Cliente:</b> " + nome;
+  vouch_valor.innerHTML = "<b>Valor:</b> R$ " + valor;
+  vouch_codigo.innerHTML = "<b>Código:</b> " + codigo;
 
   JsBarcode("#barcode", codigo, { format:"CODE128", width:2, height:40 });
 
-  document.getElementById("voucherPNG").style.display = "block";
-  document.getElementById("btnDownload").style.display = "block";
+  voucherPNG.style.display = "block";
+  btnDownload.style.display = "block";
+  btnWhats.style.display = "block";
 }
 
 function baixarPNG(){
@@ -256,62 +250,95 @@ function baixarPNG(){
   });
 }
 
-/* ===========================================
-   CONSULTAR VOUCHER
-=========================================== */
+/* ==========================================================
+   ENVIAR VIA WHATSAPP
+========================================================== */
+function enviarWhatsapp(){
+
+  if(!ultimoVoucher || !ultimoVoucher.telefone){
+    alert("Telefone inválido!");
+    return;
+  }
+
+  let tel = ultimoVoucher.telefone.replace(/\D/g,"");
+  let msg = `Olá! Seu voucher foi gerado com sucesso.%0A%0A` +
+            `Código: ${ultimoVoucher.codigo}%0ACliente: ${ultimoVoucher.cliente}%0AValor: R$ ${ultimoVoucher.valor}`;
+
+  window.open(`https://wa.me/55${tel}?text=${msg}`, "_blank");
+}
+
+/* ==========================================================
+   ENTER = CONSULTAR
+========================================================== */
+function enterConsultar(e){
+  if(e.key === "Enter") consultarVoucher();
+}
+
+/* ==========================================================
+   CONSULTAR
+========================================================== */
 async function consultarVoucher(){
 
-  let codigo = document.getElementById("consultaCodigo").value.trim();
+  let codigo = consultaCodigo.value.trim();
   if(!codigo) return;
 
-  let div = document.getElementById("consultaResultado");
-
-  let { data } = await sb
-    .from("vouchers")
-    .select("*")
-    .eq("codigo", codigo)
-    .limit(1);
+  let { data } = await sb.from("vouchers").select("*").eq("codigo", codigo).limit(1);
 
   if(!data || data.length === 0){
-    div.innerHTML = `<div class='result-card'>❌ Voucher não encontrado.</div>`;
+    consultaResultado.innerHTML = `<div class='result-card'>❌ Voucher não encontrado.</div>`;
     return;
   }
 
   let v = data[0];
 
   if(v.status === "RESGATADO"){
-    div.innerHTML = `<div class='result-card'>⚠️ Voucher já resgatado!</div>`;
+    consultaResultado.innerHTML = `<div class='result-card'>⚠ Voucher já resgatado.</div>`;
     return;
   }
 
-  div.innerHTML = `
+  consultaResultado.innerHTML = `
     <div class="result-card">
       <b>Cliente:</b> ${v.cliente}<br>
       <b>Valor:</b> R$ ${v.valor}<br>
-      <b>Data:</b> ${v.data_emissao}<br>
-      <b>Status:</b> ${v.status}<br><br>
-      <button onclick="resgatarVoucher('${v.codigo}')">Finalizar / Resgatar</button>
+      <b>Emissão:</b> ${v.data_emissao}<br><br>
+      <button onclick="finalizarResgate('${v.codigo}','${v.cliente}',${v.valor})">
+        Finalizar / Resgatar
+      </button>
     </div>
   `;
 }
 
-function limparConsulta(){
-  document.getElementById("consultaResultado").innerHTML = "";
+/* ==========================================================
+   RESGATAR + IMPRIMIR COMPROVANTE
+========================================================== */
+async function finalizarResgate(codigo, cliente, valor){
+
+  await sb.from("vouchers").update({ status:"RESGATADO" }).eq("codigo", codigo);
+
+  consultaResultado.innerHTML = `<div class='result-card'>✔ Resgatado com sucesso!</div>`;
+
+  gerarComprovante(cliente, valor, codigo);
+  imprimirComprovante();
 }
 
-/* ===========================================
-   RESGATAR VOUCHER
-=========================================== */
-async function resgatarVoucher(codigo){
+function gerarComprovante(cliente, valor, codigo){
+  printContent.innerHTML = `
+    Cliente: ${cliente}<br>
+    Valor: R$ ${valor}<br>
+    Código: ${codigo}<br>
+  `;
+  printData.innerText = new Date().toLocaleString();
+}
 
-  await sb.from("vouchers")
-    .update({ status:"RESGATADO" })
-    .eq("codigo", codigo);
-
-  document.getElementById("consultaResultado").innerHTML =
-    `<div class='result-card'>✔ Voucher resgatado com sucesso!</div>`;
+function imprimirComprovante(){
+  let conteudo = document.getElementById("printArea").innerHTML;
+  let win = window.open("", "", "width=300,height=600");
+  win.document.write(conteudo);
+  win.print();
+  win.close();
 }
 
 </script>
+
 </body>
 </html>
