@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Voucher Mercatto • Sistema Premium</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- FONTES -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+
+<!-- LIBS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+<style>
+/* ============================================================
+   🎨 PALETA PREMIUM BLACK & GOLD
+============================================================ */
+:root{
+  --preto:#000;
+  --preto2:#0a0a0a;
+  --gold:#d4af37;
+  --gold2:#b08a2e;
+  --white:#ffffffd8;
+  --card:#111;
+  --radius:16px;
+  --shadow:0 0 25px rgba(0,0,0,0.5);
+}
+
+*{
+  margin:0;padding:0;box-sizing:border-box;
+  font-family:"Inter";
+}
+
+/* BG */
+#bgBlur{
+  position:fixed;
+  inset:0;
+  background:url('logo.jpg') center/cover no-repeat;
+  filter:blur(7px) brightness(35%);
+  z-index:-1;
+}
+
+/* LOGIN */
+#loginCard{
+  width:400px;margin:110px auto;
+  padding:28px;
+  background:rgba(20,20,20,0.85);
+  border-radius:var(--radius);
+  border:2px solid var(--gold2);
+  box-shadow:var(--shadow);
+  backdrop-filter:blur(5px);
+}
+#loginCard img{
+  width:160px;display:block;margin:auto;margin-bottom:15px;
+}
+#loginCard input{
+  width:100%;padding:14px;margin-bottom:14px;
+  background:#161616;border:1px solid #6e5a1a;
+  color:white;border-radius:12px;font-size:15px;
+}
+#loginCard button{
+  width:100%;padding:14px;border-radius:14px;
+  background:var(--gold);border:none;
+  font-size:17px;font-weight:700;color:black;cursor:pointer;
+}
+#loginCard button:hover{background:white;}
+
+/* SISTEMA */
+.hidden{display:none;}
+
+.container{
+  display:grid;grid-template-columns:1fr 1fr;gap:28px;
+}
+
+.card{
+  background:rgba(15,15,15,0.88);
+  padding:26px;border-radius:var(--radius);
+  border:1px solid var(--gold2);
+  box-shadow:var(--shadow);
+}
+.card h2{
+  color:var(--gold);margin-bottom:18px;
+  font-size:22px;font-weight:700;
+}
+
+input{
+  width:100%;padding:13px;margin-bottom:13px;
+  border:1px solid var(--gold2);
+  background:#1a1a1a;color:white;border-radius:12px;
+  font-size:15px;
+}
+
+button{
+  padding:13px 22px;border-radius:12px;
+  background:var(--gold);color:black;font-size:15px;
+  border:none;font-weight:700;cursor:pointer;
+}
+button:hover{background:white;}
+
+.result-card{
+  margin-top:12px;padding:15px;background:#121212;
+  border-left:4px solid var(--gold);border-radius:10px;
+}
+
+/* ============================================================
+   🎟️ NOVO VOUCHER PREMIUM BLACK & GOLD
+============================================================ */
+#voucherPNG{
+  width:700px;
+  height:300px;
+  padding:0;
+  margin-top:18px;
+  display:none;
+  border-radius:16px;
+  overflow:hidden;
+  border:3px solid var(--gold);
+  box-shadow:0 0 25px rgba(212,175,55,0.45);
+  position:relative;
+  background:linear-gradient(to right, #000 0%, #0a0a0a 45%, #111 45%, #fdf6e3 100%);
+}
+
+/* POPUP */
+.popup{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.7);
+  display:none;justify-content:center;align-items:center;
+}
+.popup-box{
+  background:#111;padding:26px;width:420px;border-radius:14px;
+  border:2px solid var(--gold);
+}
+
+/* Loader */
+#overlayLoad{
+  position:fixed;inset:0;
+  display:none;justify-content:center;align-items:center;
+  background:rgba(0,0,0,0.75);color:var(--gold);
+  font-size:26px;z-index:999;
+}
+</style>
+</head>
+
+<body>
+
+<div id="bgBlur"></div>
+<div id="overlayLoad">Processando...</div>
+
+<!-- LOGIN -->
+<div id="loginCard">
+  <img src="logo.png">
+  <h2 style="color:var(--gold);text-align:center;">Acesso Restrito</h2>
+
+  <input id="loginUser" placeholder="Usuário">
+  <input id="loginPass" type="password" placeholder="Senha">
+  <button onclick="login()">Entrar</button>
+  <p id="loginMsg" style="text-align:center;color:#ff6666;margin-top:10px;"></p>
+</div>
+
+<!-- SISTEMA -->
+<div id="sistema" class="hidden">
+  <h1 style="color:var(--gold);margin-bottom:22px;">
+    Voucher Mercatto — Sistema Premium
+    <button onclick="logout()" style="float:right;background:#b02626;color:white;">Sair</button>
+  </h1>
+
+  <div class="container">
+
+    <!-- EMISSÃO -->
+    <div class="card">
+      <h2>Emitir Voucher</h2>
+
+      <input id="cliente" placeholder="Nome do Cliente">
+      <input id="cpf" placeholder="CPF" oninput="maskCPF(this)">
+      <input id="telefone" placeholder="Telefone" oninput="maskPhone(this)">
+      <input id="valor" placeholder="Valor" oninput="maskValor(this)">
+
+      <button onclick="emitir()">Emitir Voucher</button>
+
+ <!-- 🔥 VOUCHER PREMIUM ATUALIZADO -->
+<div id="voucherPNG">
+
+  <!-- LADO PRETO -->
+  <div style="
+    position:absolute;left:0;top:0;width:45%;height:100%;
+    padding:25px;color:white;
+    display:flex;flex-direction:column;justify-content:center;
+  ">
+    <h1 style="font-size:42px;font-weight:800;letter-spacing:2px;">GIFT</h1>
+    <h2 style="font-size:34px;color:#d4af37;margin-top:-10px;letter-spacing:3px;">VOUCHER</h2>
+
+    <p id="vouch_nome" style="margin-top:20px;"></p>
+    <p id="vouch_codigo"></p>
+    <p id="vouch_valor" style="font-weight:700;color:#d4af37;"></p>
+  </div>
+
+  <!-- CURVA DOURADA -->
+  <div style="
+    position:absolute;left:44%;top:0;width:90px;height:100%;
+    background:linear-gradient(135deg,#b48a2b 0%,#d4af37 50%,#f7e7b0 100%);
+    clip-path:polygon(0 0,100% 0,70% 100%,0% 100%);
+  "></div>
+
+  <!-- LADO CLARO -->
+  <div style="
+    position:absolute;left:50%;top:0;width:50%;height:100%;
+    padding:35px;color:#5a4d29;
+  ">
+
+    <!-- Fundo atrás do texto -->
+    <div style="
+      background:rgba(0,0,0,0.35);
+      width:max-content;
+      padding:4px 10px;
+      border-radius:6px;
+      margin-bottom:6px;
+    ">
+      <p style="
+        font-size:13px;text-transform:uppercase;
+        color:#f0e2ad;letter-spacing:2px;margin:0;
+      ">
+        Voucher Especial Mercatto
+      </p>
+    </div>
+
+    <!-- Valor -->
+    <h1 style="
+      font-size:70px;margin-top:10px;font-weight:300;
+      color:#a8852b;font-family:'Great Vibes';
+    ">
+      R$ <span id="valorGrande"></span>
+    </h1>
+
+    <!-- CÓDIGO DE BARRAS + NÚMERO -->
+    <div style="margin-top:5px;">
+      <svg id="barcode"></svg>
+
+      <p id="codigoNumerico"
+         style="text-align:center;margin-top:4px;
+         font-size:16px;font-weight:700;color:#8a6f2a;">
+      </p>
+    </div>
+
+  </div>
+
+</div>
+
+
+      <button id="btnDownload" class="hidden" onclick="baixarPNG()">Baixar PNG</button>
+      <button id="btnWhats" class="hidden" onclick="enviarWhats()" style="background:#25d366;color:white;">WhatsApp</button>
+    </div>
+
+    <!-- CONSULTA -->
+    <div class="card">
+      <h2>Consultar Voucher</h2>
+      <input id="consultaCodigo" placeholder="Código" onkeydown="enterConsulta(event)">
+      <button onclick="consultar()">Consultar</button>
+      <div id="consultaResultado"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- POPUP -->
+<div id="popupDetalhes" class="popup">
+  <div class="popup-box">
+    <h3>Detalhes do Voucher</h3>
+    <div id="popupContent"></div>
+    <button onclick="fecharPopup()">Fechar</button>
+  </div>
+</div>
+
+<div id="printArea" class="hidden"><div id="printContent"></div></div>
+
+<script>
+/* ============================================================
+   SUPABASE
+============================================================ */
+const SUPABASE_URL = "https://ckkqcxbzfkjzicvoeehw.supabase.co";
+const SUPABASE_KEY = "sb_publishable_djiQsCSrnLUm0iA_eNjjMw__7rfP11m";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+function showLoad(){ overlayLoad.style.display="flex"; }
+function hideLoad(){ overlayLoad.style.display="none"; }
+
+/* LOGIN */
+async function login(){
+  showLoad();
+  let u = loginUser.value.trim();
+  let p = loginPass.value.trim();
+
+  const { data } = await sb.from("usuarios").select("*").eq("usuario",u).eq("senha",p);
+
+  hideLoad();
+
+  if(!data || data.length===0){
+    loginMsg.innerText="Usuário ou senha inválidos";
+    return;
+  }
+
+  localStorage.setItem("sessionUser",u);
+  loginCard.classList.add("hidden");
+  sistema.classList.remove("hidden");
+}
+
+function logout(){ localStorage.removeItem("sessionUser"); location.reload(); }
+
+window.onload = ()=>{
+  if(localStorage.getItem("sessionUser")){
+    loginCard.classList.add("hidden");
+    sistema.classList.remove("hidden");
+  }
+};
+
+/* MÁSCARAS */
+function maskCPF(el){
+  el.value = el.value.replace(/\D/g,"")
+  .replace(/(\d{3})(\d)/,"$1.$2")
+  .replace(/(\d{3})(\d)/,"$1.$2")
+  .replace(/(\d{3})(\d{1,2})$/,"$1-$2");
+}
+function maskPhone(el){
+  el.value = el.value.replace(/\D/g,"")
+  .replace(/(\d{2})(\d)/,"($1) $2")
+  .replace(/(\d{5})(\d)/,"$1-$2");
+}
+function maskValor(el){
+  let v = el.value.replace(/\D/g,"");
+  v = (v/100).toFixed(2).replace(".",",");
+  el.value = "R$ " + v;
+}
+
+/* GERAR CÓDIGO ÚNICO */
+async function gerarCodigoUnico(){
+  while(true){
+    let codigo = String(Math.floor(100000000 + Math.random()*900000000));
+    const { data } = await sb.from("vouchers").select("codigo").eq("codigo", codigo);
+    if(!data || data.length === 0) return codigo;
+  }
+}
+
+/* ============================================================
+   EMITIR
+============================================================ */
+let voucherAtual=null;
+
+async function emitir(){
+  showLoad();
+
+  let nome=cliente.value.trim();
+  let cpfv=cpf.value.trim();
+  let tel=telefone.value.trim();
+  let val=valor.value.replace("R$ ","");
+
+  if(!nome || !val){
+    hideLoad();
+    alert("Preencha os campos obrigatórios!");
+    return;
+  }
+
+  let codigo = await gerarCodigoUnico();
+  let operador = localStorage.getItem("sessionUser");
+
+  const { error } = await sb.from("vouchers").insert([{
+    codigo, cliente:nome, cpf:cpfv, telefone:tel,
+    valor:val, data_emissao:new Date().toISOString(),
+    usuario_emissao:operador,
+    status:"ATIVO"
+  }]);
+
+  hideLoad();
+
+  if(error){ alert("❌ Erro ao registrar."); return; }
+
+  voucherAtual={nome, val, codigo, tel};
+  gerarVoucherPNG(voucherAtual);
+}
+
+/* ============================================================
+   GERAR PNG
+============================================================ */
+function gerarVoucherPNG(v){
+  vouch_nome.innerHTML="<b>Cliente:</b> "+v.nome;
+  vouch_codigo.innerHTML="<b>Código:</b> "+v.codigo;
+  vouch_valor.innerHTML="<b>Valor:</b> R$ "+v.val;
+document.getElementById("codigoNumerico").innerText = v.codigo;
+
+  document.getElementById("valorGrande").innerText = v.val;
+
+  JsBarcode("#barcode", v.codigo,{
+    format:"CODE128", width:2, height:42,
+    background:"transparent", lineColor:"#8a6f2a"
+  });
+
+  voucherPNG.style.display="block";
+  btnDownload.classList.remove("hidden");
+  btnWhats.classList.remove("hidden");
+}
+
+function baixarPNG(){
+  html2canvas(voucherPNG,{scale:3}).then(c=>{
+    let a=document.createElement("a");
+    a.download="voucher.png";
+    a.href=c.toDataURL();
+    a.click();
+  });
+}
+
+function enviarWhats(){
+  let tel=voucherAtual.tel.replace(/\D/g,"");
+  let msg=`Voucher Mercatto%0A`+
+          `Código: ${voucherAtual.codigo}%0A`+
+          `Cliente: ${voucherAtual.nome}%0A`+
+          `Valor: R$ ${voucherAtual.val}`;
+  window.open(`https://wa.me/55${tel}?text=${msg}`,"_blank");
+}
+
+/* CONSULTAR */
+function enterConsulta(e){ if(e.key==="Enter") consultar(); }
+
+async function consultar(){
+  showLoad();
+  let cod=consultaCodigo.value.trim();
+  const { data } = await sb.from("vouchers").select("*").eq("codigo",cod);
+  hideLoad();
+
+  if(!data || data.length===0){
+    consultaResultado.innerHTML=`<div class="result-card">❌ Não encontrado</div>`;
+    return;
+  }
+
+  let v=data[0];
+
+  if(v.status==="RESGATADO"){
+    abrirPopupResgatado(v); return;
+  }
+
+  consultaResultado.innerHTML=`
+    <div class="result-card">
+      <b>Cliente:</b> ${v.cliente}<br>
+      <b>Valor:</b> R$ ${v.valor}<br><br>
+      <button onclick="resgatar('${v.codigo}')">Resgatar</button>
+    </div>
+  `;
+}
+
+/* POPUP */
+function abrirPopupResgatado(v){
+  popupContent.innerHTML=`
+    <p><b>Cliente:</b> ${v.cliente}</p>
+    <p><b>Valor:</b> R$ ${v.valor}</p>
+    <p><b>Emitido:</b> ${formatarData(v.data_emissao)}</p>
+    <p><b>Resgatado:</b> ${formatarData(v.data_resgate)}</p>
+    <p><b>Operador Emissão:</b> ${v.usuario_emissao || "-"}</p>
+    <p><b>Operador Resgate:</b> ${v.usuario_resgate || "-"}</p>
+  `;
+  popupDetalhes.style.display="flex";
+}
+function fecharPopup(){ popupDetalhes.style.display="none"; }
+
+/* RESGATAR */
+async function resgatar(codigo){
+  showLoad();
+  let user = localStorage.getItem("sessionUser");
+
+  await sb.from("vouchers")
+    .update({
+      status:"RESGATADO",
+      data_resgate:new Date().toISOString(),
+      usuario_resgate:user
+    })
+    .eq("codigo",codigo);
+
+  hideLoad();
+  alert("Voucher resgatado!");
+}
+
+/* UTIL */
+function formatarData(dt){ return new Date(dt).toLocaleString("pt-BR"); }
+</script>
+
+</body>
+</html>
