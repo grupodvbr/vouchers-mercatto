@@ -466,12 +466,15 @@ async function resgatar(codigo){
 /* ============================================================
    COMPROVANTE — IMPRESSORA TÉRMICA 58mm
 ============================================================ */
+/* ============================================================
+   COMPROVANTE — IMPRESSORA TÉRMICA 58mm (COM ASSINATURA)
+============================================================ */
 async function gerarComprovante(codigo){
   const { data } = await sb.from("vouchers")
     .select("*")
     .eq("codigo", codigo);
 
-  let v=data[0];
+  let v = data[0];
 
   let operadorResgate = localStorage.getItem("sessionUser");
   let dataResgate = new Date().toLocaleString("pt-BR");
@@ -498,11 +501,16 @@ async function gerarComprovante(codigo){
       Operador: ${operadorResgate}<br>
 
       ------------------------------<br>
+      <br>
+      Assinatura do Cliente:<br><br>
+      ____________________________<br>
+      <br>
       Obrigado pela preferência!
-      <br><br>
+      <br><br><br>
     </div>
   `;
 }
+
 
 function imprimirComprovante(){
   let conteudo = printContent.innerHTML;
