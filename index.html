@@ -104,13 +104,17 @@ button{
   border:none;font-weight:700;cursor:pointer;
 }
 
-/* CARTÃO HORIZONTAL MODELO B */
+/* CARTÃO - CONSULTA */
+#voucherConsultaWrapper{
+  margin-top:20px;
+}
+
 #voucherConsultaCard{
-  width:350px;
-  height:210px;
-  background:var(--preto);
+  width:360px;
+  height:220px;
+  background:var(--preto2);
   border-radius:18px;
-  margin-top:18px;
+  margin-top:8px;
   border:2px solid var(--gold);
   display:flex;
   overflow:hidden;
@@ -119,7 +123,7 @@ button{
 
 .v-left{
   width:38%;
-  background:var(--preto2);
+  background:var(--preto);
   display:flex;
   align-items:center;
   justify-content:center;
@@ -129,12 +133,12 @@ button{
 }
 
 .v-mid{
-  width:12%;
+  width:10%;
   background:var(--gold);
 }
 
 .v-right{
-  width:50%;
+  width:52%;
   padding:12px;
   display:flex;
   flex-direction:column;
@@ -144,7 +148,14 @@ button{
 }
 
 #barcodeConsulta{
-  margin-top:8px;
+  margin-top:6px;
+}
+
+/* BOTÕES CONSULTA */
+.voucherBtns{
+  margin-top:12px;
+  display:flex;
+  gap:10px;
 }
 
 /* POPUP */
@@ -226,7 +237,7 @@ button{
       <input id="consultaCodigo" placeholder="Código" onkeydown="enterConsulta(event)">
       <button onclick="consultar()">Consultar</button>
 
-      <div id="voucherConsultaArea"></div>
+      <div id="voucherConsultaWrapper"></div>
     </div>
 
   </div>
@@ -242,9 +253,7 @@ button{
 </div>
 
 <!-- IMPRESSÃO -->
-<div id="printArea" class="hidden">
-  <div id="printContent"></div>
-</div>
+<div id="printArea" class="hidden"><div id="printContent"></div></div>
 
 <script>
 /* ============================================================
@@ -353,18 +362,17 @@ async function consultar(){
   const { data } = await sb.from("vouchers").select("*").eq("codigo",cod);
 
   if(!data || data.length===0){
-    voucherConsultaArea.innerHTML="<div style='margin-top:10px;color:red;'>❌ Não encontrado</div>";
+    voucherConsultaWrapper.innerHTML="<div style='margin-top:10px;color:red;'>❌ Não encontrado</div>";
     return;
   }
 
   gerarCartaoConsulta(data[0]);
 }
 
-/* CARTÃO DE CONSULTA */
+/* CARTÃO DE CONSULTA COM DOWNLOAD + WHATSAPP */
 function gerarCartaoConsulta(v){
-  voucherConsultaArea.innerHTML = `
+  voucherConsultaWrapper.innerHTML = `
     <div id="voucherConsultaCard">
-      
       <div class="v-left">
         <img src="logo.png">
       </div>
@@ -380,6 +388,11 @@ function gerarCartaoConsulta(v){
         <span>${v.codigo}</span>
       </div>
     </div>
+
+    <div class="voucherBtns">
+      <button onclick="baixarConsultaPNG('${v.codigo}')">Baixar Cartão</button>
+      <button onclick="whatsConsulta('${v.codigo}','${v.telefone}','${v.cliente}','${v.valor}')" style="background:#25d366;color:white;">WhatsApp</button>
+    </div>
   `;
 
   JsBarcode("#barcodeConsulta", v.codigo,{
@@ -390,21 +403,32 @@ function gerarCartaoConsulta(v){
   });
 }
 
+/* BAIXAR PNG DO CARTÃO */
+function baixarConsultaPNG(codigo){
+  let card = document.getElementById("voucherConsultaCard");
+
+  html2canvas(card).then(canvas=>{
+    let a = document.createElement("a");
+    a.download = `voucher-${codigo}.png`;
+    a.href = canvas.toDataURL();
+    a.click();
+  });
+}
+
+/* WHATSAPP */
+function whatsConsulta(codigo, telefone, nome, valor){
+  let tel = telefone.replace(/\D/g,"");
+  let msg = 
+`Voucher Mercatto%0A
+Código: ${codigo}%0A
+Cliente: ${nome}%0A
+Valor: R$ ${valor}`;
+
+  window.open(`https://wa.me/55${tel}?text=${msg}`,"_blank");
+}
+
 /* POPUP */
 function fecharPopup(){ popupDetalhes.style.display="none"; }
-
-/* RESGATAR */
-async function resgatar(codigo){
-  let op = localStorage.getItem("sessionUser");
-
-  await sb.from("vouchers").update({
-    status:"RESGATADO",
-    usuario_resgate:op,
-    data_resgate:new Date().toISOString()
-  }).eq("codigo",codigo);
-
-  alert("Voucher resgatado!");
-}
 </script>
 
 </body>
