@@ -5,9 +5,11 @@
 <title>Voucher Mercatto • Sistema Premium</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
+<!-- FONTES -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
 
+<!-- BIBLIOTECAS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -164,7 +166,7 @@ button:hover{background:var(--white);color:black;}
   margin-bottom:10px;
 }
 
-/* Popup detalhes */
+/* Popup */
 .popup{
   position:fixed;
   top:0;left:0;width:100%;height:100%;
@@ -227,7 +229,7 @@ button:hover{background:var(--white);color:black;}
       </div>
 
       <button id="btnDownload" class="hidden" onclick="baixarPNG()">Baixar PNG</button>
-      <button id="btnWhats" class="hidden" onclick="enviarWhats()" style="background:#25d366;color:white;">Enviar WhatsApp</button>
+      <button id="btnWhats" class="hidden" onclick="enviarWhats()" style="background:#25d366;color:white;">WhatsApp</button>
     </div>
 
     <!-- Consulta -->
@@ -270,28 +272,38 @@ const SUPABASE_KEY = "sb_publishable_djiQsCSrnLUm0iA_eNjjMw__7rfP11m";
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* ====================== LOADER ======================= */
+/* ====================== LOADING ======================= */
 function showLoad(){ overlayLoad.style.display="flex"; }
 function hideLoad(){ overlayLoad.style.display="none"; }
 
 /* ====================== LOGIN ======================= */
 async function login(){
   showLoad();
+
   let u = loginUser.value.trim();
   let p = loginPass.value.trim();
 
-  const { data } = await sb.from("usuarios").select("*")
-        .eq("usuario", u).eq("senha", p).limit(1);
+  const { data, error } = await sb
+    .from("usuarios")
+    .select("*")
+    .eq("usuario", u)
+    .eq("senha", p);
 
   hideLoad();
 
-  if(!data || data.length === 0){
-    loginMsg.innerText = "Credenciais inválidas";
+  if (error){
+    loginMsg.innerText = "Erro no banco. Crie política SELECT em usuarios.";
+    return;
+  }
+
+  if (!data || data.length === 0){
+    loginMsg.innerText = "Usuário ou senha inválidos.";
     return;
   }
 
   localStorage.setItem("sessionUser", u);
-  loginCard.classList.add("hidden");
+
+  loginCard.style.display = "none";
   sistema.classList.remove("hidden");
 }
 
@@ -301,8 +313,10 @@ function logout(){
 }
 
 window.onload = () => {
-  let s = localStorage.getItem("sessionUser");
-  if(s){ loginCard.classList.add("hidden"); sistema.classList.remove("hidden"); }
+  if(localStorage.getItem("sessionUser")){
+    loginCard.style.display = "none";
+    sistema.classList.remove("hidden");
+  }
 };
 
 /* ====================== MÁSCARAS ======================= */
@@ -329,15 +343,21 @@ let voucherAtual = null;
 async function emitir(){
   showLoad();
 
-  let nome=cliente.value; let cpf=cpf.value; let tel=telefone.value;
+  let nome=cliente.value; 
+  let cpfVal=cpf.value; 
+  let tel=telefone.value;
   let val=valor.value.replace("R$ ","");
 
   let codigo = (Math.floor(100000000 + Math.random()*900000000)).toString();
-  let agora = new Date().toISOString();
 
   await sb.from("vouchers").insert([{
-    codigo, cliente:nome, cpf, telefone:tel,
-    valor:val, data_emissao:agora, status:"ATIVO"
+    codigo,
+    cliente:nome,
+    cpf:cpfVal,
+    telefone:tel,
+    valor:val,
+    data_emissao:new Date().toISOString(),
+    status:"ATIVO"
   }]);
 
   voucherAtual = { nome, val, codigo, tel };
@@ -352,7 +372,13 @@ function gerarVoucherPNG(v){
   vouch_valor.innerHTML = "<b>Valor:</b> R$ "+v.val;
   vouch_codigo.innerHTML = "<b>Código:</b> "+v.codigo;
 
-  JsBarcode("#barcode", v.codigo,{format:"CODE128",width:2,height:40,background:"black",lineColor:var(--gold)});
+  JsBarcode("#barcode", v.codigo,{
+    format:"CODE128",
+    width:2,
+    height:40,
+    background:"black",
+    lineColor:"#d4af37"
+  });
 
   voucherPNG.style.display="block";
   btnDownload.classList.remove("hidden");
@@ -384,9 +410,7 @@ async function consultar(){
   showLoad();
   let cod = consultaCodigo.value.trim();
 
-  const { data } = await sb.from("vouchers").select("*")
-        .eq("codigo", cod).limit(1);
-
+  const { data } = await sb.from("vouchers").select("*").eq("codigo", cod);
   hideLoad();
 
   if(!data || data.length===0){
@@ -426,6 +450,7 @@ function fecharPopup(){ popupDetalhes.style.display="none"; }
 /* ====================== RESGATAR ======================= */
 async function resgatar(codigo){
   showLoad();
+
   let user = localStorage.getItem("sessionUser");
   let agora = new Date().toISOString();
 
@@ -443,15 +468,12 @@ async function resgatar(codigo){
 
 /* ====================== COMPROVANTE ======================= */
 async function gerarComprovante(codigo){
-  const {data}=await sb.from("vouchers").select("*")
-        .eq("codigo",codigo).limit(1);
+  const {data}=await sb.from("vouchers").select("*").eq("codigo",codigo);
   let v=data[0];
 
-  printContent.innerHTML=`
-    Cliente: ${v.cliente}<br>
-    Valor: R$ ${v.valor}<br>
-    Código: ${v.codigo}<br>
-  `;
+  printContent.innerHTML=`Cliente: ${v.cliente}<br>
+        Valor: R$ ${v.valor}<br>
+        Código: ${v.codigo}<br>`;
   printData.innerText=formatarData(v.data_resgate);
   printUser.innerText=v.usuario_resgate;
 }
@@ -468,4 +490,6 @@ function formatarData(dt){
   let d=new Date(dt); return d.toLocaleString("pt-BR");
 }
 </script>
+
+</body>
 </html>
