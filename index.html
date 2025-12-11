@@ -167,12 +167,17 @@ button:hover{background:var(--p2);}
 ========================================= -->
 <script>
 // ===============================================
-// CONFIGURAÇÃO SUPABASE (via Vercel -> env.js)
+// CONFIGURAÇÃO SUPABASE (credenciais no front)
 // ===============================================
-const SUPABASE_URL = window.CONFIG.SUPABASE_URL;
-const SUPABASE_KEY = window.CONFIG.SUPABASE_KEY;
+
+// COLOQUE SUA URL DO SUPABASE AQUI
+const SUPABASE_URL = "https://ckkqcxbzfkjzicvoeehw.supabase.co";
+
+// COLOQUE SUA ANON KEY AQUI
+const SUPABASE_KEY = "sb_publishable_djiQsCSrnLUm0iA_eNjjMw__7rfP11m";
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 
 // ===============================================
 // LOGIN
