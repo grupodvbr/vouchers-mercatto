@@ -244,7 +244,7 @@ button:hover{background:white;}
   </div>
 </div>
 
-<!-- IMPRESSÃO (TÉRMICA) -->
+<!-- IMPRESSÃO TÉRMICA -->
 <div id="printArea" class="hidden">
   <div id="printContent"></div>
 </div>
@@ -286,7 +286,7 @@ async function login(){
   sistema.classList.remove("hidden");
 }
 
-/* Agora SEMPRE exige login */
+/* SEMPRE exigir login */
 window.onload = ()=>{
   loginCard.classList.remove("hidden");
   sistema.classList.add("hidden");
@@ -364,6 +364,7 @@ async function emitir(){
     telefone:tel,
     valor:val,
     forma_pagamento:forma,
+    empresa:"MERCATTO DELÍCIA",
     data_emissao:new Date().toISOString(),
     usuario_emissao:operador,
     status:"ATIVO"
@@ -443,8 +444,9 @@ async function consultar(){
   consultaResultado.innerHTML=`
     <div class="result-card">
       <b>Cliente:</b> ${v.cliente}<br>
+      <b>Empresa:</b> ${v.empresa}<br>
       <b>Valor:</b> R$ ${v.valor}<br>
-      <b>Forma pagamento:</b> ${v.forma_pagamento}<br><br>
+      <b>Forma Pagamento:</b> ${v.forma_pagamento}<br><br>
       <button onclick="resgatar('${v.codigo}')">Resgatar</button>
     </div>
   `;
@@ -456,8 +458,9 @@ async function consultar(){
 function abrirPopupResgatado(v){
   popupContent.innerHTML=`
     <p><b>Cliente:</b> ${v.cliente}</p>
-    <p><b>Valor:</b> R$ ${v.valor}</p>
-    <p><b>Forma Pgto:</b> ${v.forma_pagamento}</p>
+    <p><b>Empresa:</b> ${v.empresa}</p>
+    <p><b>Valor:</b> ${v.valor}</p>
+    <p><b>Forma Pagamento:</b> ${v.forma_pagamento}</p>
     <p><b>Emitido:</b> ${formatarData(v.data_emissao)}</p>
     <p><b>Resgatado:</b> ${formatarData(v.data_resgate)}</p>
     <p><b>Operador Emissão:</b> ${v.usuario_emissao || "-"}</p>
@@ -509,6 +512,7 @@ async function gerarComprovante(codigo){
       </center>
 
       Cliente: ${v.cliente}<br>
+      Empresa: ${v.empresa}<br>
       CPF: ${v.cpf || "-"}<br>
       Tel: ${v.telefone || "-"}<br>
       Valor: R$ ${v.valor}<br>
