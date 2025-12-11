@@ -2,209 +2,240 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Voucher • Emissão & Consulta</title>
+<title>Voucher Mercatto • Sistema Premium</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <style>
+/* ============================================================
+   🎨 PALETA PREMIUM BLACK & GOLD
+============================================================ */
 :root{
-  --p:#0b1e39;
-  --p2:#102742;
-  --blue:#1e3a8a;
-  --green:#25d366;
-  --bg:#eef2f7;
-  --card:#fff;
-  --border:#d9e0ea;
+  --preto:#0a0a0a;
+  --preto2:#111;
+  --gold:#d4af37;
+  --gold2:#b08a2e;
+  --white:#ffffffdd;
+  --card:#0f0f0f;
   --radius:14px;
-  --shadow:0 4px 14px rgba(0,0,0,0.08);
+  --shadow:0 0 25px rgba(0,0,0,0.4);
 }
 
 *{margin:0;padding:0;box-sizing:border-box;font-family:"Inter";}
-body{background:var(--bg);padding:25px;}
 
-.hidden{display:none;}
-button{cursor:pointer;transition:.2s;}
-
-.btn{
-  padding:12px 24px;
-  border:none;
-  border-radius:12px;
-  background:var(--blue);
+body{
+  background:var(--preto);
   color:white;
+  padding:25px;
+}
+
+/* =========================== LOADING =========================== */
+#overlayLoad{
+  position:fixed;
+  top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.7);
+  display:none;
+  justify-content:center;align-items:center;
+  color:var(--gold);
+  font-size:26px;
   font-weight:700;
-  box-shadow:0 3px 8px rgba(0,0,0,0.15);
-}
-.btn:hover{background:var(--p2);}
-
-.btn-danger{
-  background:#c62828;
-}
-.btn-danger:hover{background:#9b1f1f;}
-
-.btn-green{
-  background:var(--green);
-}
-.btn-green:hover{background:#1da851;}
-
-input{
-  padding:12px;
-  border-radius:10px;
-  width:100%;
-  border:1px solid var(--border);
-  margin-bottom:12px;
-  font-size:15px;
+  z-index:9999;
 }
 
+/* =========================== LOGIN =========================== */
 #loginCard{
-  width:380px;margin:auto;margin-top:80px;padding:25px;
-  background:white;border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--border);
+  width:380px;
+  margin:auto;margin-top:70px;
+  background:var(--card);
+  padding:25px;
+  border-radius:var(--radius);
+  border:2px solid var(--gold);
+  box-shadow:var(--shadow);
 }
-#loginCard img{width:130px;display:block;margin:auto;margin-bottom:15px;}
+
+#loginCard img{
+  width:130px;display:block;margin:auto;margin-bottom:15px;
+}
+
+#loginCard input{
+  width:100%;
+  padding:12px;
+  margin-bottom:12px;
+  background:#1a1a1a;
+  border:1px solid var(--gold2);
+  color:white;
+  border-radius:10px;
+}
+
+#loginCard button{
+  width:100%;padding:12px;
+  background:var(--gold);
+  border:none;color:black;
+  font-weight:700;
+  border-radius:12px;
+  cursor:pointer;
+  font-size:17px;
+}
+#loginMsg{text-align:center;color:#ff4444;margin-top:6px;}
+
+/* ===================== SISTEMA ====================== */
+.hidden{display:none;}
+
+h1{
+  color:var(--gold);
+  font-size:30px;
+  font-weight:800;
+  margin-bottom:20px;
+}
 
 .container{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:30px;
+  gap:25px;
 }
 
 .card{
-  background:white;
+  background:var(--card);
+  padding:22px;
   border-radius:var(--radius);
-  padding:25px;
-  border:1px solid var(--border);
+  border:1px solid var(--gold2);
   box-shadow:var(--shadow);
 }
 
-.card-blue{
-  background:#eaf1ff;
-  border-left:6px solid var(--blue);
+.card h2{
+  color:var(--gold);
+  margin-bottom:15px;
 }
 
-/* Voucher PNG */
+/* Campos */
+input{
+  width:100%;
+  padding:12px;
+  margin-bottom:12px;
+  border-radius:10px;
+  border:1px solid var(--gold2);
+  background:#1a1a1a;
+  color:white;
+}
+
+button{
+  padding:12px 22px;
+  background:var(--gold);
+  color:black;
+  border:none;
+  border-radius:10px;
+  font-weight:700;
+  cursor:pointer;
+  transition:.2s;
+}
+button:hover{background:var(--white);color:black;}
+
+/* Resultado */
+.result-card{
+  margin-top:10px;
+  padding:15px;
+  border-left:4px solid var(--gold);
+  background:#1c1c1c;
+  border-radius:10px;
+}
+
+/* ===================== VOUCHER PRETO & DOURADO ===================== */
 #voucherPNG{
-  width:330px;
-  padding:20px;
-  margin-top:20px;
-  background:white;
-  border-radius:15px;
-  border:2px solid var(--blue);
+  width:320px;
+  padding:25px;
+  background:black;
   display:none;
+  border-radius:14px;
+  border:2px solid var(--gold);
+  box-shadow:0 0 25px rgba(212,175,55,0.3);
 }
-#voucherPNG img{width:120px;display:block;margin:auto;margin-bottom:10px;}
 
-/* POPUP */
+#voucherPNG h3{
+  font-family:'Great Vibes', cursive;
+  font-size:32px;
+  color:var(--gold);
+  text-align:center;
+  margin-bottom:10px;
+}
+
+/* Popup detalhes */
 .popup{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,0.45);
-  display:none;
-  justify-content:center;
-  align-items:center;
-  padding:20px;
+  position:fixed;
+  top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.7);
+  display:none;justify-content:center;align-items:center;
 }
 .popup-box{
-  background:white;
-  width:420px;
-  border-radius:14px;
-  padding:25px;
-  border:2px solid var(--blue);
-  box-shadow:var(--shadow);
+  background:#111;border:2px solid var(--gold);
+  padding:25px;border-radius:12px;width:420px;
 }
+.popup-box p{margin-bottom:6px;color:white;}
 
-/* Overlay carregando */
-#overlayLoad{
-  position:fixed;
-  inset:0;
-  background:rgba(255,255,255,0.85);
-  display:none;
-  justify-content:center;
-  align-items:center;
-  z-index:99999;
-  text-align:center;
-  font-size:22px;
-  color:var(--p);
-}
-#overlayLoad img{width:120px;margin-bottom:20px;}
+/* Impressão */
+#printArea{display:none;}
 </style>
 </head>
 <body>
 
-<!-- ============================== -->
-<!-- OVERLAY CARREGANDO            -->
-<!-- ============================== -->
-<div id="overlayLoad">
-  <div>
-    <img src="logo.png">
-    <br>
-    <b>Processando...</b>
-  </div>
-</div>
+<div id="overlayLoad">Processando...</div>
 
-<!-- ============================== -->
-<!-- LOGIN                          -->
-<!-- ============================== -->
+<!-- ================= LOGIN ================= -->
 <div id="loginCard">
   <img src="logo.png">
-
-  <h2 style="text-align:center;color:var(--p)">Login do Sistema</h2>
+  <h2 style="color:var(--gold);text-align:center;">Acesso Restrito</h2>
 
   <input id="loginUser" placeholder="Usuário">
   <input id="loginPass" type="password" placeholder="Senha">
 
-  <button class="btn" onclick="login()">Entrar</button>
-  <p id="loginMsg" style="color:red;text-align:center;margin-top:8px;"></p>
+  <button onclick="login()">Entrar</button>
+  <p id="loginMsg"></p>
 </div>
 
-<!-- ============================== -->
-<!-- SISTEMA PRINCIPAL             -->
-<!-- ============================== -->
+<!-- ================= SISTEMA ================= -->
 <div id="sistema" class="hidden">
 
-  <h1 style="margin-bottom:15px;">
-    <img src="logo.png" style="height:40px;vertical-align:middle;margin-right:10px;">
-    Sistema de Vouchers
-
-    <button onclick="logout()" class="btn btn-danger" style="float:right;width:auto;">
-      Sair
-    </button>
+  <h1>
+    Voucher Mercatto — Painel Premium
+    <button onclick="logout()" style="float:right;background:#b02626;color:white;">Sair</button>
   </h1>
 
   <div class="container">
 
-    <!-- EMISSÃO -->
+    <!-- Emissão -->
     <div class="card">
-      <h2 style="color:var(--p)">Emitir Voucher</h2>
+      <h2>Emitir Voucher</h2>
 
       <input id="cliente" placeholder="Nome do Cliente">
       <input id="cpf" placeholder="CPF" oninput="maskCPF(this)">
       <input id="telefone" placeholder="Telefone" oninput="maskPhone(this)">
-      <input id="valor" placeholder="Valor do Voucher" oninput="maskValor(this)">
+      <input id="valor" placeholder="Valor" oninput="maskValor(this)">
 
-      <button class="btn" onclick="emitir()">Emitir Voucher</button>
+      <button onclick="emitir()">Emitir Voucher</button>
 
       <div id="voucherPNG">
-        <img src="logo.png">
-        <h3 style="text-align:center;color:var(--blue);">VOUCHER OFICIAL</h3>
+        <h3>Voucher Mercatto</h3>
         <p id="vouch_nome"></p>
         <p id="vouch_codigo"></p>
         <p id="vouch_valor"></p>
         <svg id="barcode"></svg>
       </div>
 
-      <button id="btnDownload" class="btn hidden" onclick="baixarPNG()">Baixar PNG</button>
-      <button id="btnWhats" class="btn btn-green hidden" onclick="enviarWhats()">Enviar WhatsApp</button>
+      <button id="btnDownload" class="hidden" onclick="baixarPNG()">Baixar PNG</button>
+      <button id="btnWhats" class="hidden" onclick="enviarWhats()" style="background:#25d366;color:white;">Enviar WhatsApp</button>
     </div>
 
-    <!-- CONSULTA -->
-    <div class="card card-blue">
-      <h2 style="color:var(--p)">Consultar Voucher</h2>
+    <!-- Consulta -->
+    <div class="card">
+      <h2>Consultar Voucher</h2>
 
       <input id="consultaCodigo" placeholder="Código" onkeydown="enterConsulta(event)">
-      <button class="btn" onclick="consultar()">Consultar</button>
+      <button onclick="consultar()">Consultar</button>
 
       <div id="consultaResultado"></div>
     </div>
@@ -212,238 +243,160 @@ input{
   </div>
 </div>
 
-<!-- ============================== -->
-<!-- POPUP DETALHES RESGATADO      -->
-<!-- ============================== -->
+<!-- Popup -->
 <div id="popupDetalhes" class="popup">
   <div class="popup-box">
-    <h3 style="color:var(--blue)">Detalhes do Voucher</h3>
+    <h3 style="color:var(--gold);">Detalhes do Voucher</h3>
     <div id="popupContent"></div>
-    <br>
-    <button class="btn btn-danger" onclick="fecharPopup()">Fechar</button>
+    <button onclick="fecharPopup()">Fechar</button>
   </div>
 </div>
 
-<!-- ============================== -->
-<!-- IMPRESSÃO                     -->
-<!-- ============================== -->
-<div id="printArea" class="hidden">
-  <h3 style="text-align:center">Comprovante de Resgate</h3>
+<!-- Impressão -->
+<div id="printArea">
+  <h3 style="font-family:'Great Vibes';color:black;text-align:center;font-size:28px;">Voucher Mercatto</h3>
   <div id="printContent"></div>
-
   <p>Data/Hora: <span id="printData"></span></p>
-  <p>Atendido por: <span id="printUser"></span></p>
-
+  <p>Responsável: <span id="printUser"></span></p>
   <br><br>
-  ___________________________________<br>
-  Assinatura do Cliente
+  __________________________<br>
+  Assinatura
 </div>
 
-
 <script>
-/* ----------------------------------------------------------
-   CONFIG SUPABASE  (CREDENCIAIS AQUI)
------------------------------------------------------------ */
+/* ====================== SUPABASE ======================= */
 const SUPABASE_URL = "https://ckkqcxbzfkjzicvoeehw.supabase.co";
 const SUPABASE_KEY = "sb_publishable_djiQsCSrnLUm0iA_eNjjMw__7rfP11m";
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* ----------------------------------------------------------
-   OVERLAY
------------------------------------------------------------ */
-function showLoad(){ overlayLoad.style.display = "flex"; }
-function hideLoad(){ overlayLoad.style.display = "none"; }
+/* ====================== LOADER ======================= */
+function showLoad(){ overlayLoad.style.display="flex"; }
+function hideLoad(){ overlayLoad.style.display="none"; }
 
-/* ----------------------------------------------------------
-   LOGIN
------------------------------------------------------------ */
+/* ====================== LOGIN ======================= */
 async function login(){
   showLoad();
+  let u = loginUser.value.trim();
+  let p = loginPass.value.trim();
 
-  let user = loginUser.value.trim();
-  let pass = loginPass.value.trim();
+  const { data } = await sb.from("usuarios").select("*")
+        .eq("usuario", u).eq("senha", p).limit(1);
 
-  if(!user || !pass){
-    loginMsg.innerText = "Preencha usuário e senha.";
-    hideLoad();
-    return;
-  }
-
-  const { data } = await sb
-    .from("usuarios")
-    .select("*")
-    .eq("usuario", user)
-    .eq("senha", pass)
-    .limit(1);
+  hideLoad();
 
   if(!data || data.length === 0){
-    loginMsg.innerText = "Usuário ou senha inválidos.";
-    registrarLog("LOGIN_INVALIDO", user);
-    hideLoad();
+    loginMsg.innerText = "Credenciais inválidas";
     return;
   }
 
-  localStorage.setItem("sessionUser", user);
-  registrarLog("LOGIN_SUCESSO", user);
-
-  loginCard.style.display = "none";
+  localStorage.setItem("sessionUser", u);
+  loginCard.classList.add("hidden");
   sistema.classList.remove("hidden");
-
-  hideLoad();
 }
 
-/* sempre derruba sessão ao recarregar */
-window.onload = () => {
-  hideLoad();
+function logout(){
   localStorage.removeItem("sessionUser");
-  sistema.classList.add("hidden");
+  location.reload();
+}
+
+window.onload = () => {
+  let s = localStorage.getItem("sessionUser");
+  if(s){ loginCard.classList.add("hidden"); sistema.classList.remove("hidden"); }
 };
 
-/* ----------------------------------------------------------
-   LOGS
------------------------------------------------------------ */
-async function registrarLog(tipo, detalhes){
-  await sb.from("logs_sistema").insert([{
-    tipo,
-    detalhes,
-    usuario: localStorage.getItem("sessionUser") || "DESCONHECIDO"
-  }]);
-}
-
-/* ----------------------------------------------------------
-   MÁSCARAS
------------------------------------------------------------ */
+/* ====================== MÁSCARAS ======================= */
 function maskCPF(el){
   el.value = el.value.replace(/\D/g,"")
-  .replace(/(\d{3})(\d)/,"$1.$2")
-  .replace(/(\d{3})(\d)/,"$1.$2")
-  .replace(/(\d{3})(\d{1,2})$/,"$1-$2");
+    .replace(/(\d{3})(\d)/,"$1.$2")
+    .replace(/(\d{3})(\d)/,"$1.$2")
+    .replace(/(\d{3})(\d{1,2})$/,"$1-$2");
 }
-
 function maskPhone(el){
   el.value = el.value.replace(/\D/g,"")
-  .replace(/(\d{2})(\d)/,"($1) $2")
-  .replace(/(\d{5})(\d)/,"$1-$2");
+    .replace(/(\d{2})(\d)/,"($1) $2")
+    .replace(/(\d{5})(\d)/,"$1-$2");
 }
-
 function maskValor(el){
   let v = el.value.replace(/\D/g,"");
-  v = (Number(v) / 100).toFixed(2) + "";
-  v = v.replace(".", ",");
+  v = (v/100).toFixed(2).replace(".",",");
   el.value = "R$ " + v;
 }
 
-/* ----------------------------------------------------------
-   EMITIR
------------------------------------------------------------ */
-function gerarCodigo(){
-  return Math.floor(100000000 + Math.random()*900000000).toString();
-}
-
+/* ====================== EMITIR ======================= */
 let voucherAtual = null;
 
 async function emitir(){
   showLoad();
 
-  let nome = cliente.value.trim();
-  let cpfVal = cpf.value.trim();
-  let tel = telefone.value.trim();
-  let val = valor.value.trim();
+  let nome=cliente.value; let cpf=cpf.value; let tel=telefone.value;
+  let val=valor.value.replace("R$ ","");
 
-  if(!nome || !cpfVal || !val){
-    alert("Preencha todos os campos.");
-    hideLoad();
-    return;
-  }
-
-  let codigo = gerarCodigo();
+  let codigo = (Math.floor(100000000 + Math.random()*900000000)).toString();
   let agora = new Date().toISOString();
 
   await sb.from("vouchers").insert([{
-    codigo,
-    cliente: nome,
-    cpf: cpfVal,
-    telefone: tel,
-    valor: val.replace("R$ ",""),
-    data_emissao: agora,
-    status: "ATIVO"
+    codigo, cliente:nome, cpf, telefone:tel,
+    valor:val, data_emissao:agora, status:"ATIVO"
   }]);
 
-  registrarLog("EMISSAO", codigo);
-
-  voucherAtual = { codigo, nome, val, tel };
+  voucherAtual = { nome, val, codigo, tel };
 
   gerarVoucherPNG(voucherAtual);
-
   hideLoad();
 }
 
-/* ----------------------------------------------------------
-   GERAR PNG
------------------------------------------------------------ */
+/* ====================== PNG ======================= */
 function gerarVoucherPNG(v){
   vouch_nome.innerHTML = "<b>Cliente:</b> " + v.nome;
-  vouch_valor.innerHTML = "<b>Valor:</b> " + valor.value;
-  vouch_codigo.innerHTML = "<b>Código:</b> " + v.codigo;
+  vouch_valor.innerHTML = "<b>Valor:</b> R$ "+v.val;
+  vouch_codigo.innerHTML = "<b>Código:</b> "+v.codigo;
 
-  JsBarcode("#barcode", v.codigo, { format:"CODE128", width:2, height:40 });
+  JsBarcode("#barcode", v.codigo,{format:"CODE128",width:2,height:40,background:"black",lineColor:var(--gold)});
 
-  voucherPNG.style.display = "block";
+  voucherPNG.style.display="block";
   btnDownload.classList.remove("hidden");
   btnWhats.classList.remove("hidden");
 }
 
 function baixarPNG(){
   html2canvas(voucherPNG).then(canvas=>{
-    let link = document.createElement("a");
-    link.download = "voucher.png";
-    link.href = canvas.toDataURL();
+    let link=document.createElement("a");
+    link.download="voucher.png";
+    link.href=canvas.toDataURL();
     link.click();
   });
 }
 
 function enviarWhats(){
-  if(!voucherAtual || !voucherAtual.tel) return;
-
   let tel = voucherAtual.tel.replace(/\D/g,"");
-
-  let msg =
-    `Seu Voucher foi gerado!\n`+
-    `Código: ${voucherAtual.codigo}\n`+
-    `Cliente: ${voucherAtual.nome}\n`+
-    `Valor: ${valor.value}`;
-
-  window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`, "_blank");
+  let msg = `Voucher Mercatto%0A`+
+            `Código: ${voucherAtual.codigo}%0A`+
+            `Cliente: ${voucherAtual.nome}%0A`+
+            `Valor: R$ ${voucherAtual.val}`;
+  window.open(`https://wa.me/55${tel}?text=${msg}`,"_blank");
 }
 
-/* ----------------------------------------------------------
-   CONSULTAR
------------------------------------------------------------ */
+/* ====================== CONSULTAR ======================= */
 function enterConsulta(e){ if(e.key==="Enter") consultar(); }
 
 async function consultar(){
   showLoad();
-
   let cod = consultaCodigo.value.trim();
-  if(!cod){ hideLoad(); return; }
 
-  const { data } = await sb.from("vouchers")
-    .select("*")
-    .eq("codigo", cod)
-    .limit(1);
+  const { data } = await sb.from("vouchers").select("*")
+        .eq("codigo", cod).limit(1);
 
   hideLoad();
 
   if(!data || data.length===0){
-    consultaResultado.innerHTML = `<div class="result-card">❌ Voucher não encontrado.</div>`;
-    registrarLog("CONSULTA_FALHA", cod);
+    consultaResultado.innerHTML=`<div class="result-card">❌ Não encontrado</div>`;
     return;
   }
 
-  let v = data[0];
+  let v=data[0];
 
-  if(v.status === "RESGATADO"){
+  if(v.status==="RESGATADO"){
     abrirPopupResgatado(v);
     return;
   }
@@ -451,17 +404,13 @@ async function consultar(){
   consultaResultado.innerHTML = `
     <div class="result-card">
       <b>Cliente:</b> ${v.cliente}<br>
-      <b>Valor:</b> R$ ${v.valor}<br>
-      <b>Emissão:</b> ${formatarData(v.data_emissao)}<br><br>
-
-      <button class="btn btn-green" onclick="resgatar('${v.codigo}')">Finalizar / Resgatar</button>
+      <b>Valor:</b> R$ ${v.valor}<br><br>
+      <button onclick="resgatar('${v.codigo}')">Resgatar</button>
     </div>
   `;
 }
 
-/* ----------------------------------------------------------
-   POPUP RESGATADO
------------------------------------------------------------ */
+/* ====================== POPUP ======================= */
 function abrirPopupResgatado(v){
   popupContent.innerHTML = `
     <p><b>Cliente:</b> ${v.cliente}</p>
@@ -470,75 +419,53 @@ function abrirPopupResgatado(v){
     <p><b>Resgatado:</b> ${formatarData(v.data_resgate)}</p>
     <p><b>Responsável:</b> ${v.usuario_resgate}</p>
   `;
-  popupDetalhes.style.display = "flex";
+  popupDetalhes.style.display="flex";
 }
-function fecharPopup(){ popupDetalhes.style.display = "none"; }
+function fecharPopup(){ popupDetalhes.style.display="none"; }
 
-/* ----------------------------------------------------------
-   RESGATAR
------------------------------------------------------------ */
+/* ====================== RESGATAR ======================= */
 async function resgatar(codigo){
   showLoad();
-
   let user = localStorage.getItem("sessionUser");
   let agora = new Date().toISOString();
 
-  await sb.from("vouchers")
-    .update({
-      status:"RESGATADO",
-      data_resgate:agora,
-      usuario_resgate:user
-    })
-    .eq("codigo", codigo);
-
-  registrarLog("RESGATE", codigo);
+  await sb.from("vouchers").update({
+    status:"RESGATADO",
+    data_resgate:agora,
+    usuario_resgate:user
+  }).eq("codigo",codigo);
 
   gerarComprovante(codigo);
   imprimirComprovante();
 
   hideLoad();
-
-  consultaResultado.innerHTML =
-    `<div class="result-card">✔ Resgatado com sucesso!</div>`;
 }
 
-/* ----------------------------------------------------------
-   COMPROVANTE
------------------------------------------------------------ */
+/* ====================== COMPROVANTE ======================= */
 async function gerarComprovante(codigo){
-  const { data } = await sb
-      .from("vouchers")
-      .select("*")
-      .eq("codigo", codigo)
-      .limit(1);
+  const {data}=await sb.from("vouchers").select("*")
+        .eq("codigo",codigo).limit(1);
+  let v=data[0];
 
-  let v = data[0];
-
-  printContent.innerHTML = `
+  printContent.innerHTML=`
     Cliente: ${v.cliente}<br>
     Valor: R$ ${v.valor}<br>
     Código: ${v.codigo}<br>
   `;
-
-  printData.innerText = formatarData(v.data_resgate);
-  printUser.innerText = v.usuario_resgate;
+  printData.innerText=formatarData(v.data_resgate);
+  printUser.innerText=v.usuario_resgate;
 }
 
 function imprimirComprovante(){
-  let janela = window.open("", "", "width=260,height=600");
+  let janela=window.open("", "","width=260,height=600");
   janela.document.write(printArea.innerHTML);
   janela.print();
   janela.close();
 }
 
-/* ----------------------------------------------------------
-   UTIL
------------------------------------------------------------ */
+/* ====================== UTIL ======================= */
 function formatarData(dt){
-  let d = new Date(dt);
-  return d.toLocaleString("pt-BR");
+  let d=new Date(dt); return d.toLocaleString("pt-BR");
 }
-
 </script>
-</body>
 </html>
