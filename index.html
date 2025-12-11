@@ -6,7 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="env.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
@@ -30,16 +29,37 @@ body{background:var(--bg);padding:25px;}
 
 .hidden{display:none;}
 
+/* ---------------- LOGIN ---------------- */
 #loginCard{
   width:380px;margin:auto;margin-top:80px;padding:25px;
   background:white;border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--border);
 }
 #loginCard img{width:130px;display:block;margin:auto;margin-bottom:15px;}
-#loginCard input{width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);margin-bottom:12px;}
-#loginCard button{
-  width:100%;padding:12px;background:var(--blue);
-  border:none;color:white;font-weight:700;border-radius:12px;cursor:pointer;
+#loginCard input{
+  width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);
+  margin-bottom:12px;font-size:16px;
 }
+
+/* --------- BOTÕES PREMIUM --------- */
+button{
+  padding:12px 22px;
+  background:var(--blue);
+  border:none;
+  color:white;
+  font-weight:700;
+  border-radius:12px;
+  cursor:pointer;
+  transition:.2s;
+  box-shadow:0 3px 8px rgba(0,0,0,.15);
+  font-size:16px;
+}
+
+button:hover{
+  background:var(--p2);
+  transform:translateY(-2px);
+  box-shadow:0 6px 12px rgba(0,0,0,.25);
+}
+
 #loginMsg{text-align:center;color:red;margin-top:8px;}
 
 h1{font-size:28px;color:var(--p);margin-bottom:25px;font-weight:800;}
@@ -52,9 +72,7 @@ h1{font-size:28px;color:var(--p);margin-bottom:25px;font-weight:800;}
 }
 .card-blue{background:#dce7ff;border-left:6px solid var(--blue);}
 
-input,button{font-size:15px;}
 input{width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);margin-bottom:12px;}
-button:hover{background:var(--p2);}
 
 .result-card{
   margin-top:15px;padding:18px;background:#eef3ff;
@@ -69,7 +87,7 @@ button:hover{background:var(--p2);}
 
 .popup{
   position:fixed;top:0;left:0;width:100%;height:100%;
-  background:rgba(0,0,0,0.5);display:none;justify-content:center;align-items:center;
+  background:rgba(0,0,0,0.5);display:none;justify-content:center;align-items:center;z-index:9998;
 }
 .popup-box{
   width:480px;background:white;border-radius:12px;padding:25px;
@@ -77,12 +95,27 @@ button:hover{background:var(--p2);}
 }
 .popup h3{margin-bottom:15px;color:var(--blue);}
 
-#printArea{display:none;}
+/* ---------------- LOADING OVERLAY ---------------- */
+#overlayLoad{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(255,255,255,0.85);
+  display:flex;justify-content:center;align-items:center;
+  z-index:9999;
+}
+#overlayLoad img{width:90px;opacity:0.7;}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
+<!-- ---------------- OVERLAY GLOBAL ---------------- -->
+<div id="overlayLoad" class="hidden">
+  <div style="text-align:center;font-size:20px;color:var(--p);">
+      <img src="logo.png"><br><br>
+      <b>Processando...</b>
+  </div>
+</div>
+
+<!-- ---------------- LOGIN ---------------- -->
 <div id="loginCard">
   <img src="logo.png">
   <h2 style="text-align:center;color:var(--p)">Login do Sistema</h2>
@@ -94,7 +127,7 @@ button:hover{background:var(--p2);}
   <p id="loginMsg"></p>
 </div>
 
-<!-- SISTEMA -->
+<!-- ---------------- SISTEMA ---------------- -->
 <div id="sistema" class="hidden">
   <h1>
     <img src="logo.png" style="height:40px;vertical-align:middle;margin-right:10px;">
@@ -141,7 +174,7 @@ button:hover{background:var(--p2);}
   </div>
 </div>
 
-<!-- POPUP PREMIUM -->
+<!-- ---------------- POPUP DETALHES RESGATADO ---------------- -->
 <div id="popupDetalhes" class="popup">
   <div class="popup-box">
     <h3>Detalhes do Voucher</h3>
@@ -151,8 +184,8 @@ button:hover{background:var(--p2);}
   </div>
 </div>
 
-<!-- IMPRESSÃO -->
-<div id="printArea">
+<!-- ---------------- IMPRESSÃO ---------------- -->
+<div id="printArea" class="hidden">
   <h3 style="text-align:center">Comprovante de Resgate</h3>
   <div id="printContent"></div>
   <p>Data/Hora: <span id="printData"></span></p>
@@ -162,26 +195,18 @@ button:hover{background:var(--p2);}
   Assinatura do Cliente
 </div>
 
-<!-- =========================================
-     FIM DA PARTE 1
-========================================= -->
 <script>
-// ===============================================
-// CONFIGURAÇÃO SUPABASE (credenciais no front)
-// ===============================================
-
-// COLOQUE SUA URL DO SUPABASE AQUI
+// ---------------- CONFIG SUPABASE ----------------
 const SUPABASE_URL = "https://ckkqcxbzfkjzicvoeehw.supabase.co";
-
-// COLOQUE SUA ANON KEY AQUI
 const SUPABASE_KEY = "sb_publishable_djiQsCSrnLUm0iA_eNjjMw__7rfP11m";
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// ---------------- OVERLAY ----------------
+function showLoad(){ overlayLoad.classList.remove("hidden"); }
+function hideLoad(){ overlayLoad.classList.add("hidden"); }
 
-// ===============================================
-// LOGIN
-// ===============================================
+// ---------------- LOGIN ----------------
 async function login(){
     let user = loginUser.value.trim();
     let pass = loginPass.value.trim();
@@ -191,51 +216,53 @@ async function login(){
         return;
     }
 
-    const { data, error } = await sb
+    showLoad();
+
+    const { data } = await sb
         .from("usuarios")
         .select("*")
         .eq("usuario", user)
         .eq("senha", pass)
         .limit(1);
 
+    hideLoad();
+
     if(!data || data.length === 0){
         loginMsg.innerText = "Usuário ou senha inválidos.";
-        registrarLog("LOGIN_INVALIDO", `Tentativa: ${user}`);
+        registrarLog("LOGIN_INVALIDO", user);
         return;
     }
 
     localStorage.setItem("sessionUser", user);
-    registrarLog("LOGIN_SUCESSO", `Usuário logado: ${user}`);
+    registrarLog("LOGIN_SUCESSO", user);
 
     loginCard.style.display = "none";
     sistema.classList.remove("hidden");
 }
 
 function logout(){
-    registrarLog("LOGOUT", "Usuário saiu");
+    registrarLog("LOGOUT","Saiu");
     localStorage.removeItem("sessionUser");
     location.reload();
 }
 
 window.onload = () => {
-    let s = localStorage.getItem("sessionUser");
-    if(s){
+    if(localStorage.getItem("sessionUser")){
         loginCard.style.display = "none";
         sistema.classList.remove("hidden");
     }
 };
 
-// ===============================================
-// LOGS
-// ===============================================
+// ---------------- LOGS ----------------
 async function registrarLog(tipo, detalhes){
-    let usuario = localStorage.getItem("sessionUser") || "DESCONHECIDO";
-    await sb.from("logs_sistema").insert([{ tipo, detalhes, usuario }]);
+    await sb.from("logs_sistema").insert([{
+        tipo,
+        detalhes,
+        usuario: localStorage.getItem("sessionUser") || "?"
+    }]);
 }
 
-// ===============================================
-// MÁSCARAS
-// ===============================================
+// ---------------- MÁSCARAS ----------------
 function maskCPF(el){
     el.value = el.value.replace(/\D/g,"")
         .replace(/(\d{3})(\d)/,"$1.$2")
@@ -251,21 +278,11 @@ function maskPhone(el){
 
 function maskValor(el){
     let v = el.value.replace(/\D/g,"");
-    v = (Number(v) / 100).toFixed(2) + "";
-    v = v.replace(".", ",");
+    v = (Number(v)/100).toFixed(2).replace(".",",");
     el.value = "R$ " + v;
 }
 
-// ===============================================
-// GERAR CÓDIGO
-// ===============================================
-function gerarCodigo(){
-    return Math.floor(100000000 + Math.random() * 900000000).toString();
-}
-
-// ===============================================
-// EMITIR VOUCHER
-// ===============================================
+// ---------------- EMITIR ----------------
 let voucherAtual = null;
 
 async function emitir(){
@@ -279,34 +296,32 @@ async function emitir(){
         return;
     }
 
+    showLoad();
+
     let codigo = gerarCodigo();
     let agora = new Date().toISOString();
 
-    const { error } = await sb.from("vouchers").insert([{
+    await sb.from("vouchers").insert([{
         codigo,
-        cliente: nome,
-        cpf: cpfVal,
-        telefone: tel,
-        valor: val.replace("R$ ",""),
-        data_emissao: agora,
-        status: "ATIVO"
+        cliente:nome,
+        cpf:cpfVal,
+        telefone:tel,
+        valor:val.replace("R$ ",""),
+        data_emissao:agora,
+        status:"ATIVO"
     }]);
 
-    if(error){
-        alert("Erro ao emitir!");
-        return;
-    }
+    hideLoad();
 
-    registrarLog("EMISSAO", `Código: ${codigo} Cliente: ${nome}`);
-
+    registrarLog("EMISSAO", codigo);
     voucherAtual = { codigo, nome, val, tel };
-
     gerarVoucherPNG(voucherAtual);
 }
 
-// ===============================================
-// PNG DO VOUCHER
-// ===============================================
+function gerarCodigo(){
+    return Math.floor(100000000 + Math.random()*900000000).toString();
+}
+
 function gerarVoucherPNG(v){
     vouch_nome.innerHTML = "<b>Cliente:</b> " + v.nome;
     vouch_valor.innerHTML = "<b>Valor:</b> " + valor.value;
@@ -317,150 +332,126 @@ function gerarVoucherPNG(v){
     voucherPNG.style.display = "block";
     btnDownload.classList.remove("hidden");
     btnWhats.classList.remove("hidden");
-
-    registrarLog("GEROU_PNG", `Voucher ${v.codigo}`);
 }
 
 function baixarPNG(){
-    registrarLog("DOWNLOAD_PNG", `Voucher ${voucherAtual.codigo}`);
     html2canvas(voucherPNG).then(canvas=>{
-        let link = document.createElement("a");
-        link.download = "voucher.png";
-        link.href = canvas.toDataURL();
+        let link=document.createElement("a");
+        link.download="voucher.png";
+        link.href=canvas.toDataURL();
         link.click();
     });
 }
 
 function enviarWhats(){
-    if(!voucherAtual || !voucherAtual.tel){
-        alert("Telefone inválido");
-        return;
-    }
-
     let tel = voucherAtual.tel.replace(/\D/g,"");
 
-    let msg =
-      `Seu Voucher foi gerado!\n` +
-      `Código: ${voucherAtual.codigo}\n` +
-      `Cliente: ${voucherAtual.nome}\n` +
+    let msg = 
+      `Seu voucher foi gerado!\n`+
+      `Código: ${voucherAtual.codigo}\n`+
+      `Cliente: ${voucherAtual.nome}\n`+
       `Valor: ${valor.value}`;
 
-    registrarLog("WHATSAPP", `Enviado para ${tel}`);
-
-    window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`, "_blank");
+    window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`,"_blank");
 }
 
-// ===============================================
-// CONSULTAR
-// ===============================================
+// ---------------- CONSULTAR ----------------
 function enterConsulta(e){
-    if(e.key === "Enter") consultar();
+    if(e.key==="Enter") consultar();
 }
 
 async function consultar(){
     let cod = consultaCodigo.value.trim();
     if(!cod) return;
 
-    const { data } = await sb.from("vouchers").select("*").eq("codigo", cod).limit(1);
+    showLoad();
 
-    if(!data || data.length === 0){
-        consultaResultado.innerHTML = `<div class="result-card">❌ Voucher não encontrado.</div>`;
-        registrarLog("CONSULTA_FALHA", cod);
+    const { data } = await sb.from("vouchers").select("*").eq("codigo",cod).limit(1);
+
+    hideLoad();
+
+    if(!data || data.length===0){
+        consultaResultado.innerHTML=`<div class="result-card">❌ Voucher não encontrado.</div>`;
         return;
     }
 
     let v = data[0];
 
-    registrarLog("CONSULTA", `Código: ${cod}`);
-
-    if(v.status === "RESGATADO"){
+    if(v.status==="RESGATADO"){
         abrirPopupResgatado(v);
         return;
     }
 
-    consultaResultado.innerHTML = `
-        <div class="result-card">
-            <b>Cliente:</b> ${v.cliente}<br>
-            <b>Valor:</b> R$ ${v.valor}<br>
-            <b>Emissão:</b> ${formatarData(v.data_emissao)}<br><br>
-            <button onclick="resgatar('${v.codigo}')">Finalizar / Resgatar</button>
-        </div>
-    `;
+    consultaResultado.innerHTML=`
+      <div class="result-card">
+        <b>Cliente:</b> ${v.cliente}<br>
+        <b>Valor:</b> R$ ${v.valor}<br>
+        <b>Emissão:</b> ${formatarData(v.data_emissao)}<br><br>
+        <button onclick="resgatar('${v.codigo}')">Finalizar / Resgatar</button>
+      </div>`;
 }
 
-// ===============================================
-// POPUP — Voucher já resgatado
-// ===============================================
 function abrirPopupResgatado(v){
-    popupContent.innerHTML = `
+    popupContent.innerHTML=`
         <p><b>Cliente:</b> ${v.cliente}</p>
         <p><b>Valor:</b> R$ ${v.valor}</p>
         <p><b>Emitido em:</b> ${formatarData(v.data_emissao)}</p>
         <p><b>Resgatado em:</b> ${formatarData(v.data_resgate)}</p>
         <p><b>Responsável:</b> ${v.usuario_resgate}</p>
     `;
-    popupDetalhes.style.display = "flex";
+    popupDetalhes.style.display="flex";
 }
 
 function fecharPopup(){
-    popupDetalhes.style.display = "none";
+    popupDetalhes.style.display="none";
 }
 
-// ===============================================
-// RESGATAR
-// ===============================================
+// ---------------- RESGATAR ----------------
 async function resgatar(codigo){
+    showLoad();
 
     let user = localStorage.getItem("sessionUser");
     let agora = new Date().toISOString();
 
     await sb.from("vouchers")
         .update({
-            status: "RESGATADO",
-            data_resgate: agora,
-            usuario_resgate: user
+            status:"RESGATADO",
+            data_resgate:agora,
+            usuario_resgate:user
         })
-        .eq("codigo", codigo);
+        .eq("codigo",codigo);
 
-    registrarLog("RESGATE", codigo);
+    hideLoad();
 
     gerarComprovante(codigo);
     imprimirComprovante();
-
-    consultaResultado.innerHTML = `<div class="result-card">✔ Resgatado com sucesso!</div>`;
 }
 
-// ===============================================
-// COMPROVANTE IMPRESSO
-// ===============================================
 async function gerarComprovante(codigo){
-    const { data } = await sb.from("vouchers").select("*").eq("codigo", codigo).limit(1);
-    let v = data[0];
+    const { data } = await sb.from("vouchers").select("*").eq("codigo",codigo).limit(1);
+    let v=data[0];
 
-    printContent.innerHTML = `
+    printContent.innerHTML=`
         Cliente: ${v.cliente}<br>
         Valor: R$ ${v.valor}<br>
         Código: ${v.codigo}<br>
     `;
-    printData.innerText = formatarData(v.data_resgate);
-    printUser.innerText = v.usuario_resgate;
+    printData.innerText=formatarData(v.data_resgate);
+    printUser.innerText=v.usuario_resgate;
 }
 
 function imprimirComprovante(){
     let conteudo = printArea.innerHTML;
-    let janela = window.open("", "", "width=260,height=600");
-    janela.document.write(conteudo);
-    janela.print();
-    janela.close();
+    let win = window.open("","","width=280,height=600");
+    win.document.write(conteudo);
+    win.print();
+    win.close();
 }
 
-// ===============================================
-// UTIL
-// ===============================================
+// ---------------- UTIL ----------------
 function formatarData(dt){
-    let d = new Date(dt);
-    return d.toLocaleString("pt-BR");
+    return new Date(dt).toLocaleString("pt-BR");
 }
-
 </script>
+</body>
 </html>
