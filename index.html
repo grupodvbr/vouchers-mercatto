@@ -179,38 +179,74 @@ button:hover{background:white;}
 
       <button onclick="emitir()">Emitir Voucher</button>
 
-      <!-- 🔥 NOVO VOUCHER PREMIUM -->
-      <div id="voucherPNG">
+ <!-- 🔥 VOUCHER PREMIUM ATUALIZADO -->
+<div id="voucherPNG">
 
-        <!-- LADO PRETO -->
-        <div style="position:absolute;left:0;top:0;width:45%;height:100%;padding:25px;color:white;display:flex;flex-direction:column;justify-content:center;">
-          <h1 style="font-size:42px;font-weight:800;letter-spacing:2px;">GIFT</h1>
-          <h2 style="font-size:34px;color:#d4af37;margin-top:-10px;letter-spacing:3px;">VOUCHER</h2>
+  <!-- LADO PRETO -->
+  <div style="
+    position:absolute;left:0;top:0;width:45%;height:100%;
+    padding:25px;color:white;
+    display:flex;flex-direction:column;justify-content:center;
+  ">
+    <h1 style="font-size:42px;font-weight:800;letter-spacing:2px;">GIFT</h1>
+    <h2 style="font-size:34px;color:#d4af37;margin-top:-10px;letter-spacing:3px;">VOUCHER</h2>
 
-          <p id="vouch_nome" style="margin-top:20px;"></p>
-          <p id="vouch_codigo"></p>
-          <p id="vouch_valor" style="font-weight:700;color:#d4af37;"></p>
-        </div>
+    <p id="vouch_nome" style="margin-top:20px;"></p>
+    <p id="vouch_codigo"></p>
+    <p id="vouch_valor" style="font-weight:700;color:#d4af37;"></p>
+  </div>
 
-        <!-- CURVA DOURADA -->
-        <div style="position:absolute;left:44%;top:0;width:90px;height:100%;background:linear-gradient(135deg,#b48a2b 0%,#d4af37 50%,#f7e7b0 100%);clip-path:polygon(0 0,100% 0,70% 100%,0% 100%);"></div>
+  <!-- CURVA DOURADA -->
+  <div style="
+    position:absolute;left:44%;top:0;width:90px;height:100%;
+    background:linear-gradient(135deg,#b48a2b 0%,#d4af37 50%,#f7e7b0 100%);
+    clip-path:polygon(0 0,100% 0,70% 100%,0% 100%);
+  "></div>
 
-        <!-- LADO CLARO -->
-        <div style="position:absolute;left:50%;top:0;width:50%;height:100%;padding:35px;color:#5a4d29;">
-          <p style="font-size:13px;text-transform:uppercase;color:#b9a979;letter-spacing:2px;">Voucher Especial Mercatto</p>
+  <!-- LADO CLARO -->
+  <div style="
+    position:absolute;left:50%;top:0;width:50%;height:100%;
+    padding:35px;color:#5a4d29;
+  ">
 
-          <h1 style="font-size:70px;margin-top:10px;font-weight:300;color:#a8852b;font-family:'Great Vibes';">
-            R$ <span id="valorGrande"></span>
-          </h1>
+    <!-- Fundo atrás do texto -->
+    <div style="
+      background:rgba(0,0,0,0.35);
+      width:max-content;
+      padding:4px 10px;
+      border-radius:6px;
+      margin-bottom:6px;
+    ">
+      <p style="
+        font-size:13px;text-transform:uppercase;
+        color:#f0e2ad;letter-spacing:2px;margin:0;
+      ">
+        Voucher Especial Mercatto
+      </p>
+    </div>
 
-          <h3 style="font-size:26px;margin-top:-10px;color:#8a6f2a;">DESCONTO EXCLUSIVO</h3>
+    <!-- Valor -->
+    <h1 style="
+      font-size:70px;margin-top:10px;font-weight:300;
+      color:#a8852b;font-family:'Great Vibes';
+    ">
+      R$ <span id="valorGrande"></span>
+    </h1>
 
-          <div style="margin-top:25px;">
-            <svg id="barcode"></svg>
-          </div>
-        </div>
+    <!-- CÓDIGO DE BARRAS + NÚMERO -->
+    <div style="margin-top:5px;">
+      <svg id="barcode"></svg>
 
-      </div>
+      <p id="codigoNumerico"
+         style="text-align:center;margin-top:4px;
+         font-size:16px;font-weight:700;color:#8a6f2a;">
+      </p>
+    </div>
+
+  </div>
+
+</div>
+
 
       <button id="btnDownload" class="hidden" onclick="baixarPNG()">Baixar PNG</button>
       <button id="btnWhats" class="hidden" onclick="enviarWhats()" style="background:#25d366;color:white;">WhatsApp</button>
@@ -349,6 +385,7 @@ function gerarVoucherPNG(v){
   vouch_nome.innerHTML="<b>Cliente:</b> "+v.nome;
   vouch_codigo.innerHTML="<b>Código:</b> "+v.codigo;
   vouch_valor.innerHTML="<b>Valor:</b> R$ "+v.val;
+document.getElementById("codigoNumerico").innerText = v.codigo;
 
   document.getElementById("valorGrande").innerText = v.val;
 
