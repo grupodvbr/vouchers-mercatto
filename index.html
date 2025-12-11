@@ -164,6 +164,15 @@ button{
       <input id="telefone" placeholder="Telefone" oninput="maskPhone(this)">
       <input id="valor" placeholder="Valor" oninput="maskValor(this)">
 
+      <!-- FORMA DE PAGAMENTO NA EMISSÃO -->
+      <select id="formaPagamentoEmissao">
+        <option value="" disabled selected>Forma de Pagamento</option>
+        <option value="PIX">PIX</option>
+        <option value="DINHEIRO">DINHEIRO</option>
+        <option value="CARTÃO CRÉDITO">CARTÃO CRÉDITO</option>
+        <option value="CARTÃO DÉBITO">CARTÃO DÉBITO</option>
+      </select>
+
       <button onclick="emitir()">Emitir Voucher</button>
 
       <!-- 🔥 VOUCHER PREMIUM -->
@@ -180,6 +189,7 @@ button{
 
           <p id="vouch_nome"></p>
           <p id="vouch_codigo"></p>
+          <p id="vouch_pagamento"></p>
           <p id="vouch_valor" style="font-weight:700;color:#d4af37;"></p>
         </div>
 
@@ -312,39 +322,52 @@ function maskValor(el){
 async function gerarCodigoUnico(){
   while(true){
     let codigo = String(Math.floor(100000000 + Math.random()*900000000));
-    const { data } = await sb.from("vouchers")
-      .select("codigo").eq("codigo", codigo);
+    const { data } = await sb.from("vouchers").select("codigo").eq("codigo", codigo);
     if(!data || data.length === 0) return codigo;
   }
 }
 
-/* EMITIR */
+/* ============================================================
+   EMISSÃO
+============================================================ */
 async function emitir(){
   showLoad();
 
-  let nome=cliente.value.trim();
-  let cpfv=cpf.value.trim();
-  let tel=telefone.value.trim();
-  let val=valor.value.replace("R$ ","");
+  let nome = cliente.value.trim();
+  let cpfv = cpf.value.trim();
+  let tel = telefone.value.trim();
+  let val = valor.value.replace("R$ ","");
+  let formaPag = formaPagamentoEmissao.value;
 
-  if(!nome || !val){
-    hideLoad();alert("Preencha os campos obrigatórios!");return;
+  if(!nome || !val || !formaPag){
+    hideLoad();
+    alert("Preencha todos os campos obrigatórios!");
+    return;
   }
 
   let codigo = await gerarCodigoUnico();
   let operador = localStorage.getItem("sessionUser");
 
   const { error } = await sb.from("vouchers").insert([{
-    codigo, cliente:nome, cpf:cpfv, telefone:tel,
-    valor:val, data_emissao:new Date().toISOString(),
-    usuario_emissao:operador,status:"ATIVO"
+    codigo,
+    cliente: nome,
+    cpf: cpfv,
+    telefone: tel,
+    valor: val,
+    forma_pagamento: formaPag,   // 🔥 SALVA AQUI
+    data_emissao: new Date().toISOString(),
+    usuario_emissao: operador,
+    status: "ATIVO"
   }]);
 
   hideLoad();
 
-  if(error){ alert("Erro ao registrar."); return; }
+  if(error){
+    alert("Erro ao registrar.");
+    return;
+  }
 
-  voucherAtual={nome, val, codigo, tel};
+  voucherAtual = { nome, val, codigo, tel, formaPag };
   gerarVoucherPNG(voucherAtual);
 }
 
@@ -352,6 +375,7 @@ async function emitir(){
 function gerarVoucherPNG(v){
   vouch_nome.innerHTML="<b>Cliente:</b> "+v.nome;
   vouch_codigo.innerHTML="<b>Código:</b> "+v.codigo;
+  vouch_pagamento.innerHTML="<b>Pagamento:</b> "+v.formaPag;
   vouch_valor.innerHTML="<b>Valor:</b> R$ "+v.val;
 
   document.getElementById("valorGrande").innerText = v.val;
@@ -384,7 +408,8 @@ function enviarWhats(){
     `Voucher Mercatto%0A`+
     `Código: ${voucherAtual.codigo}%0A`+
     `Cliente: ${voucherAtual.nome}%0A`+
-    `Valor: R$ ${voucherAtual.val}`;
+    `Valor: R$ ${voucherAtual.val}%0A`+
+    `Pagamento: ${voucherAtual.formaPag}`;
   window.open(`https://wa.me/55${tel}?text=${msg}`,"_blank");
 }
 
@@ -415,14 +440,16 @@ async function consultar(){
         <b>Código:</b> ${v.codigo}<br>
         <b>Valor:</b> R$ ${v.valor}<br>
         <b>Emitido em:</b> ${new Date(v.data_emissao).toLocaleString("pt-BR")}<br>
+        <b>Forma Pagamento:</b> ${v.forma_pagamento || "-"}<br>
         <b>Emitido por:</b> ${v.usuario_emissao || "—"}<br><br>
 
-        <label><b>Forma de Pagamento:</b></label>
+        <label><b>Forma de Pagamento (Resgate):</b></label>
         <select id="formaPag${v.codigo}">
+          <option value="${v.forma_pagamento}" selected>${v.forma_pagamento}</option>
           <option value="PIX">PIX</option>
           <option value="DINHEIRO">DINHEIRO</option>
-          <option value="CARTÃO">CARTÃO</option>
-          <option value="DÉBITO">DÉBITO</option>
+          <option value="CARTÃO CRÉDITO">CARTÃO CRÉDITO</option>
+          <option value="CARTÃO DÉBITO">CARTÃO DÉBITO</option>
         </select>
 
         <br><br>
@@ -440,6 +467,7 @@ function abrirPopupResgatado(v){
     <p><b>Resgatado:</b> ${formatarData(v.data_resgate)}</p>
     <p><b>Operador Emissão:</b> ${v.usuario_emissao}</p>
     <p><b>Operador Resgate:</b> ${v.usuario_resgate}</p>
+    <p><b>Forma Pagamento:</b> ${v.forma_pagamento}</p>
   `;
   popupDetalhes.style.display="flex";
 }
@@ -449,7 +477,6 @@ function fecharPopup(){ popupDetalhes.style.display="none"; }
 async function resgatar(codigo){
   showLoad();
   let user = localStorage.getItem("sessionUser");
-
   let formaPag = document.getElementById(`formaPag${codigo}`).value;
 
   await sb.from("vouchers")
@@ -496,13 +523,13 @@ async function gerarComprovante(codigo,pagamento){
       Código: ${v.codigo}<br>
       Valor: R$ ${v.valor}<br>
       Emitido: ${dataEmissao}<br>
+      Forma Pagamento: ${v.forma_pagamento || pagamento}<br>
       Operador Emissão: ${v.usuario_emissao}<br>
       ------------------------------<br>
 
       <b>RESGATE</b><br>
       Data/Hora: ${dataResgate}<br>
       Operador Resgate: ${operadorResgate}<br>
-      Forma Pagamento: ${pagamento}<br>
       ------------------------------<br>
 
       <br>Assinatura do Cliente:<br><br>
