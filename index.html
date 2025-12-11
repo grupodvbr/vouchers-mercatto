@@ -93,14 +93,18 @@
   font-size:22px;font-weight:700;
 }
 
-input{
+input, select{
   width:100%;padding:13px;margin-bottom:13px;
   border:1px solid var(--gold2);
   background:#1a1a1a;color:white;border-radius:12px;
   font-size:15px;outline:none;transition:.2s;
 }
-input:focus{
+input:focus, select:focus{
   border-color:var(--gold);box-shadow:0 0 10px #d4af3722;
+}
+
+.selectPremium option{
+  background:#000;color:white;
 }
 
 button{
@@ -197,6 +201,15 @@ button:hover{background:white;}
       <input id="telefone" placeholder="Telefone" oninput="maskPhone(this)">
       <input id="valor" placeholder="Valor" oninput="maskValor(this)">
 
+      <!-- MENU FORMA DE PAGAMENTO -->
+      <select id="formaPagamento" class="selectPremium">
+        <option value="">Selecione a Forma de Pagamento</option>
+        <option value="CRÉDITO">Cartão de Crédito</option>
+        <option value="DÉBITO">Cartão de Débito</option>
+        <option value="PIX">PIX</option>
+        <option value="DINHEIRO">Dinheiro</option>
+      </select>
+
       <button onclick="emitir()">Emitir Voucher</button>
 
       <div id="voucherPNG">
@@ -248,7 +261,7 @@ function showLoad(){ overlayLoad.style.display="flex"; }
 function hideLoad(){ overlayLoad.style.display="none"; }
 
 /* ============================================================
-   LOGIN
+   LOGIN — SEMPRE EXIGIR LOGIN
 ============================================================ */
 async function login(){
   showLoad();
@@ -268,18 +281,21 @@ async function login(){
   }
 
   localStorage.setItem("sessionUser",u);
+
   loginCard.classList.add("hidden");
   sistema.classList.remove("hidden");
 }
 
-function logout(){ localStorage.removeItem("sessionUser"); location.reload(); }
-
+/* Agora SEMPRE exige login */
 window.onload = ()=>{
-  if(localStorage.getItem("sessionUser")){
-    loginCard.classList.add("hidden");
-    sistema.classList.remove("hidden");
-  }
+  loginCard.classList.remove("hidden");
+  sistema.classList.add("hidden");
 };
+
+function logout(){
+  localStorage.removeItem("sessionUser");
+  location.reload();
+}
 
 /* ============================================================
    MÁSCARAS
@@ -330,10 +346,11 @@ async function emitir(){
   let cpfv=cpf.value.trim();
   let tel=telefone.value.trim();
   let val=valor.value.replace("R$ ","");
+  let forma=formaPagamento.value;
 
-  if(!nome || !val){
+  if(!nome || !val || !forma){
     hideLoad();
-    alert("Preencha os campos obrigatórios!");
+    alert("Preencha todos os campos e selecione a forma de pagamento!");
     return;
   }
 
@@ -341,8 +358,13 @@ async function emitir(){
   let operador = localStorage.getItem("sessionUser");
 
   const { error } = await sb.from("vouchers").insert([{
-    codigo, cliente:nome, cpf:cpfv, telefone:tel,
-    valor:val, data_emissao:new Date().toISOString(),
+    codigo,
+    cliente:nome,
+    cpf:cpfv,
+    telefone:tel,
+    valor:val,
+    forma_pagamento:forma,
+    data_emissao:new Date().toISOString(),
     usuario_emissao:operador,
     status:"ATIVO"
   }]);
@@ -421,7 +443,8 @@ async function consultar(){
   consultaResultado.innerHTML=`
     <div class="result-card">
       <b>Cliente:</b> ${v.cliente}<br>
-      <b>Valor:</b> R$ ${v.valor}<br><br>
+      <b>Valor:</b> R$ ${v.valor}<br>
+      <b>Forma pagamento:</b> ${v.forma_pagamento}<br><br>
       <button onclick="resgatar('${v.codigo}')">Resgatar</button>
     </div>
   `;
@@ -434,6 +457,7 @@ function abrirPopupResgatado(v){
   popupContent.innerHTML=`
     <p><b>Cliente:</b> ${v.cliente}</p>
     <p><b>Valor:</b> R$ ${v.valor}</p>
+    <p><b>Forma Pgto:</b> ${v.forma_pagamento}</p>
     <p><b>Emitido:</b> ${formatarData(v.data_emissao)}</p>
     <p><b>Resgatado:</b> ${formatarData(v.data_resgate)}</p>
     <p><b>Operador Emissão:</b> ${v.usuario_emissao || "-"}</p>
@@ -464,9 +488,6 @@ async function resgatar(codigo){
 }
 
 /* ============================================================
-   COMPROVANTE — IMPRESSORA TÉRMICA 58mm
-============================================================ */
-/* ============================================================
    COMPROVANTE — IMPRESSORA TÉRMICA 58mm (COM ASSINATURA)
 ============================================================ */
 async function gerarComprovante(codigo){
@@ -474,7 +495,7 @@ async function gerarComprovante(codigo){
     .select("*")
     .eq("codigo", codigo);
 
-  let v = data[0];
+  let v=data[0];
 
   let operadorResgate = localStorage.getItem("sessionUser");
   let dataResgate = new Date().toLocaleString("pt-BR");
@@ -491,6 +512,7 @@ async function gerarComprovante(codigo){
       CPF: ${v.cpf || "-"}<br>
       Tel: ${v.telefone || "-"}<br>
       Valor: R$ ${v.valor}<br>
+      Forma Pagamento: ${v.forma_pagamento}<br>
       Código: ${v.codigo}<br>
       Emitido: ${dataEmissao}<br>
       Operador Emissão: ${v.usuario_emissao || "-"}<br>
@@ -500,17 +522,14 @@ async function gerarComprovante(codigo){
       Data/Hora: ${dataResgate}<br>
       Operador: ${operadorResgate}<br>
 
-      ------------------------------<br>
-      <br>
+      ------------------------------<br><br>
       Assinatura do Cliente:<br><br>
-      ____________________________<br>
-      <br>
+      ____________________________<br><br>
       Obrigado pela preferência!
       <br><br><br>
     </div>
   `;
 }
-
 
 function imprimirComprovante(){
   let conteudo = printContent.innerHTML;
