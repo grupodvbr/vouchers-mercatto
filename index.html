@@ -2,10 +2,12 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Voucher • Login & Sistema</title>
+<title>Voucher • Emissão & Consulta</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="env.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -28,109 +30,76 @@ body{background:var(--bg);padding:25px;}
 
 .hidden{display:none;}
 
-/* LOGIN CARD */
 #loginCard{
-  width:380px;
-  margin:auto;
-  margin-top:80px;
-  padding:25px;
-  background:white;
-  border-radius:14px;
-  box-shadow:var(--shadow);
-  border:1px solid var(--border);
+  width:380px;margin:auto;margin-top:80px;padding:25px;
+  background:white;border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--border);
 }
+#loginCard img{width:130px;display:block;margin:auto;margin-bottom:15px;}
+#loginCard input{width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);margin-bottom:12px;}
+#loginCard button{
+  width:100%;padding:12px;background:var(--blue);
+  border:none;color:white;font-weight:700;border-radius:12px;cursor:pointer;
+}
+#loginMsg{text-align:center;color:red;margin-top:8px;}
 
-#loginCard h2{
-  text-align:center;
-  margin-bottom:20px;
-  color:var(--p);
-}
+h1{font-size:28px;color:var(--p);margin-bottom:25px;font-weight:800;}
 
-input{
-  width:100%;
-  padding:12px;
-  border-radius:10px;
-  border:1px solid var(--border);
-  margin-bottom:12px;
-}
-
-button{
-  padding:12px 22px;
-  background:var(--blue);
-  border:none;
-  color:white;
-  border-radius:12px;
-  font-weight:700;
-  cursor:pointer;
-  width:100%;
-}
-button:hover{background:var(--p);}
-
-/* SISTEMA */
-h1{
-  font-size:28px;color:var(--p);margin-bottom:25px;font-weight:800;
-}
-
-.container{
-  display:grid;grid-template-columns:1fr 1fr;gap:30px;
-}
+.container{display:grid;grid-template-columns:1fr 1fr;gap:30px;}
 
 .card{
-  background:var(--card);
-  border-radius:var(--radius);
-  padding:25px;
-  box-shadow:var(--shadow);
-  border:1px solid var(--border);
+  background:var(--card);padding:25px;border-radius:var(--radius);
+  border:1px solid var(--border);box-shadow:var(--shadow);
 }
-.card-blue{
-  background:#dce7ff;
-  border-left:6px solid var(--blue);
-}
+.card-blue{background:#dce7ff;border-left:6px solid var(--blue);}
+
+input,button{font-size:15px;}
+input{width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);margin-bottom:12px;}
+button:hover{background:var(--p2);}
 
 .result-card{
-  margin-top:15px;
-  padding:18px;
-  background:#eef3ff;
-  border-left:6px solid var(--blue);
-  border-radius:12px;
+  margin-top:15px;padding:18px;background:#eef3ff;
+  border-left:6px solid var(--blue);border-radius:12px;
 }
 
 #voucherPNG{
-  width:330px;
-  padding:20px;
-  background:white;
-  border-radius:15px;
-  border:2px solid var(--blue);
-  display:none;
-  margin-top:20px;
+  width:330px;padding:20px;background:white;border-radius:15px;
+  border:2px solid var(--blue);display:none;margin-top:20px;
 }
+#voucherPNG img{width:120px;margin:auto;display:block;margin-bottom:10px;}
 
+.popup{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.5);display:none;justify-content:center;align-items:center;
+}
+.popup-box{
+  width:480px;background:white;border-radius:12px;padding:25px;
+  box-shadow:var(--shadow);border:2px solid var(--blue);
+}
+.popup h3{margin-bottom:15px;color:var(--blue);}
+
+#printArea{display:none;}
 </style>
 </head>
 <body>
 
-<!-- =======================================================
-     LOGIN
-======================================================= -->
+<!-- LOGIN -->
 <div id="loginCard">
-  <h2>🔐 Acesso Restrito</h2>
+  <img src="logo.png">
+  <h2 style="text-align:center;color:var(--p)">Login do Sistema</h2>
+
   <input id="loginUser" placeholder="Usuário" autocomplete="off">
-  <input id="loginPass" placeholder="Senha" type="password">
-  <button onclick="fazerLogin()">Entrar</button>
-  <p id="loginMsg" style="color:red;font-size:14px;margin-top:10px;text-align:center;"></p>
+  <input id="loginPass" type="password" placeholder="Senha">
+
+  <button onclick="login()">Entrar</button>
+  <p id="loginMsg"></p>
 </div>
 
-<!-- =======================================================
-     SISTEMA (OCULTO ATÉ LOGAR)
-======================================================= -->
+<!-- SISTEMA -->
 <div id="sistema" class="hidden">
-
   <h1>
-    🎟 Sistema de Vouchers  
-    <button onclick="logout()" 
-      style="float:right;width:auto;background:#c62828;margin-top:-6px;">
-      Sair
-    </button>
+    <img src="logo.png" style="height:40px;vertical-align:middle;margin-right:10px;">
+    Sistema de Vouchers
+    <button onclick="logout()" style="float:right;width:auto;background:#c62828">Sair</button>
   </h1>
 
   <div class="container">
@@ -142,12 +111,12 @@ h1{
       <input id="cliente" placeholder="Nome do Cliente">
       <input id="cpf" placeholder="CPF" oninput="maskCPF(this)">
       <input id="telefone" placeholder="Telefone" oninput="maskPhone(this)">
-      <input id="valor" placeholder="Valor do Voucher">
+      <input id="valor" placeholder="Valor do Voucher" oninput="maskValor(this)">
 
-      <button onclick="emitirVoucher()">Emitir Voucher</button>
+      <button onclick="emitir()">Emitir Voucher</button>
 
       <div id="voucherPNG">
-        <img src="logo.png" style="width:120px;margin:auto;display:block;margin-bottom:10px;">
+        <img src="logo.png">
         <h3 style="text-align:center;color:#1e3a8a;">VOUCHER OFICIAL</h3>
         <p id="vouch_nome"></p>
         <p id="vouch_codigo"></p>
@@ -155,16 +124,16 @@ h1{
         <svg id="barcode"></svg>
       </div>
 
-      <button id="btnDownload" style="display:none;margin-top:10px;" onclick="baixarPNG()">Baixar PNG</button>
-      <button id="btnWhats" style="display:none;margin-top:10px;background:#25d366;" onclick="enviarWhatsapp()">Enviar WhatsApp</button>
+      <button id="btnDownload" class="hidden" onclick="baixarPNG()">Baixar PNG</button>
+      <button id="btnWhats" class="hidden" style="background:#25d366;margin-top:10px;" onclick="enviarWhats()">Enviar WhatsApp</button>
     </div>
 
     <!-- CONSULTA -->
     <div class="card card-blue">
       <h2 style="color:var(--p)">Consultar Voucher</h2>
 
-      <input id="consultaCodigo" placeholder="Digite o código" onkeydown="enterConsultar(event)">
-      <button onclick="consultarVoucher()">Consultar</button>
+      <input id="consultaCodigo" placeholder="Código" onkeydown="enterConsulta(event)">
+      <button onclick="consultar()">Consultar</button>
 
       <div id="consultaResultado"></div>
     </div>
@@ -172,263 +141,321 @@ h1{
   </div>
 </div>
 
-<!-- ÁREA DE IMPRESSÃO -->
-<div id="printArea" class="hidden">
-  <h3>Comprovante de Resgate</h3>
-  <div id="printContent"></div>
-  <p>Data: <span id="printData"></span></p>
+<!-- POPUP PREMIUM -->
+<div id="popupDetalhes" class="popup">
+  <div class="popup-box">
+    <h3>Detalhes do Voucher</h3>
+    <div id="popupContent"></div>
+    <br>
+    <button onclick="fecharPopup()">Fechar</button>
+  </div>
 </div>
 
+<!-- IMPRESSÃO -->
+<div id="printArea">
+  <h3 style="text-align:center">Comprovante de Resgate</h3>
+  <div id="printContent"></div>
+  <p>Data/Hora: <span id="printData"></span></p>
+  <p>Responsável: <span id="printUser"></span></p>
+  <br><br>
+  ___________________________________<br>
+  Assinatura do Cliente
+</div>
 
+<!-- =========================================
+     FIM DA PARTE 1
+========================================= -->
 <script>
-/* ==========================================================
-   SUPABASE
-========================================================== */
-const sb = supabase.createClient(
-  "https://ckkqcxbzfkjzicvoeehw.supabase.co",
-  "sb_publishable_djiQsCSrnLUm0iA_eNjjMw__7rfP11m"
-);
+// ===============================================
+// CONFIGURAÇÃO SUPABASE (via Vercel -> env.js)
+// ===============================================
+const SUPABASE_URL = window.CONFIG.SUPABASE_URL;
+const SUPABASE_KEY = window.CONFIG.SUPABASE_KEY;
 
-/* ==========================================================
-   LOGIN & SESSÃO
-========================================================== */
-async function fazerLogin(){
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  let u = loginUser.value.trim();
-  let s = loginPass.value.trim();
+// ===============================================
+// LOGIN
+// ===============================================
+async function login(){
+    let user = loginUser.value.trim();
+    let pass = loginPass.value.trim();
 
-  if(!u || !s){
-    loginMsg.innerText = "Preencha usuário e senha.";
-    return;
-  }
+    if(!user || !pass){
+        loginMsg.innerText = "Preencha usuário e senha.";
+        return;
+    }
 
-  const { data, error } = await sb
-    .from("usuarios")
-    .select("*")
-    .eq("usuario", u)
-    .eq("senha", s)
-    .limit(1);
+    const { data, error } = await sb
+        .from("usuarios")
+        .select("*")
+        .eq("usuario", user)
+        .eq("senha", pass)
+        .limit(1);
 
-  if(!data || data.length === 0){
-    loginMsg.innerText = "Usuário ou senha inválidos.";
-    registrarLog("LOGIN_INVALIDO", "Tentativa com usuário: " + u);
-    return;
-  }
+    if(!data || data.length === 0){
+        loginMsg.innerText = "Usuário ou senha inválidos.";
+        registrarLog("LOGIN_INVALIDO", `Tentativa: ${user}`);
+        return;
+    }
 
-  localStorage.setItem("sessionUser", u);
-  registrarLog("LOGIN_SUCESSO", "Usuário logado: " + u);
+    localStorage.setItem("sessionUser", user);
+    registrarLog("LOGIN_SUCESSO", `Usuário logado: ${user}`);
 
-  loginCard.style.display = "none";
-  sistema.classList.remove("hidden");
+    loginCard.style.display = "none";
+    sistema.classList.remove("hidden");
 }
 
 function logout(){
-  registrarLog("LOGOUT", "Usuário saiu do sistema");
-  localStorage.removeItem("sessionUser");
-  location.reload();
+    registrarLog("LOGOUT", "Usuário saiu");
+    localStorage.removeItem("sessionUser");
+    location.reload();
 }
 
-window.onload = ()=>{
-  let s = localStorage.getItem("sessionUser");
-  if(s){
-    loginCard.style.display = "none";
-    sistema.classList.remove("hidden");
-  }
+window.onload = () => {
+    let s = localStorage.getItem("sessionUser");
+    if(s){
+        loginCard.style.display = "none";
+        sistema.classList.remove("hidden");
+    }
 };
 
-/* ==========================================================
-   REGISTRO DE LOGS
-========================================================== */
+// ===============================================
+// LOGS
+// ===============================================
 async function registrarLog(tipo, detalhes){
-
-  await sb.from("logs_sistema").insert([{
-    tipo,
-    detalhes,
-    usuario: localStorage.getItem("sessionUser") || "DESCONHECIDO"
-  }]);
+    let usuario = localStorage.getItem("sessionUser") || "DESCONHECIDO";
+    await sb.from("logs_sistema").insert([{ tipo, detalhes, usuario }]);
 }
 
-/* ==========================================================
-   MÁSCARAS
-========================================================== */
+// ===============================================
+// MÁSCARAS
+// ===============================================
 function maskCPF(el){
-  el.value = el.value.replace(/\D/g,"")
-    .replace(/(\d{3})(\d)/,"$1.$2")
-    .replace(/(\d{3})(\d)/,"$1.$2")
-    .replace(/(\d{3})(\d{1,2})$/,"$1-$2");
+    el.value = el.value.replace(/\D/g,"")
+        .replace(/(\d{3})(\d)/,"$1.$2")
+        .replace(/(\d{3})(\d)/,"$1.$2")
+        .replace(/(\d{3})(\d{1,2})$/,"$1-$2");
 }
+
 function maskPhone(el){
-  el.value = el.value.replace(/\D/g,"")
-    .replace(/(\d{2})(\d)/,"($1) $2")
-    .replace(/(\d{5})(\d)/,"$1-$2");
+    el.value = el.value.replace(/\D/g,"")
+        .replace(/(\d{2})(\d)/,"($1) $2")
+        .replace(/(\d{5})(\d)/,"$1-$2");
 }
 
-/* ==========================================================
-   GERAR CÓDIGO ALEATÓRIO
-========================================================== */
+function maskValor(el){
+    let v = el.value.replace(/\D/g,"");
+    v = (Number(v) / 100).toFixed(2) + "";
+    v = v.replace(".", ",");
+    el.value = "R$ " + v;
+}
+
+// ===============================================
+// GERAR CÓDIGO
+// ===============================================
 function gerarCodigo(){
-  return Math.floor(100000000 + Math.random()*900000000).toString();
+    return Math.floor(100000000 + Math.random() * 900000000).toString();
 }
 
-/* ==========================================================
-   EMISSÃO
-========================================================== */
-let ultimoVoucher = null;
+// ===============================================
+// EMITIR VOUCHER
+// ===============================================
+let voucherAtual = null;
 
-async function emitirVoucher(){
+async function emitir(){
+    let nome = cliente.value.trim();
+    let cpfVal = cpf.value.trim();
+    let tel = telefone.value.trim();
+    let val = valor.value.trim();
 
-  let nome = cliente.value.trim();
-  let cpfVal = cpf.value.trim();
-  let tel = telefone.value.trim();
-  let val = valor.value.trim();
+    if(!nome || !cpfVal || !val){
+        alert("Preencha todos os campos.");
+        return;
+    }
 
-  if(!nome || !cpfVal || !val){ alert("Preencha todos os campos."); return; }
+    let codigo = gerarCodigo();
+    let agora = new Date().toISOString();
 
-  let codigo = gerarCodigo();
+    const { error } = await sb.from("vouchers").insert([{
+        codigo,
+        cliente: nome,
+        cpf: cpfVal,
+        telefone: tel,
+        valor: val.replace("R$ ",""),
+        data_emissao: agora,
+        status: "ATIVO"
+    }]);
 
-  let { error } = await sb.from("vouchers").insert([{
-    codigo,
-    cliente: nome,
-    cpf: cpfVal,
-    telefone: tel,
-    valor: val,
-    status: "ATIVO"
-  }]);
+    if(error){
+        alert("Erro ao emitir!");
+        return;
+    }
 
-  if(error){ alert("Erro ao emitir!"); return; }
+    registrarLog("EMISSAO", `Código: ${codigo} Cliente: ${nome}`);
 
-  registrarLog("EMISSAO", `Voucher ${codigo} emitido para ${nome}`);
+    voucherAtual = { codigo, nome, val, tel };
 
-  ultimoVoucher = { nome, val, codigo, tel };
-
-  gerarVoucherPNG(nome, val, codigo);
+    gerarVoucherPNG(voucherAtual);
 }
 
-/* ==========================================================
-   GERAR PNG
-========================================================== */
-function gerarVoucherPNG(nome, valor, codigo){
+// ===============================================
+// PNG DO VOUCHER
+// ===============================================
+function gerarVoucherPNG(v){
+    vouch_nome.innerHTML = "<b>Cliente:</b> " + v.nome;
+    vouch_valor.innerHTML = "<b>Valor:</b> " + valor.value;
+    vouch_codigo.innerHTML = "<b>Código:</b> " + v.codigo;
 
-  vouch_nome.innerHTML = "<b>Cliente:</b> " + nome;
-  vouch_valor.innerHTML = "<b>Valor:</b> R$ " + valor;
-  vouch_codigo.innerHTML = "<b>Código:</b> " + codigo;
+    JsBarcode("#barcode", v.codigo, { format:"CODE128", width:2, height:40 });
 
-  JsBarcode("#barcode", codigo, { format:"CODE128", width:2, height:40 });
+    voucherPNG.style.display = "block";
+    btnDownload.classList.remove("hidden");
+    btnWhats.classList.remove("hidden");
 
-  voucherPNG.style.display = "block";
-  btnDownload.style.display = "block";
-  btnWhats.style.display = "block";
-
-  registrarLog("GEROU_PNG", `Voucher ${codigo}`);
+    registrarLog("GEROU_PNG", `Voucher ${v.codigo}`);
 }
 
 function baixarPNG(){
-  registrarLog("DOWNLOAD_PNG", `Voucher baixado: ${ultimoVoucher.codigo}`);
-
-  html2canvas(voucherPNG).then(canvas=>{
-    let link = document.createElement("a");
-    link.download = "voucher.png";
-    link.href = canvas.toDataURL();
-    link.click();
-  });
+    registrarLog("DOWNLOAD_PNG", `Voucher ${voucherAtual.codigo}`);
+    html2canvas(voucherPNG).then(canvas=>{
+        let link = document.createElement("a");
+        link.download = "voucher.png";
+        link.href = canvas.toDataURL();
+        link.click();
+    });
 }
 
-/* ==========================================================
-   WHATSAPP
-========================================================== */
-function enviarWhatsapp(){
-  if(!ultimoVoucher || !ultimoVoucher.tel){
-    alert("Telefone inválido."); return;
-  }
+function enviarWhats(){
+    if(!voucherAtual || !voucherAtual.tel){
+        alert("Telefone inválido");
+        return;
+    }
 
-  registrarLog("WHATSAPP", `Voucher enviado para ${ultimoVoucher.tel}`);
+    let tel = voucherAtual.tel.replace(/\D/g,"");
 
-  let tel = ultimoVoucher.tel.replace(/\D/g,"");
-  let msg = `Seu voucher foi gerado!%0A` +
-            `Código: ${ultimoVoucher.codigo}%0A` +
-            `Cliente: ${ultimoVoucher.nome}%0AValor: R$ ${ultimoVoucher.val}`;
+    let msg =
+      `Seu Voucher foi gerado!\n` +
+      `Código: ${voucherAtual.codigo}\n` +
+      `Cliente: ${voucherAtual.nome}\n` +
+      `Valor: ${valor.value}`;
 
-  window.open(`https://wa.me/55${tel}?text=${msg}`, "_blank");
+    registrarLog("WHATSAPP", `Enviado para ${tel}`);
+
+    window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`, "_blank");
 }
 
-/* ==========================================================
-   CONSULTA
-========================================================== */
-function enterConsultar(e){
-  if(e.key === "Enter") consultarVoucher();
+// ===============================================
+// CONSULTAR
+// ===============================================
+function enterConsulta(e){
+    if(e.key === "Enter") consultar();
 }
 
-async function consultarVoucher(){
+async function consultar(){
+    let cod = consultaCodigo.value.trim();
+    if(!cod) return;
 
-  let codigo = consultaCodigo.value.trim();
-  if(!codigo) return;
+    const { data } = await sb.from("vouchers").select("*").eq("codigo", cod).limit(1);
 
-  let { data } = await sb.from("vouchers").select("*").eq("codigo", codigo).limit(1);
+    if(!data || data.length === 0){
+        consultaResultado.innerHTML = `<div class="result-card">❌ Voucher não encontrado.</div>`;
+        registrarLog("CONSULTA_FALHA", cod);
+        return;
+    }
 
-  if(!data || data.length === 0){
-    consultaResultado.innerHTML = `<div class='result-card'>❌ Voucher não encontrado.</div>`;
-    registrarLog("CONSULTA_FALHA", codigo);
-    return;
-  }
+    let v = data[0];
 
-  let v = data[0];
+    registrarLog("CONSULTA", `Código: ${cod}`);
 
-  if(v.status === "RESGATADO"){
-    consultaResultado.innerHTML = `<div class='result-card'>⚠ Voucher já resgatado.</div>`;
-    return;
-  }
+    if(v.status === "RESGATADO"){
+        abrirPopupResgatado(v);
+        return;
+    }
 
-  registrarLog("CONSULTA_SUCESSO", codigo);
-
-  consultaResultado.innerHTML = `
-    <div class="result-card">
-      <b>Cliente:</b> ${v.cliente}<br>
-      <b>Valor:</b> ${v.valor}<br>
-      <b>Emissão:</b> ${v.data_emissao}<br><br>
-      <button onclick="resgatar('${v.codigo}','${v.cliente}',${v.valor})">
-        Finalizar / Resgatar
-      </button>
-    </div>
-  `;
+    consultaResultado.innerHTML = `
+        <div class="result-card">
+            <b>Cliente:</b> ${v.cliente}<br>
+            <b>Valor:</b> R$ ${v.valor}<br>
+            <b>Emissão:</b> ${formatarData(v.data_emissao)}<br><br>
+            <button onclick="resgatar('${v.codigo}')">Finalizar / Resgatar</button>
+        </div>
+    `;
 }
 
-/* ==========================================================
-   RESGATE + IMPRESSÃO
-========================================================== */
-async function resgatar(codigo, cliente, valor){
-
-  await sb.from("vouchers").update({status:"RESGATADO"}).eq("codigo", codigo);
-
-  registrarLog("RESGATE", `Voucher ${codigo} - Cliente ${cliente}`);
-
-  consultaResultado.innerHTML = `<div class='result-card'>✔ Resgatado com sucesso!</div>`;
-
-  gerarComprovante(cliente, valor, codigo);
-  imprimirComprovante();
+// ===============================================
+// POPUP — Voucher já resgatado
+// ===============================================
+function abrirPopupResgatado(v){
+    popupContent.innerHTML = `
+        <p><b>Cliente:</b> ${v.cliente}</p>
+        <p><b>Valor:</b> R$ ${v.valor}</p>
+        <p><b>Emitido em:</b> ${formatarData(v.data_emissao)}</p>
+        <p><b>Resgatado em:</b> ${formatarData(v.data_resgate)}</p>
+        <p><b>Responsável:</b> ${v.usuario_resgate}</p>
+    `;
+    popupDetalhes.style.display = "flex";
 }
 
-function gerarComprovante(cliente, valor, codigo){
+function fecharPopup(){
+    popupDetalhes.style.display = "none";
+}
 
-  printContent.innerHTML = `
-    Cliente: ${cliente}<br>
-    Valor: R$ ${valor}<br>
-    Código: ${codigo}<br>
-  `;
-  printData.innerText = new Date().toLocaleString();
+// ===============================================
+// RESGATAR
+// ===============================================
+async function resgatar(codigo){
+
+    let user = localStorage.getItem("sessionUser");
+    let agora = new Date().toISOString();
+
+    await sb.from("vouchers")
+        .update({
+            status: "RESGATADO",
+            data_resgate: agora,
+            usuario_resgate: user
+        })
+        .eq("codigo", codigo);
+
+    registrarLog("RESGATE", codigo);
+
+    gerarComprovante(codigo);
+    imprimirComprovante();
+
+    consultaResultado.innerHTML = `<div class="result-card">✔ Resgatado com sucesso!</div>`;
+}
+
+// ===============================================
+// COMPROVANTE IMPRESSO
+// ===============================================
+async function gerarComprovante(codigo){
+    const { data } = await sb.from("vouchers").select("*").eq("codigo", codigo).limit(1);
+    let v = data[0];
+
+    printContent.innerHTML = `
+        Cliente: ${v.cliente}<br>
+        Valor: R$ ${v.valor}<br>
+        Código: ${v.codigo}<br>
+    `;
+    printData.innerText = formatarData(v.data_resgate);
+    printUser.innerText = v.usuario_resgate;
 }
 
 function imprimirComprovante(){
+    let conteudo = printArea.innerHTML;
+    let janela = window.open("", "", "width=260,height=600");
+    janela.document.write(conteudo);
+    janela.print();
+    janela.close();
+}
 
-  registrarLog("IMPRIMIR_RESUMO", `Impressão do comprovante`);
-
-  let conteudo = printArea.innerHTML;
-  let janela = window.open("", "", "width=300,height=600");
-
-  janela.document.write(conteudo);
-  janela.print();
-  janela.close();
+// ===============================================
+// UTIL
+// ===============================================
+function formatarData(dt){
+    let d = new Date(dt);
+    return d.toLocaleString("pt-BR");
 }
 
 </script>
-</body>
 </html>
