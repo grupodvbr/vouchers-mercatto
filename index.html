@@ -13,6 +13,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas"></script>
 
 <style>
 /* ============================================================
@@ -20,13 +21,12 @@
 ============================================================ */
 :root{
   --preto:#000;
-  --preto2:#0d0d0d;
   --gold:#d4af37;
   --gold2:#a88928;
-  --white:#ffffffdd;
+  --white:#ffffffee;
   --card:#0f0f0f;
   --radius:14px;
-  --shadow:0 0 15px rgba(0,0,0,0.5);
+  --shadow:0 0 20px rgba(0,0,0,0.5);
 }
 
 *{
@@ -34,10 +34,18 @@
   padding:0;
   box-sizing:border-box;
   font-family:"Inter";
+  -webkit-user-select:none;
+  user-select:none;
+}
+
+/* Remove autofill */
+input:-webkit-autofill{
+  box-shadow:0 0 0 30px #111 inset !important;
+  -webkit-text-fill-color:white !important;
 }
 
 /* ============================================================
-   📸 BACKGROUND DESFOCADO (ACEITA PNG OU JPG)
+   📸 BACKGROUND DESFOCADO
 ============================================================ */
 #bgBlur{
   position:fixed;
@@ -52,8 +60,8 @@
    LOGIN
 ============================================================ */
 #loginCard{
-  width:400px;
-  margin:120px auto;
+  width:380px;
+  margin:60px auto;
   background:rgba(0,0,0,0.70);
   padding:25px;
   border-radius:var(--radius);
@@ -62,16 +70,22 @@
   backdrop-filter:blur(8px);
 }
 
+#loginCard h2{
+  text-align:center;
+  color:var(--gold);
+  margin-bottom:15px;
+}
+
 #loginCard input{
   width:100%;
   padding:12px;
   margin-bottom:12px;
-  border-radius:8px;
-  border:1px solid var(--gold2);
   background:#0d0d0d;
+  border:1px solid var(--gold2);
   color:white;
-  font-size:15px;
+  border-radius:8px;
   outline:none;
+  font-size:15px;
 }
 
 #loginCard button{
@@ -83,7 +97,6 @@
   font-weight:700;
   border-radius:10px;
   cursor:pointer;
-  font-size:17px;
 }
 
 /* ============================================================
@@ -91,26 +104,37 @@
 ============================================================ */
 .hidden{ display:none; }
 
+#sistema{
+  width:100%;
+  max-width:1100px;
+  margin:auto;
+  padding:5px;
+}
+
 .card{
-  background:rgba(0,0,0,0.70);
+  background:rgba(0,0,0,0.75);
   padding:22px;
   border-radius:var(--radius);
   border:1px solid var(--gold2);
   backdrop-filter:blur(8px);
   box-shadow:var(--shadow);
-  margin-bottom:25px;
+}
+
+.card h2{
+  color:var(--gold);
+  margin-bottom:12px;
 }
 
 input{
   width:100%;
-  padding:12px;
-  margin-bottom:12px;
+  padding:11px;
+  margin-bottom:10px;
   border-radius:8px;
+  background:#111;
   border:1px solid var(--gold2);
-  background:#101010;
   color:white;
-  font-size:15px;
   outline:none;
+  font-size:14px;
 }
 
 button{
@@ -122,29 +146,26 @@ button{
   font-weight:700;
   cursor:pointer;
 }
-
 button:hover{
   background:white;
   color:black;
 }
 
 /* ============================================================
-   VOUCHER EM FORMATO CARTÃO DE CRÉDITO
-   PROPORÇÃO REAL 53mm x 85mm (vertical)
+   VOUCHER (TAMANHO CARTÃO DE CRÉDITO)
 ============================================================ */
 
 #voucherPNG{
   width:300px;
   height:480px;
-  padding:20px;
-  margin-top:20px;
-  margin-bottom:10px;
+  padding:16px;
+  margin-top:15px;
   background:black;
   display:none;
   border-radius:18px;
   border:3px solid var(--gold);
   box-shadow:0 0 25px rgba(212,175,55,0.4);
-  position:relative;
+  color:white;
 }
 
 #voucherPNG h3{
@@ -152,31 +173,39 @@ button:hover{
   font-size:36px;
   color:var(--gold);
   text-align:center;
+  margin-bottom:10px;
 }
 
 .vLine{
-  margin-top:15px;
-  margin-bottom:8px;
-  color:var(--white);
+  margin-top:10px;
   font-size:15px;
+  color:white;
 }
 
-/* Código de barras */
 #barcode{
+  margin-top:25px;
   width:100%;
-  margin-top:20px;
 }
 
-/* Botões abaixo do voucher */
-.vButtons{
+/* Botões */
+#btnArea{
   display:flex;
+  justify-content:center;
   gap:15px;
-  margin-top:20px;
+  margin-top:18px;
 }
 
-/* ============================================================
-   POPUP
-============================================================ */
+/* Consulta */
+.result-card{
+  margin-top:10px;
+  padding:15px;
+  border-left:3px solid var(--gold);
+  background:#000000aa;
+  border-radius:8px;
+  color:white;
+}
+
+/* POPUP */
 .popup{
   position:fixed;
   top:0; left:0;
@@ -184,33 +213,29 @@ button:hover{
   display:none;
   justify-content:center;
   align-items:center;
-  background:rgba(0,0,0,0.7);
+  background:rgba(0,0,0,0.75);
 }
 
 .popup-box{
   background:#111;
-  border:2px solid var(--gold);
   padding:25px;
-  border-radius:14px;
   width:420px;
-}
-
-.popup-box p{
+  border:2px solid var(--gold);
+  border-radius:14px;
   color:white;
 }
 
-/* Loader */
 #overlayLoad{
   position:fixed;
   top:0; left:0;
   width:100%; height:100%;
+  background:rgba(0,0,0,0.7);
   display:none;
   justify-content:center;
   align-items:center;
-  background:rgba(0,0,0,0.7);
   color:var(--gold);
   font-size:26px;
-  z-index:999;
+  z-index:99999;
 }
 </style>
 </head>
@@ -222,37 +247,34 @@ button:hover{
 
 <!-- LOGIN -->
 <div id="loginCard">
-  <h2 style="color:var(--gold);text-align:center;margin-bottom:15px;">Emissão de Voucher</h2>
-
-  <input autocomplete="off" id="loginUser" placeholder="Usuário">
-  <input autocomplete="off" id="loginPass" type="password" placeholder="Senha">
-
+  <h2>Emissão de Voucher</h2>
+  <input autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" id="loginUser" placeholder="Usuário">
+  <input autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" id="loginPass" type="password" placeholder="Senha">
   <button onclick="login()">Entrar</button>
   <p id="loginMsg" style="color:#ff4444;margin-top:8px;text-align:center;"></p>
 </div>
 
 <!-- SISTEMA -->
-<div id="sistema" class="hidden" style="padding:20px;">
+<div id="sistema" class="hidden">
 
-  <h1 style="color:var(--gold);margin-bottom:20px;">
+  <h1 style="color:var(--gold);margin-bottom:25px;">
     Voucher Mercatto — Painel Premium
     <button onclick="logout()" style="float:right;background:#b02626;color:white;">Sair</button>
   </h1>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:25px;">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
 
     <!-- EMISSÃO -->
     <div class="card">
-      <h2 style="color:var(--gold);">Emitir Voucher</h2>
+      <h2>Emitir Voucher</h2>
 
-      <input autocomplete="off" id="cliente" placeholder="Nome do Cliente">
-      <input autocomplete="off" id="cpf" placeholder="CPF" oninput="maskCPF(this)">
-      <input autocomplete="off" id="telefone" placeholder="Telefone" oninput="maskPhone(this)">
-      <input autocomplete="off" id="valor" placeholder="Valor" oninput="maskValor(this)">
+      <input autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" id="cliente" placeholder="Nome do Cliente">
+      <input autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" id="cpf" placeholder="CPF" oninput="maskCPF(this)">
+      <input autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" id="telefone" placeholder="Telefone" oninput="maskPhone(this)">
+      <input autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" id="valor" placeholder="Valor" oninput="maskValor(this)">
 
       <button onclick="emitir()">Emitir Voucher</button>
 
-      <!-- CARTÃO -->
       <div id="voucherPNG">
         <h3>Voucher Mercatto</h3>
 
@@ -263,18 +285,18 @@ button:hover{
         <svg id="barcode"></svg>
       </div>
 
-      <!-- Botões -->
-      <div id="btnArea" class="vButtons hidden">
+      <div id="btnArea" class="hidden">
         <button onclick="baixarPDF()">Baixar PDF</button>
         <button onclick="enviarWhats()" style="background:#25d366;color:white;">WhatsApp</button>
       </div>
+
     </div>
 
     <!-- CONSULTA -->
     <div class="card">
-      <h2 style="color:var(--gold);">Consultar Voucher</h2>
+      <h2>Consultar Voucher</h2>
 
-      <input autocomplete="off" id="consultaCodigo" placeholder="Código" onkeydown="enterConsulta(event)">
+      <input autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" id="consultaCodigo" placeholder="Código" onkeydown="enterConsulta(event)">
       <button onclick="consultar()">Consultar</button>
 
       <div id="consultaResultado"></div>
@@ -310,37 +332,43 @@ function hideLoad(){ overlayLoad.style.display="none"; }
 ============================================================ */
 async function login(){
   showLoad();
-  const { data } = await sb.from("usuarios").select("*")
-      .eq("usuario", loginUser.value.trim())
-      .eq("senha", loginPass.value.trim());
+
+  const { data } = await sb.from("usuarios")
+    .select("*")
+    .eq("usuario", loginUser.value.trim())
+    .eq("senha", loginPass.value.trim());
+
   hideLoad();
 
   if(!data || data.length===0){
-    loginMsg.innerText = "Usuário ou senha inválidos";
+    loginMsg.innerText="Usuário ou senha inválidos";
     return;
   }
 
   localStorage.setItem("sessionUser", loginUser.value.trim());
-  loginCard.style.display = "none";
+  loginCard.style.display="none";
   sistema.classList.remove("hidden");
 }
 
-function logout(){ localStorage.clear(); location.reload(); }
+function logout(){
+  localStorage.clear();
+  location.reload();
+}
 
 /* ============================================================
    MÁSCARAS
 ============================================================ */
 function maskCPF(el){
   el.value = el.value.replace(/\D/g,"")
-     .replace(/(\d{3})(\d)/,"$1.$2")
-     .replace(/(\d{3})(\d)/,"$1.$2")
-     .replace(/(\d{3})(\d{1,2})$/,"$1-$2");
+    .replace(/(\d{3})(\d)/,"$1.$2")
+    .replace(/(\d{3})(\d)/,"$1.$2")
+    .replace(/(\d{3})(\d{1,2})$/,"$1-$2");
 }
 
 function maskPhone(el){
   el.value = el.value.replace(/\D/g,"")
-     .replace(/(\d{2})(\d)/,"($1) $2")
-     .replace(/(\d{5})(\d)/,"$1-$2");
+    .replace(/(\d{2})(\d)/,"($1) $2")
+    .replace(/(\d{5})(\d)/,"$1-$2");
 }
 
 function maskValor(el){
@@ -353,7 +381,6 @@ function maskValor(el){
    EMITIR
 ============================================================ */
 let voucherAtual = null;
-let reimpresso = false;
 
 async function emitir(){
   showLoad();
@@ -386,12 +413,12 @@ async function emitir(){
     return;
   }
 
-  voucherAtual = { nome, val, codigo, tel: telefone.value };
+  voucherAtual = { nome, val, codigo, tel:telefone.value.trim() };
   gerarVoucher(voucherAtual);
 }
 
 /* ============================================================
-   GERAR VOUCHER NO CARTÃO
+   GERAR VOUCHER
 ============================================================ */
 function gerarVoucher(v){
   vouch_nome.innerHTML = `<b>Cliente:</b> ${v.nome}`;
@@ -406,20 +433,24 @@ function gerarVoucher(v){
     lineColor:"#d4af37"
   });
 
-  voucherPNG.style.display = "block";
+  voucherPNG.style.display="block";
   btnArea.classList.remove("hidden");
 }
 
 /* ============================================================
-   BAIXAR PDF EM TAMANHO REAL DE CARTÃO
+   PDF TAMANHO REAL CARTÃO
 ============================================================ */
 function baixarPDF(){
   const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF({ orientation:"portrait", unit:"mm", format:[85,53] });
+  const pdf = new jsPDF({
+    orientation:"portrait",
+    unit:"mm",
+    format:[85.6,53.98]
+  });
 
   html2canvas(voucherPNG).then(canvas=>{
     const img = canvas.toDataURL("image/png");
-    pdf.addImage(img, "PNG", 0, 0, 53, 85);
+    pdf.addImage(img,"PNG",0,0,53.98,85.6);
     pdf.save("voucher.pdf");
   });
 }
@@ -429,7 +460,9 @@ function baixarPDF(){
 ============================================================ */
 function enviarWhats(){
   let tel = voucherAtual.tel.replace(/\D/g,"");
-  let msg = `Voucher Mercatto%0ACliente: ${voucherAtual.nome}%0AValor: R$ ${voucherAtual.val}%0ACódigo: ${voucherAtual.codigo}`;
+  let msg = encodeURIComponent(
+    `Voucher Mercatto\nCliente: ${voucherAtual.nome}\nValor: R$ ${voucherAtual.val}\nCódigo: ${voucherAtual.codigo}`
+  );
   window.open(`https://wa.me/55${tel}?text=${msg}`,"_blank");
 }
 
@@ -440,7 +473,9 @@ function enterConsulta(e){ if(e.key==="Enter") consultar(); }
 
 async function consultar(){
   showLoad();
-  const { data } = await sb.from("vouchers").select("*").eq("codigo", consultaCodigo.value.trim());
+  const { data } = await sb.from("vouchers")
+    .select("*")
+    .eq("codigo", consultaCodigo.value.trim());
   hideLoad();
 
   if(!data || data.length===0){
@@ -456,7 +491,7 @@ async function consultar(){
   }
 
   consultaResultado.innerHTML = `
-    <div style="margin-top:10px;padding:15px;border-left:3px solid var(--gold);background:#000000aa;border-radius:8px;color:white;">
+    <div class="result-card">
       <b>Cliente:</b> ${v.cliente}<br>
       <b>Valor:</b> R$ ${v.valor}<br><br>
       <button onclick="resgatar('${v.codigo}')">Resgatar</button>
@@ -464,7 +499,9 @@ async function consultar(){
   `;
 }
 
-/* POPUP */
+/* ============================================================
+   POPUP DETALHES
+============================================================ */
 function abrirPopup(v){
   popupContent.innerHTML = `
     <p><b>Cliente:</b> ${v.cliente}</p>
@@ -476,20 +513,23 @@ function abrirPopup(v){
   popupDetalhes.style.display="flex";
 }
 
-function fecharPopup(){ popupDetalhes.style.display="none"; }
+function fecharPopup(){
+  popupDetalhes.style.display="none";
+}
 
 /* ============================================================
    RESGATAR
 ============================================================ */
 async function resgatar(codigo){
   showLoad();
+
   let user = localStorage.getItem("sessionUser");
 
   await sb.from("vouchers").update({
     status:"RESGATADO",
     data_resgate:new Date().toISOString(),
     usuario_resgate:user
-  }).eq("codigo", codigo);
+  }).eq("codigo",codigo);
 
   hideLoad();
   consultar();
