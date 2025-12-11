@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Voucher • Emissão & Consulta</title>
+<title>Voucher • Login & Sistema</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -11,9 +11,6 @@
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <style>
-/* =====================================================
-   ESTILO PREMIUM GRUPO DV — PAINEL AZUL CORPORATIVO
-====================================================== */
 :root{
   --p:#0b1e39;
   --p2:#102742;
@@ -29,6 +26,47 @@
 *{margin:0;padding:0;box-sizing:border-box;font-family:"Inter";}
 body{background:var(--bg);padding:25px;}
 
+.hidden{display:none;}
+
+/* LOGIN CARD */
+#loginCard{
+  width:380px;
+  margin:auto;
+  margin-top:80px;
+  padding:25px;
+  background:white;
+  border-radius:14px;
+  box-shadow:var(--shadow);
+  border:1px solid var(--border);
+}
+
+#loginCard h2{
+  text-align:center;
+  margin-bottom:20px;
+  color:var(--p);
+}
+
+input{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  margin-bottom:12px;
+}
+
+button{
+  padding:12px 22px;
+  background:var(--blue);
+  border:none;
+  color:white;
+  border-radius:12px;
+  font-weight:700;
+  cursor:pointer;
+  width:100%;
+}
+button:hover{background:var(--p);}
+
+/* SISTEMA */
 h1{
   font-size:28px;color:var(--p);margin-bottom:25px;font-weight:800;
 }
@@ -44,32 +82,10 @@ h1{
   box-shadow:var(--shadow);
   border:1px solid var(--border);
 }
-
 .card-blue{
   background:#dce7ff;
   border-left:6px solid var(--blue);
 }
-
-input, select{
-  width:100%;
-  padding:12px;
-  border-radius:10px;
-  border:1px solid var(--border);
-  font-size:15px;
-  margin-bottom:12px;
-}
-
-button{
-  padding:12px 22px;
-  background:var(--blue);
-  border:none;
-  color:white;
-  border-radius:12px;
-  font-weight:700;
-  cursor:pointer;
-  transition:.2s;
-}
-button:hover{background:var(--p2);}
 
 .result-card{
   margin-top:15px;
@@ -89,72 +105,80 @@ button:hover{background:var(--p2);}
   margin-top:20px;
 }
 
-/* Comprovante de resgate */
-#printArea{
-  display:none;
-  width:280px;
-  font-size:14px;
-  padding:10px;
-}
-
 </style>
 </head>
 <body>
 
-<h1>🎟 Sistema de Vouchers – Emissão & Consulta</h1>
-
-<div class="container">
-
-  <!-- ====================================================
-       EMISSÃO
-  ==================================================== -->
-  <div class="card">
-    <h2 style="color:var(--p)">Emitir Voucher</h2>
-
-    <input id="cliente" placeholder="Nome do Cliente">
-    <input id="cpf" placeholder="CPF" oninput="maskCPF(this)">
-    <input id="telefone" placeholder="Telefone" oninput="maskPhone(this)">
-    <input id="valor" placeholder="Valor do Voucher">
-
-    <button onclick="emitirVoucher()">Emitir Voucher</button>
-
-    <!-- PNG -->
-    <div id="voucherPNG">
-      <img src="logo.png" style="width:120px;margin:auto;display:block;margin-bottom:10px;">
-      <h3 style="text-align:center;color:#1e3a8a;">VOUCHER OFICIAL</h3>
-      <p id="vouch_nome"></p>
-      <p id="vouch_codigo"></p>
-      <p id="vouch_valor"></p>
-      <svg id="barcode"></svg>
-    </div>
-
-    <button id="btnDownload" style="margin-top:12px;display:none;" onclick="baixarPNG()">Salvar PNG</button>
-    <button id="btnWhats" style="margin-top:12px;display:none;background:#25d366;" onclick="enviarWhatsapp()">Enviar WhatsApp</button>
-
-  </div>
-
-  <!-- ====================================================
-       CONSULTA
-  ==================================================== -->
-  <div class="card card-blue">
-    <h2 style="color:var(--p)">Consultar Voucher</h2>
-
-    <input id="consultaCodigo" placeholder="Digite o código" onkeydown="enterConsultar(event)">
-    <button onclick="consultarVoucher()">Consultar</button>
-
-    <div id="consultaResultado"></div>
-  </div>
-
+<!-- =======================================================
+     LOGIN
+======================================================= -->
+<div id="loginCard">
+  <h2>🔐 Acesso Restrito</h2>
+  <input id="loginUser" placeholder="Usuário" autocomplete="off">
+  <input id="loginPass" placeholder="Senha" type="password">
+  <button onclick="fazerLogin()">Entrar</button>
+  <p id="loginMsg" style="color:red;font-size:14px;margin-top:10px;text-align:center;"></p>
 </div>
 
-<!-- ====================================================
-     ÁREA PARA IMPRESSÃO DO RESGATE
-==================================================== -->
-<div id="printArea">
+<!-- =======================================================
+     SISTEMA (OCULTO ATÉ LOGAR)
+======================================================= -->
+<div id="sistema" class="hidden">
+
+  <h1>
+    🎟 Sistema de Vouchers  
+    <button onclick="logout()" 
+      style="float:right;width:auto;background:#c62828;margin-top:-6px;">
+      Sair
+    </button>
+  </h1>
+
+  <div class="container">
+
+    <!-- EMISSÃO -->
+    <div class="card">
+      <h2 style="color:var(--p)">Emitir Voucher</h2>
+
+      <input id="cliente" placeholder="Nome do Cliente">
+      <input id="cpf" placeholder="CPF" oninput="maskCPF(this)">
+      <input id="telefone" placeholder="Telefone" oninput="maskPhone(this)">
+      <input id="valor" placeholder="Valor do Voucher">
+
+      <button onclick="emitirVoucher()">Emitir Voucher</button>
+
+      <div id="voucherPNG">
+        <img src="logo.png" style="width:120px;margin:auto;display:block;margin-bottom:10px;">
+        <h3 style="text-align:center;color:#1e3a8a;">VOUCHER OFICIAL</h3>
+        <p id="vouch_nome"></p>
+        <p id="vouch_codigo"></p>
+        <p id="vouch_valor"></p>
+        <svg id="barcode"></svg>
+      </div>
+
+      <button id="btnDownload" style="display:none;margin-top:10px;" onclick="baixarPNG()">Baixar PNG</button>
+      <button id="btnWhats" style="display:none;margin-top:10px;background:#25d366;" onclick="enviarWhatsapp()">Enviar WhatsApp</button>
+    </div>
+
+    <!-- CONSULTA -->
+    <div class="card card-blue">
+      <h2 style="color:var(--p)">Consultar Voucher</h2>
+
+      <input id="consultaCodigo" placeholder="Digite o código" onkeydown="enterConsultar(event)">
+      <button onclick="consultarVoucher()">Consultar</button>
+
+      <div id="consultaResultado"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ÁREA DE IMPRESSÃO -->
+<div id="printArea" class="hidden">
   <h3>Comprovante de Resgate</h3>
   <div id="printContent"></div>
   <p>Data: <span id="printData"></span></p>
 </div>
+
 
 <script>
 /* ==========================================================
@@ -166,6 +190,65 @@ const sb = supabase.createClient(
 );
 
 /* ==========================================================
+   LOGIN & SESSÃO
+========================================================== */
+async function fazerLogin(){
+
+  let u = loginUser.value.trim();
+  let s = loginPass.value.trim();
+
+  if(!u || !s){
+    loginMsg.innerText = "Preencha usuário e senha.";
+    return;
+  }
+
+  const { data, error } = await sb
+    .from("usuarios")
+    .select("*")
+    .eq("usuario", u)
+    .eq("senha", s)
+    .limit(1);
+
+  if(!data || data.length === 0){
+    loginMsg.innerText = "Usuário ou senha inválidos.";
+    registrarLog("LOGIN_INVALIDO", "Tentativa com usuário: " + u);
+    return;
+  }
+
+  localStorage.setItem("sessionUser", u);
+  registrarLog("LOGIN_SUCESSO", "Usuário logado: " + u);
+
+  loginCard.style.display = "none";
+  sistema.classList.remove("hidden");
+}
+
+function logout(){
+  registrarLog("LOGOUT", "Usuário saiu do sistema");
+  localStorage.removeItem("sessionUser");
+  location.reload();
+}
+
+window.onload = ()=>{
+  let s = localStorage.getItem("sessionUser");
+  if(s){
+    loginCard.style.display = "none";
+    sistema.classList.remove("hidden");
+  }
+};
+
+/* ==========================================================
+   REGISTRO DE LOGS
+========================================================== */
+async function registrarLog(tipo, detalhes){
+
+  await sb.from("logs_sistema").insert([{
+    tipo,
+    detalhes,
+    usuario: localStorage.getItem("sessionUser") || "DESCONHECIDO"
+  }]);
+}
+
+/* ==========================================================
    MÁSCARAS
 ========================================================== */
 function maskCPF(el){
@@ -174,7 +257,6 @@ function maskCPF(el){
     .replace(/(\d{3})(\d)/,"$1.$2")
     .replace(/(\d{3})(\d{1,2})$/,"$1-$2");
 }
-
 function maskPhone(el){
   el.value = el.value.replace(/\D/g,"")
     .replace(/(\d{2})(\d)/,"($1) $2")
@@ -189,46 +271,43 @@ function gerarCodigo(){
 }
 
 /* ==========================================================
-   EMITIR VOUCHER
+   EMISSÃO
 ========================================================== */
 let ultimoVoucher = null;
 
 async function emitirVoucher(){
 
-  let cliente = cliente.value.trim();
+  let nome = cliente.value.trim();
   let cpfVal = cpf.value.trim();
   let tel = telefone.value.trim();
-  let valorVal = valor.value.trim();
+  let val = valor.value.trim();
 
-  if(!cliente || !cpfVal || !valorVal){
-    alert("Preencha todos os campos obrigatórios!");
-    return;
-  }
+  if(!nome || !cpfVal || !val){ alert("Preencha todos os campos."); return; }
 
   let codigo = gerarCodigo();
-  let agora = new Date().toISOString();
 
   let { error } = await sb.from("vouchers").insert([{
     codigo,
-    cliente,
+    cliente: nome,
     cpf: cpfVal,
     telefone: tel,
-    valor: valorVal,
-    status: "ATIVO",
-    data_emissao: agora
+    valor: val,
+    status: "ATIVO"
   }]);
 
-  if(error){ alert("Erro ao emitir voucher!"); return; }
+  if(error){ alert("Erro ao emitir!"); return; }
 
-  ultimoVoucher = { cliente, valor: valorVal, codigo, telefone: tel };
+  registrarLog("EMISSAO", `Voucher ${codigo} emitido para ${nome}`);
 
-  renderVoucherPNG(cliente, valorVal, codigo);
+  ultimoVoucher = { nome, val, codigo, tel };
+
+  gerarVoucherPNG(nome, val, codigo);
 }
 
 /* ==========================================================
-   PNG DO VOUCHER
+   GERAR PNG
 ========================================================== */
-function renderVoucherPNG(nome, valor, codigo){
+function gerarVoucherPNG(nome, valor, codigo){
 
   vouch_nome.innerHTML = "<b>Cliente:</b> " + nome;
   vouch_valor.innerHTML = "<b>Valor:</b> R$ " + valor;
@@ -239,44 +318,46 @@ function renderVoucherPNG(nome, valor, codigo){
   voucherPNG.style.display = "block";
   btnDownload.style.display = "block";
   btnWhats.style.display = "block";
+
+  registrarLog("GEROU_PNG", `Voucher ${codigo}`);
 }
 
 function baixarPNG(){
-  html2canvas(document.querySelector("#voucherPNG")).then(canvas=>{
+  registrarLog("DOWNLOAD_PNG", `Voucher baixado: ${ultimoVoucher.codigo}`);
+
+  html2canvas(voucherPNG).then(canvas=>{
     let link = document.createElement("a");
     link.download = "voucher.png";
-    link.href = canvas.toDataURL("image/png");
+    link.href = canvas.toDataURL();
     link.click();
   });
 }
 
 /* ==========================================================
-   ENVIAR VIA WHATSAPP
+   WHATSAPP
 ========================================================== */
 function enviarWhatsapp(){
-
-  if(!ultimoVoucher || !ultimoVoucher.telefone){
-    alert("Telefone inválido!");
-    return;
+  if(!ultimoVoucher || !ultimoVoucher.tel){
+    alert("Telefone inválido."); return;
   }
 
-  let tel = ultimoVoucher.telefone.replace(/\D/g,"");
-  let msg = `Olá! Seu voucher foi gerado com sucesso.%0A%0A` +
-            `Código: ${ultimoVoucher.codigo}%0ACliente: ${ultimoVoucher.cliente}%0AValor: R$ ${ultimoVoucher.valor}`;
+  registrarLog("WHATSAPP", `Voucher enviado para ${ultimoVoucher.tel}`);
+
+  let tel = ultimoVoucher.tel.replace(/\D/g,"");
+  let msg = `Seu voucher foi gerado!%0A` +
+            `Código: ${ultimoVoucher.codigo}%0A` +
+            `Cliente: ${ultimoVoucher.nome}%0AValor: R$ ${ultimoVoucher.val}`;
 
   window.open(`https://wa.me/55${tel}?text=${msg}`, "_blank");
 }
 
 /* ==========================================================
-   ENTER = CONSULTAR
+   CONSULTA
 ========================================================== */
 function enterConsultar(e){
   if(e.key === "Enter") consultarVoucher();
 }
 
-/* ==========================================================
-   CONSULTAR
-========================================================== */
 async function consultarVoucher(){
 
   let codigo = consultaCodigo.value.trim();
@@ -286,6 +367,7 @@ async function consultarVoucher(){
 
   if(!data || data.length === 0){
     consultaResultado.innerHTML = `<div class='result-card'>❌ Voucher não encontrado.</div>`;
+    registrarLog("CONSULTA_FALHA", codigo);
     return;
   }
 
@@ -296,12 +378,14 @@ async function consultarVoucher(){
     return;
   }
 
+  registrarLog("CONSULTA_SUCESSO", codigo);
+
   consultaResultado.innerHTML = `
     <div class="result-card">
       <b>Cliente:</b> ${v.cliente}<br>
-      <b>Valor:</b> R$ ${v.valor}<br>
+      <b>Valor:</b> ${v.valor}<br>
       <b>Emissão:</b> ${v.data_emissao}<br><br>
-      <button onclick="finalizarResgate('${v.codigo}','${v.cliente}',${v.valor})">
+      <button onclick="resgatar('${v.codigo}','${v.cliente}',${v.valor})">
         Finalizar / Resgatar
       </button>
     </div>
@@ -309,11 +393,13 @@ async function consultarVoucher(){
 }
 
 /* ==========================================================
-   RESGATAR + IMPRIMIR COMPROVANTE
+   RESGATE + IMPRESSÃO
 ========================================================== */
-async function finalizarResgate(codigo, cliente, valor){
+async function resgatar(codigo, cliente, valor){
 
-  await sb.from("vouchers").update({ status:"RESGATADO" }).eq("codigo", codigo);
+  await sb.from("vouchers").update({status:"RESGATADO"}).eq("codigo", codigo);
+
+  registrarLog("RESGATE", `Voucher ${codigo} - Cliente ${cliente}`);
 
   consultaResultado.innerHTML = `<div class='result-card'>✔ Resgatado com sucesso!</div>`;
 
@@ -322,6 +408,7 @@ async function finalizarResgate(codigo, cliente, valor){
 }
 
 function gerarComprovante(cliente, valor, codigo){
+
   printContent.innerHTML = `
     Cliente: ${cliente}<br>
     Valor: R$ ${valor}<br>
@@ -331,14 +418,17 @@ function gerarComprovante(cliente, valor, codigo){
 }
 
 function imprimirComprovante(){
-  let conteudo = document.getElementById("printArea").innerHTML;
-  let win = window.open("", "", "width=300,height=600");
-  win.document.write(conteudo);
-  win.print();
-  win.close();
+
+  registrarLog("IMPRIMIR_RESUMO", `Impressão do comprovante`);
+
+  let conteudo = printArea.innerHTML;
+  let janela = window.open("", "", "width=300,height=600");
+
+  janela.document.write(conteudo);
+  janela.print();
+  janela.close();
 }
 
 </script>
-
 </body>
 </html>
