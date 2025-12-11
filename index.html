@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Voucher Mercatto • Painel Premium</title>
+<title>Voucher Mercatto • Sistema Premium</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <!-- FONTES -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
 
 <!-- BIBLIOTECAS -->
@@ -16,326 +16,385 @@
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <style>
-/* PALETA */
+/* ============================================================
+   🎨 PALETA PREMIUM BLACK & GOLD
+============================================================ */
 :root{
+  --preto:#000000;
   --gold:#d4af37;
-  --gold2:#a88928;
-  --black:#000000;
-  --card:#0a0a0aaa;
+  --gold2:#b08a2e;
+  --card-bg:#0c0c0cdd;
   --radius:14px;
 }
 
 body{
   margin:0;
-  background:url("bg.png") center/cover no-repeat fixed;
-  backdrop-filter:blur(6px);
+  background:url('background.jpg') center/cover no-repeat fixed;
+  backdrop-filter:blur(3px);
+  color:white;
   font-family:"Inter";
-  color:white;
-}
-
-/* TÍTULO */
-header{
-  padding:20px;
-  font-size:34px;
-  font-weight:800;
-  color:var(--gold);
-  text-shadow:0 0 6px #000;
-}
-
-/* GRID PRINCIPAL */
-#painel{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:25px;
-  padding:20px;
-}
-
-/* CARD */
-.card{
-  background:var(--card);
-  border:2px solid var(--gold2);
-  border-radius:var(--radius);
-  padding:25px;
-  backdrop-filter:blur(6px);
-  height:370px;
-}
-
-/* INPUTS */
-.card input{
-  width:100%;
-  padding:12px;
-  margin-bottom:12px;
-  border-radius:8px;
-  border:1px solid var(--gold2);
-  background:#111;
-  color:white;
-  outline:none;
-}
-.card input::placeholder{ color:#bbbbbb99; }
-
-/* BOTÕES */
-button{
-  padding:12px 20px;
-  background:var(--gold);
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
-  font-weight:700;
-}
-button:hover{ background:white; color:black; }
-
-/* ÁREA DO VOUCHER */
-#voucherArea{
-  width:100%;
-  margin-top:5px;
-  text-align:center;
-}
-
-#voucherCard{
-  width:500px;
-  height:260px;
-  margin:0 auto;
-  background:black;
-  border:3px solid var(--gold);
-  border-radius:18px;
-  display:none;
-  padding:15px;
-  position:relative;
   overflow:hidden;
 }
 
+/* ============================================================
+   LAYOUT PRINCIPAL
+============================================================ */
+#mainContainer{
+  padding:20px;
+}
+
+.cardsRow{
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+}
+
+.card{
+  flex:1;
+  background:var(--card-bg);
+  border:1px solid var(--gold2);
+  border-radius:var(--radius);
+  padding:20px;
+  height:300px;
+}
+
+.card h2{
+  margin-top:0;
+  color:var(--gold);
+}
+
+/* Inputs */
+input{
+  width:100%;
+  padding:10px;
+  margin-bottom:10px;
+  background:#111;
+  border:1px solid var(--gold2);
+  color:white;
+  border-radius:8px;
+  font-size:14px;
+}
+input::placeholder{color:#999;}
+input:-webkit-autofill{
+  background:#111 !important;
+  -webkit-text-fill-color:white !important;
+}
+
+/* Botões */
+button{
+  padding:10px 18px;
+  border:none;
+  border-radius:8px;
+  font-weight:700;
+  cursor:pointer;
+}
+.btnGold{background:var(--gold);color:black;}
+.btnGold:hover{background:white;}
+
+.btnWhats{background:#25d366;color:white;}
+.btnWhats:hover{opacity:0.9;}
+
+#voucherArea{
+  margin-top:18px;
+  text-align:center;
+}
+
+/* ============================================================
+   VOUCHER HORIZONTAL CARTÃO 500×260
+============================================================ */
+#voucherCard{
+  width:500px;
+  height:260px;
+  background:black;
+  border-radius:16px;
+  border:3px solid var(--gold);
+  margin:auto;
+  display:none;
+  position:relative;
+  overflow:hidden;
+  padding:20px;
+  text-align:left;
+}
+
 #voucherCard::before{
+  /* LOGO APAGADA NO FUNDO */
   content:"";
   position:absolute;
-  top:0; left:0;
-  width:100%; height:100%;
+  top:0;left:0;
+  width:100%;height:100%;
   background:url("logo.png") center/70% no-repeat;
-  opacity:0.10;
+  opacity:0.09;
+  filter:contrast(70%);
 }
 
-/* TEXTO DO VOUCHER */
-#voucherCard h3{
-  font-family:"Great Vibes";
-  font-size:40px;
+#voucherTitle{
+  font-family:'Great Vibes';
+  font-size:36px;
   color:var(--gold);
   text-align:center;
-  margin-top:0;
+  margin-bottom:10px;
+  position:relative;
+  z-index:5;
 }
 
-.vline{
+.vLine{
   font-size:16px;
-  margin:6px 0;
+  margin-bottom:8px;
+  position:relative;
+  z-index:5;
 }
 
 #barcode{
+  width:100%;
+  margin-top:10px;
+  position:relative;
+  z-index:5;
+}
+
+#voucherButtons{
+  display:none;
+  justify-content:center;
+  gap:15px;
   margin-top:10px;
 }
 
-/* BOTÕES DO VOUCHER */
-#voucherButtons{
-  margin-top:15px;
-  display:none;
-  gap:15px;
-  justify-content:center;
-  display:flex;
+/* Loader */
+#overlayLoad{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:#000000aa;
+  display:none;justify-content:center;align-items:center;
+  color:var(--gold);font-size:28px;z-index:999;
 }
 </style>
 </head>
 
 <body>
 
-<header>
+<div id="overlayLoad">Processando...</div>
+
+<div id="mainContainer">
+
+<h1 style="color:var(--gold);margin-bottom:15px;">
   Voucher Mercatto — Painel Premium
-  <button onclick="logout()" style="float:right;background:#b02626;color:white;">Sair</button>
-</header>
+  <button onclick="logout()" style="float:right;background:#b02626;color:white;padding:10px 20px;border-radius:10px;">Sair</button>
+</h1>
 
-<div id="painel">
+<div class="cardsRow">
 
-  <!-- CARD EMITIR -->
+  <!-- ========================= EMITIR ========================= -->
   <div class="card">
-    <h2 style="color:var(--gold);margin-top:0;">Emitir Voucher</h2>
+    <h2>Emitir Voucher</h2>
 
     <input autocomplete="off" id="cliente" placeholder="Nome do Cliente">
     <input autocomplete="off" id="cpf" placeholder="CPF" oninput="maskCPF(this)">
     <input autocomplete="off" id="telefone" placeholder="Telefone" oninput="maskPhone(this)">
     <input autocomplete="off" id="valor" placeholder="Valor" oninput="maskValor(this)">
 
-    <button style="width:100%;margin-top:10px;" onclick="emitir()">Emitir Voucher</button>
+    <button class="btnGold" onclick="emitir()">Emitir Voucher</button>
   </div>
 
-  <!-- CARD CONSULTA -->
+  <!-- ========================= CONSULTAR ========================= -->
   <div class="card">
-    <h2 style="color:var(--gold);margin-top:0;">Consultar Voucher</h2>
+    <h2>Consultar Voucher</h2>
 
-    <input autocomplete="off" id="consultaCodigo" placeholder="Código" onkeydown="if(event.key==='Enter') consultar()">
-    <button onclick="consultar()">Consultar</button>
+    <input autocomplete="off" id="consultaCodigo" placeholder="Código" onkeydown="enterConsulta(event)">
+    <button class="btnGold" onclick="consultar()">Consultar</button>
 
-    <div id="consultaResultado" style="margin-top:20px;"></div>
+    <div id="consultaResultado" style="margin-top:15px;color:white;"></div>
   </div>
+
 </div>
 
-<!-- ÁREA DO VOUCHER ABAIXO DOS CARDS -->
+<!-- ========================= ÁREA DO VOUCHER ================ -->
 <div id="voucherArea">
 
   <div id="voucherCard">
-      <h3>Voucher Mercatto</h3>
+      <div id="voucherTitle">Voucher Mercatto</div>
 
-      <p class="vline" id="vNome"></p>
-      <p class="vline" id="vValor"></p>
-      <p class="vline" id="vCodigo"></p>
+      <div class="vLine" id="vouch_nome"></div>
+      <div class="vLine" id="vouch_valor"></div>
+      <div class="vLine" id="vouch_codigo"></div>
 
       <svg id="barcode"></svg>
   </div>
 
   <div id="voucherButtons">
-    <button onclick="baixarPDF()">Baixar PDF</button>
-    <button onclick="enviarWhats()" style="background:#25d366;color:white;">WhatsApp</button>
+      <button class="btnGold" onclick="baixarPDF()">Baixar PDF</button>
+      <button class="btnWhats" onclick="enviarWhats()">WhatsApp</button>
   </div>
 
 </div>
 
 <script>
-/* SUPABASE */
+/* ============================================================
+   SUPABASE CONFIG
+============================================================ */
 const sb = supabase.createClient(
   "https://ckkqcxbzfkjzicvoeehw.supabase.co",
   "sb_publishable_djiQsCSrnLUm0iA_eNjjMw__7rfP11m"
 );
 
-/* FORMATADOR REAL */
-function formatMoney(v){
-  return Number(v).toLocaleString("pt-BR",{minimumFractionDigits:2});
+/* Loader */
+function showLoad(){ overlayLoad.style.display="flex"; }
+function hideLoad(){ overlayLoad.style.display="none"; }
+
+/* ============================================================
+   MÁSCARAS
+============================================================ */
+function maskCPF(el){
+  el.value = el.value.replace(/\D/g,"")
+    .replace(/(\d{3})(\d)/,"$1.$2")
+    .replace(/(\d{3})(\d)/,"$1.$2")
+    .replace(/(\d{3})(\d{1,2})$/,"$1-$2");
 }
 
-/* MASKS */
-function maskCPF(el){ el.value = el.value.replace(/\D/g,"").replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d{1,2})$/,"$1-$2"); }
-function maskPhone(el){ el.value = el.value.replace(/\D/g,"").replace(/(\d{2})(\d)/,"($1) $2").replace(/(\d{5})(\d)/,"$1-$2"); }
+function maskPhone(el){
+  el.value = el.value.replace(/\D/g,"")
+    .replace(/(\d{2})(\d)/,"($1) $2")
+    .replace(/(\d{5})(\d)/,"$1-$2");
+}
+
 function maskValor(el){
   let v = el.value.replace(/\D/g,"");
-  v = (v/100).toFixed(2);
-  el.value = formatMoney(v);
+  v = (v/100).toFixed(2).replace(".",",");
+  el.value = v.replace(/\B(?=(\d{3})+(?!\d))/g, "."); 
+  el.value = "R$ " + el.value;
 }
 
-/* --------------------------------------------------------
-   CONSULTA CÓDIGO EXISTENTE PARA GARANTIR CÓDIGO ÚNICO
----------------------------------------------------------*/
+/* ============================================================
+   GERAR CÓDIGO ÚNICO CONSULTANDO SUPABASE
+============================================================ */
 async function gerarCodigoUnico(){
-  let codigo="";
-  let existe=true;
+  let codigo = "";
+  let existe = true;
 
   while(existe){
     codigo = String(Math.floor(100000000 + Math.random()*900000000));
-
-    const { data } = await sb.from("vouchers").select("codigo").eq("codigo",codigo);
-
-    if(!data || data.length===0) existe=false;
+    let { data } = await sb.from("vouchers").select("codigo").eq("codigo",codigo);
+    if(!data || data.length === 0){ existe = false; }
   }
   return codigo;
 }
 
-/* --------------------------------------------------------
+/* ============================================================
    EMITIR VOUCHER
----------------------------------------------------------*/
-let voucherAtual=null;
+============================================================ */
+let voucherAtual = null;
 
 async function emitir(){
-  let nome = cliente.value.trim();
-  let valRaw = valor.value.replace(/\./g,"").replace(",",".");
-  let telefone = document.getElementById("telefone").value;
-  let cpf = document.getElementById("cpf").value;
+  showLoad();
 
-  if(!nome || !valRaw){
-    alert("Preencha todos os campos obrigatórios!");
-    return;
-  }
+  let nome = cliente.value.trim();
+  let cpfv = cpf.value.trim();
+  let tel = telefone.value.trim();
+  let val = valor.value.replace("R$ ","");
+
+  if(!nome || !val){ hideLoad(); alert("Preencha os campos obrigatórios."); return; }
 
   let codigo = await gerarCodigoUnico();
 
-  await sb.from("vouchers").insert([{
+  const { error } = await sb.from("vouchers").insert([{
     codigo,
     cliente:nome,
-    cpf,
-    telefone,
-    valor:valRaw,
+    cpf:cpfv,
+    telefone:tel,
+    valor:val,
     data_emissao:new Date().toISOString(),
     status:"ATIVO"
   }]);
 
-  voucherAtual = { nome, valor:formatMoney(valRaw), codigo, telefone };
-  mostrarVoucher();
+  hideLoad();
+
+  if(error){ alert("Erro ao registrar no banco."); return; }
+
+  voucherAtual = { nome, val, codigo, tel };
+  gerarVoucher();
 }
 
-/* --------------------------------------------------------
-   MOSTRAR VOUCHER NA ÁREA INFERIOR
----------------------------------------------------------*/
-function mostrarVoucher(){
-  vNome.innerHTML = `<b>Cliente:</b> ${voucherAtual.nome}`;
-  vValor.innerHTML = `<b>Valor:</b> R$ ${voucherAtual.valor}`;
-  vCodigo.innerHTML = `<b>Código:</b> ${voucherAtual.codigo}`;
+/* ============================================================
+   EXIBIR VOUCHER NA TELA
+============================================================ */
+function gerarVoucher(){
+  vouch_nome.innerHTML = "<b>Cliente:</b> " + voucherAtual.nome;
+  vouch_valor.innerHTML = "<b>Valor:</b> R$ " + voucherAtual.val;
+  vouch_codigo.innerHTML = "<b>Código:</b> " + voucherAtual.codigo;
 
-  JsBarcode("#barcode", voucherAtual.codigo,{
-    format:"CODE128",
-    width:2,
-    height:45,
-    lineColor:"#d4af37",
-    background:"transparent"
+  JsBarcode("#barcode", voucherAtual.codigo, {
+    format:"CODE128", width:2, height:50,
+    lineColor:"#d4af37", background:"black"
   });
 
   voucherCard.style.display="block";
   voucherButtons.style.display="flex";
 }
 
-/* --------------------------------------------------------
-   PDF – TAMANHO REAL DO CARTÃO (HORIZONTAL)
----------------------------------------------------------*/
+/* ============================================================
+   PDF HORIZONTAL 500×260
+============================================================ */
 function baixarPDF(){
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF({ orientation:"landscape", unit:"mm", format:[85,53] });
-
   html2canvas(voucherCard).then(canvas=>{
     const img = canvas.toDataURL("image/png");
-    pdf.addImage(img,"PNG",0,0,85,53);
+    const { jsPDF } = window.jspdf;
+
+    const pdf = new jsPDF({
+      orientation:"landscape",
+      unit:"px",
+      format:[500,260]
+    });
+
+    pdf.addImage(img,"PNG",0,0,500,260);
     pdf.save("voucher.pdf");
   });
 }
 
-/* --------------------------------------------------------
-   WHATSAPP
----------------------------------------------------------*/
+/* ============================================================
+   WHATSAPP COM MENSAGEM PERSONALIZADA
+============================================================ */
 function enviarWhats(){
-  let tel = voucherAtual.telefone.replace(/\D/g,"");
-  let msg =
-    `Olá! Obrigado pela sua compra na Mercatto!%0A`+
-    `Segue o seu voucher:%0A%0A`+
-    `Cliente: ${voucherAtual.nome}%0A`+
-    `Valor: R$ ${voucherAtual.valor}%0A`+
-    `Código: ${voucherAtual.codigo}%0A%0A`+
-    `Aproveite e tenha uma excelente experiência!`;
+  let tel = voucherAtual.tel.replace(/\D/g,"");
+  let msg = 
+`*Obrigado pela sua compra!*
+Aqui está seu voucher Mercatto:
 
-  window.open(`https://wa.me/55${tel}?text=${msg}`,"_blank");
+• *Cliente:* ${voucherAtual.nome}
+• *Valor:* R$ ${voucherAtual.val}
+• *Código:* ${voucherAtual.codigo}
+
+Apresente este voucher na loja para utilização.`;
+
+  window.open(`https://wa.me/55${tel}?text=${encodeURI(msg)}`,"_blank");
 }
 
-/* --------------------------------------------------------
-   CONSULTA
----------------------------------------------------------*/
+/* ============================================================
+   CONSULTAR VOUCHER
+============================================================ */
+function enterConsulta(e){ if(e.key==="Enter") consultar(); }
+
 async function consultar(){
+  showLoad();
   let cod = consultaCodigo.value.trim();
+
   const { data } = await sb.from("vouchers").select("*").eq("codigo",cod);
+  hideLoad();
 
   if(!data || data.length===0){
-    consultaResultado.innerHTML = "<span style='color:red;'>❌ Não encontrado</span>";
+    consultaResultado.innerHTML="<span style='color:red'>❌ Não encontrado</span>";
     return;
   }
 
   let v = data[0];
 
-  consultaResultado.innerHTML =
-    `<b>Cliente:</b> ${v.cliente}<br>`+
-    `<b>Valor:</b> R$ ${formatMoney(v.valor)}<br>`+
-    `<b>Status:</b> ${v.status}`;
+  consultaResultado.innerHTML = `
+    <b>Cliente:</b> ${v.cliente}<br>
+    <b>Valor:</b> R$ ${v.valor}<br>
+    <b>Status:</b> ${v.status}
+  `;
 }
 
-/* LOGOUT */
-function logout(){ localStorage.clear(); location.reload(); }
+/* ============================================================
+   LOGOUT
+============================================================ */
+function logout(){ location.reload(); }
 </script>
 
 </body>
