@@ -2,399 +2,316 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Voucher • Grupo DV</title>
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Voucher • Emissão & Consulta</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <style>
-
-/* ======================== */
-/*   PALETA PREMIUM DV      */
-/* ======================== */
+/* ==============================
+   VISUAL PREMIUM GRUPO DV
+============================== */
 :root{
-  --bg:#0a0a0a;
-  --card:#151515;
-  --gold:#d4af37;
-  --gold2:#b88e1a;
-  --white:#fff;
-  --radius:12px;
+  --p:#0b1e39;
+  --p2:#102742;
+  --blue:#1e3a8a;
+  --blue-light:#3b82f6;
+  --bg:#eef2f7;
+  --card:#fff;
+  --border:#d9e0ea;
+  --radius:14px;
+  --shadow:0 4px 14px rgba(0,0,0,0.08);
 }
 
-/* ======================== */
+*{
+  margin:0; padding:0; box-sizing:border-box;
+  font-family:"Inter";
+}
+
 body{
-  margin:0;
   background:var(--bg);
-  font-family:Inter, sans-serif;
-  color:white;
-  overflow-x:hidden;
+  padding:25px;
 }
 
-/* ======================== */
-.screen{
-  display:none;
-  padding:16px;
-  animation:fade .25s ease;
+/* ==============================
+   TÍTULO
+============================== */
+h1{
+  font-size:26px;
+  color:var(--p);
+  margin-bottom:20px;
+  font-weight:800;
 }
-.screen.active{ display:block; }
 
-@keyframes fade { from{opacity:0;} to{opacity:1;} }
-
-/* ======================== */
-.title{
-  text-align:center;
-  color:var(--gold);
-  font-size:20px;
-  font-weight:600;
-  margin-bottom:2px;
+/* ==============================
+   LAYOUT
+============================== */
+.container{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:25px;
 }
-.subtitle{
-  text-align:center;
-  font-size:13px;
-  color:#aaa;
+
+/* ==============================
+   CARD AZUL (IGUAL AO DAS COTAÇÕES)
+============================== */
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:22px;
+  box-shadow:var(--shadow);
+  border:1px solid var(--border);
+}
+
+.card-blue{
+  background:#dce7ff;
+  border-left:6px solid #1e3a8a;
+}
+
+/* ==============================
+   CAMPOS
+============================== */
+input,select{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  font-size:15px;
   margin-bottom:12px;
 }
 
-/* ======================== */
-input,select{
-  width:100%;
-  padding:8px;
-  margin-top:10px;
-  background:var(--card);
-  border:2px solid var(--gold);
-  border-radius:var(--radius);
-  color:white;
-  font-size:15px;
-  outline:none;
-}
-
-/* ======================== */
-/*    CARDS DE VALOR        */
-/* ======================== */
-.values{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:8px;
-}
-
-.cardValor{
-  padding:8px 0;              /* REDUZIDO */
-  background:var(--card);
-  border:2px solid var(--gold);
-  border-radius:var(--radius);
-  text-align:center;
-  font-size:17px;             /* MANTÉM A FONTE */
-  cursor:pointer;
-  transition:.25s;
-}
-
-.cardValor.sel{
-  background:var(--gold);
-  color:black;
-}
-
-/* ======================== */
-.btn{
-  width:100%;
-  padding:11px;
-  margin-top:14px;
+button{
+  padding:12px 22px;
+  background:var(--p);
   border:none;
-  background:var(--gold);
-  color:black;
-  font-weight:700;
-  font-size:16px;
-  border-radius:var(--radius);
-}
-.btnBack{
-  background:#333;
   color:white;
+  border-radius:10px;
+  font-weight:700;
+  cursor:pointer;
+  transition:.2s;
 }
 
-/* ======================== */
-.box{
-  background:var(--card);
-  padding:12px;
-  border-radius:var(--radius);
-  border:2px solid var(--gold);
+button:hover{
+  background:var(--p2);
 }
-.box h3{
-  text-align:center;
-  color:var(--gold);
-  margin:0 0 8px;
-}
-.line{ font-size:14px; }
 
-/* ======================== */
-.overlay{
-  position:fixed;
-  top:0;left:0;
-  width:100%;height:100%;
-  background:rgba(0,0,0,.7);
+/* ==============================
+   RESULTADO DA CONSULTA
+============================== */
+.result-card{
+  margin-top:15px;
+  padding:18px;
+  background:#eef3ff;
+  border-left:6px solid #1e3a8a;
+  border-radius:12px;
+}
+
+/* ==============================
+   PNG DO VOUCHER
+============================== */
+#voucherPNG{
+  width:320px;
+  padding:20px;
+  background:white;
+  border-radius:15px;
+  border:2px solid #1e3a8a;
   display:none;
-  justify-content:center;
-  align-items:center;
-  z-index:999;
-}
-.loader{
-  width:40px;
-  height:40px;
-  border:4px solid #555;
-  border-top-color:var(--gold);
-  border-radius:50%;
-  animation:spin .7s linear infinite;
-}
-@keyframes spin { to{transform:rotate(360deg);} }
-
-/* ======================== */
-#errorBox{
-  background:#440000;
-  color:#ff7777;
-  padding:10px;
-  margin-top:12px;
-  border-radius:var(--radius);
-  display:none;
-  font-size:14px;
-  text-align:center;
-}
-
-/* EVITA ESTICAR NA HORIZONTAL */
-*{
-  max-width:100%;
-  box-sizing:border-box;
 }
 
 </style>
 </head>
 <body>
 
-<!-- LOADING -->
-<div class="overlay" id="overlay">
-  <div class="loader"></div>
-</div>
+<h1>🎟 Sistema de Vouchers – Emissão & Consulta</h1>
 
-<!-- ERRO -->
-<div id="errorBox"></div>
+<div class="container">
 
-<!-- ======================== -->
-<!--  TELA 1 — VALOR -->
-<!-- ======================== -->
-<div class="screen active" id="t1">
+  <!-- =============================
+       EMISSÃO DO VOUCHER
+  ============================== -->
+  <div class="card">
+    <h2 style="color:var(--p)">Emitir Voucher</h2>
 
-  <div class="title">1º Passo</div>
-  <div class="subtitle">Escolha o valor do voucher</div>
+    <input id="cliente" placeholder="Nome do Cliente">
+    <input id="cpf" placeholder="CPF" oninput="maskCPF(this)">
+    <input id="telefone" placeholder="Telefone" oninput="maskPhone(this)">
+    <input id="valor" placeholder="Valor do Voucher">
 
-  <div class="values">
-    <div class="cardValor" onclick="selectValor(50)">R$ 50</div>
-    <div class="cardValor" onclick="selectValor(80)">R$ 80</div>
-    <div class="cardValor" onclick="selectValor(100)">R$ 100</div>
-    <div class="cardValor" onclick="selectValor(150)">R$ 150</div>
-    <div class="cardValor" onclick="selectValor(200)">R$ 200</div>
-    <div class="cardValor" onclick="show('t1b')">Outro</div>
+    <button onclick="emitirVoucher()">Emitir Voucher</button>
+
+    <!-- Gerar PNG -->
+    <div id="voucherPNG">
+      <h3 style="text-align:center;color:#1e3a8a;">VOUCHER</h3>
+      <p id="vouch_nome"></p>
+      <p id="vouch_codigo"></p>
+      <p id="vouch_valor"></p>
+      <svg id="barcode"></svg>
+    </div>
+
+    <button id="btnDownload" style="margin-top:12px;display:none;" onclick="baixarPNG()">Baixar PNG</button>
+  </div>
+
+  <!-- =============================
+       CONSULTA DO VOUCHER
+  ============================== -->
+  <div class="card card-blue">
+    <h2 style="color:var(--p)">Consultar Voucher</h2>
+
+    <input id="consultaCodigo" placeholder="Digite o código" oninput="limparConsulta()">
+    <button onclick="consultarVoucher()">Consultar</button>
+
+    <div id="consultaResultado"></div>
   </div>
 
 </div>
-
-<!-- ======================== -->
-<!--  TELA 1B — OUTRO VALOR -->
-<!-- ======================== -->
-<div class="screen" id="t1b">
-
-  <div class="title">Digite o valor</div>
-  <input id="outroValor" inputmode="numeric" oninput="maskValor(this)">
-  
-  <button class="btn" onclick="confirmarOutro()">Confirmar</button>
-  <button class="btnBack btn" onclick="show('t1')">Voltar</button>
-
-</div>
-
-<!-- ======================== -->
-<!--  TELA 2 — DADOS -->
-<!-- ======================== -->
-<div class="screen" id="t2">
-
-  <div class="title">2º Passo</div>
-  <div class="subtitle">Preencha seus dados</div>
-
-  <input id="nome" placeholder="Nome completo">
-  <input id="whats" placeholder="WhatsApp" inputmode="numeric" oninput="maskWhats(this)">
-  <input id="emailComprador" placeholder="Seu e-mail">
-
-  <select id="presente" onchange="togglePresente()">
-    <option value="">É presente?</option>
-    <option value="nao">Não</option>
-    <option value="sim">Sim</option>
-  </select>
-
-  <input id="emailPresente" placeholder="Email do presenteado" style="display:none;">
-
-  <button class="btn" onclick="validateT2()">Avançar</button>
-  <button class="btnBack btn" onclick="show('t1')">Voltar</button>
-
-</div>
-
-<!-- ======================== -->
-<!--  TELA 3 — REVISÃO -->
-<!-- ======================== -->
-<div class="screen" id="t3">
-
-  <div class="title">3º Passo</div>
-  <div class="subtitle">Revise antes de pagar</div>
-
-  <div class="box">
-    <h3>Resumo</h3>
-    <div class="line" id="r_valor"></div>
-    <div class="line" id="r_nome"></div>
-    <div class="line" id="r_email"></div>
-    <div class="line" id="r_presente"></div>
-  </div>
-
-  <button class="btn" onclick="registrar()">Enviar e Realizar Pagamento</button>
-  <button class="btnBack btn" onclick="show('t2')">Voltar</button>
-
-</div>
-
-<!-- ======================== -->
-<!--  TELA 4 — PIX -->
-<!-- ======================== -->
-<div class="screen" id="t4">
-
-  <div class="title">Pagamento PIX</div>
-
-  <div class="box">
-    <h3>Voucher Registrado</h3>
-    <div class="line">Finalize o pagamento para ativar:</div>
-    <div class="line" id="resumoEmails"></div>
-  </div>
-
-  <div class="box">
-    <h3>Chave PIX</h3>
-    <div class="line" id="pixCode">SUA_CHAVE_PIX_AQUI</div>
-    <button class="btn" onclick="copyPix()">Copiar chave</button>
-  </div>
-
-  <button class="btnBack btn" onclick="resetAll()">Voltar ao início</button>
-
-</div>
-
 
 <script>
+/* ===========================================
+   CONEXÃO SUPABASE
+=========================================== */
+const sb = supabase.createClient(
+  "SUPABASE_URL_AQUI",
+  "SUPABASE_PUBLIC_KEY_AQUI"
+);
 
-let valor = 0;
-
-/* =========================== */
-function show(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+/* ===========================================
+   MÁSCARAS
+=========================================== */
+function maskCPF(el){
+  el.value = el.value.replace(/\D/g,"")
+    .replace(/(\d{3})(\d)/,"$1.$2")
+    .replace(/(\d{3})(\d)/,"$1.$2")
+    .replace(/(\d{3})(\d{1,2})$/,"$1-$2");
 }
 
-/* =========================== */
-function maskValor(i){
-  let v = i.value.replace(/\D/g,"");
-  v = (v/100).toFixed(2).replace('.',',');
-  i.value = "R$ "+v;
+function maskPhone(el){
+  el.value = el.value.replace(/\D/g,"")
+    .replace(/(\d{2})(\d)/,"($1) $2")
+    .replace(/(\d{5})(\d)/,"$1-$2");
 }
 
-/* =========================== */
-function selectValor(v){
-  valor = v;
-  document.querySelectorAll('.cardValor').forEach(c=>c.classList.remove('sel'));
-  event.target.classList.add('sel');
-  show('t2');
+/* ===========================================
+   GERAR CÓDIGO ALEATÓRIO
+=========================================== */
+function gerarCodigo(){
+  return Math.floor(100000000 + Math.random()*900000000).toString();
 }
 
-function confirmarOutro(){
-  if(!outroValor.value){ alert("Informe o valor."); return; }
-  valor = Number(outroValor.value.replace(/\D/g,""))/100;
-  show('t2');
-}
+/* ===========================================
+   EMITIR VOUCHER
+=========================================== */
+async function emitirVoucher(){
 
-/* =========================== */
-function maskWhats(i){
-  let v = i.value.replace(/\D/g,"");
-  v = v.slice(0,11);
-  v = v.replace(/^(\d{2})(\d)/,"($1) $2");
-  v = v.replace(/(\d{5})(\d)/,"$1-$2");
-  i.value = v;
-}
+  let cliente = document.getElementById("cliente").value.trim();
+  let cpf = document.getElementById("cpf").value.trim();
+  let telefone = document.getElementById("telefone").value.trim();
+  let valor = document.getElementById("valor").value.trim();
 
-function togglePresente(){
-  emailPresente.style.display = presente.value==="sim" ? "block" : "none";
-}
+  if(!cliente || !cpf || !valor){ alert("Preencha os campos obrigatórios!"); return; }
 
-/* =========================== */
-function validateT2(){
+  let codigo = gerarCodigo();
+  let agora = new Date().toISOString();
 
-  if(!nome.value || !whats.value || !emailComprador.value){
-    alert("Preencha todos os campos.");
-    return;
-  }
-
-  r_valor.innerHTML = "<b>Valor:</b> R$ "+valor.toFixed(2).replace('.',',');
-  r_nome.innerHTML = "<b>Nome:</b> "+nome.value;
-  r_email.innerHTML = "<b>Email:</b> "+emailComprador.value;
-
-  r_presente.innerHTML = presente.value==="sim"
-    ? "<b>Presente para:</b> "+emailPresente.value
-    : "";
-
-  show('t3');
-}
-
-/* =========================== */
-/* GAS URL COMPATÍVEL COM SEU GAS */
-/* =========================== */
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxaafuMhBJQpaYLIEEUE0HITdtyPvPqe8Fu9gttSR1ChJ2_1ZUiy2rpl2XwNNYBi0xYCQ/exec";
-
-/* =========================== */
-function registrar(){
-
-  overlay.style.display="flex";
-  errorBox.style.display="none";
-
-  fetch(GAS_URL,{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body:JSON.stringify({
-      acao:"registrar",
+  let { error } = await sb.from("vouchers").insert([
+    {
+      codigo,
+      cliente,
+      cpf,
+      telefone,
       valor,
-      nomeComprador:nome.value,
-      whats:whats.value,
-      emailComprador:emailComprador.value,
-      presente:presente.value,
-      emailPresente:emailPresente.value
-    })
-  })
-  .then(r => {
-
-    if(!r.ok){
-      throw new Error("Falha ao conectar ao servidor.");
+      data_emissao: agora,
+      status:"ATIVO"
     }
-    return r.json();
-  })
-  .then(res => {
-    overlay.style.display="none";
+  ]);
 
-    resumoEmails.innerHTML =
-      emailComprador.value +
-      (presente.value==="sim" ? "<br>" + emailPresente.value : "");
+  if(error){ alert("Erro ao emitir voucher"); return; }
 
-    show("t4");
-  })
-  .catch(err => {
-    overlay.style.display="none";
-    errorBox.innerText = "❌ Erro ao registrar: " + err.message;
-    errorBox.style.display="block";
+  renderVoucherPNG(cliente, valor, codigo);
+}
+
+/* ===========================================
+   GERAR PNG DO VOUCHER
+=========================================== */
+function renderVoucherPNG(nome, valor, codigo){
+
+  document.getElementById("vouch_nome").innerHTML = "<b>Cliente:</b> " + nome;
+  document.getElementById("vouch_valor").innerHTML = "<b>Valor:</b> R$ " + valor;
+  document.getElementById("vouch_codigo").innerHTML = "<b>Código:</b> " + codigo;
+
+  JsBarcode("#barcode", codigo, { format:"CODE128", width:2, height:40 });
+
+  document.getElementById("voucherPNG").style.display = "block";
+  document.getElementById("btnDownload").style.display = "block";
+}
+
+function baixarPNG(){
+  html2canvas(document.querySelector("#voucherPNG")).then(canvas=>{
+    let link = document.createElement("a");
+    link.download = "voucher.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
   });
 }
 
-/* =========================== */
-function copyPix(){
-  navigator.clipboard.writeText(pixCode.innerText);
-  alert("Pix copiado!");
+/* ===========================================
+   CONSULTAR VOUCHER
+=========================================== */
+async function consultarVoucher(){
+
+  let codigo = document.getElementById("consultaCodigo").value.trim();
+  if(!codigo) return;
+
+  let div = document.getElementById("consultaResultado");
+
+  let { data } = await sb
+    .from("vouchers")
+    .select("*")
+    .eq("codigo", codigo)
+    .limit(1);
+
+  if(!data || data.length === 0){
+    div.innerHTML = `<div class='result-card'>❌ Voucher não encontrado.</div>`;
+    return;
+  }
+
+  let v = data[0];
+
+  if(v.status === "RESGATADO"){
+    div.innerHTML = `<div class='result-card'>⚠️ Voucher já resgatado!</div>`;
+    return;
+  }
+
+  div.innerHTML = `
+    <div class="result-card">
+      <b>Cliente:</b> ${v.cliente}<br>
+      <b>Valor:</b> R$ ${v.valor}<br>
+      <b>Data:</b> ${v.data_emissao}<br>
+      <b>Status:</b> ${v.status}<br><br>
+      <button onclick="resgatarVoucher('${v.codigo}')">Finalizar / Resgatar</button>
+    </div>
+  `;
 }
 
-/* =========================== */
-function resetAll(){ location.reload(); }
+function limparConsulta(){
+  document.getElementById("consultaResultado").innerHTML = "";
+}
+
+/* ===========================================
+   RESGATAR VOUCHER
+=========================================== */
+async function resgatarVoucher(codigo){
+
+  await sb.from("vouchers")
+    .update({ status:"RESGATADO" })
+    .eq("codigo", codigo);
+
+  document.getElementById("consultaResultado").innerHTML =
+    `<div class='result-card'>✔ Voucher resgatado com sucesso!</div>`;
+}
 
 </script>
-
 </body>
 </html>
