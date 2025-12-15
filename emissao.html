@@ -5,38 +5,51 @@
 <title>Voucher Mercatto • Emissão</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <style>
 :root{
-  --gold:#d4af37;
   --bg:#000;
+  --card:#111;
+  --gold:#d4af37;
+  --gold2:#b48a2b;
+  --radius:16px;
 }
-
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:Inter;
-}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
 
 body{
-  background:#000;
+  background:radial-gradient(circle at top,#111,#000);
   color:#fff;
-  padding:20px;
+  padding:24px;
 }
 
-input,select,button{
+.hidden{display:none}
+
+/* ================== CARD ================== */
+.card{
+  max-width:1100px;
+  margin:auto;
+  background:linear-gradient(180deg,#111,#0d0d0d);
+  border:1px solid var(--gold2);
+  border-radius:var(--radius);
+  padding:26px;
+  box-shadow:0 20px 40px rgba(0,0,0,.6);
+}
+
+input,select{
   width:100%;
   padding:14px;
-  margin-bottom:12px;
-  background:#111;
+  margin-bottom:14px;
+  background:#1a1a1a;
+  border:1px solid var(--gold2);
+  border-radius:12px;
   color:#fff;
-  border:1px solid var(--gold);
-  border-radius:10px;
+  font-size:15px;
 
   /* 🔒 SEGURANÇA */
   autocomplete:off;
@@ -46,15 +59,116 @@ input,select,button{
 }
 
 button{
-  background:linear-gradient(135deg,#b48a2b,#d4af37);
-  color:#000;
-  font-weight:900;
   cursor:pointer;
+  border:none;
 }
 
-.hidden{display:none}
+/* ================== LOGIN ================== */
+#loginCard{
+  max-width:420px;
+  margin:120px auto;
+}
 
-/* ================= IMPRESSÃO TÉRMICA ================= */
+/* ================== GRID ================== */
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+}
+
+/* ================== VOUCHER ================== */
+#voucherPNG{
+  width:720px;
+  height:300px;
+  display:none;
+  margin:30px auto 10px;
+  border-radius:18px;
+  overflow:hidden;
+  border:3px solid var(--gold);
+  background:linear-gradient(to right,#000 0%,#0a0a0a 45%,#111 45%,#fdf6e3 100%);
+  position:relative;
+  box-shadow:0 14px 40px rgba(0,0,0,.6);
+}
+
+.v-left{
+  position:absolute;
+  left:0;
+  width:45%;
+  height:100%;
+  padding:26px;
+  color:#fff;
+}
+
+.v-cut{
+  position:absolute;
+  left:44%;
+  width:90px;
+  height:100%;
+  background:linear-gradient(135deg,#b48a2b,#d4af37,#f7e7b0);
+  clip-path:polygon(0 0,100% 0,70% 100%,0 100%);
+}
+
+.v-right{
+  position:absolute;
+  left:50%;
+  width:50%;
+  height:100%;
+  padding:36px;
+  color:#5a4d29;
+}
+
+.small{
+  position:absolute;
+  bottom:10px;
+  left:20px;
+  right:20px;
+  font-size:10px;
+  color:#ddd;
+  opacity:.85;
+}
+
+/* ================== BOTÕES ================== */
+.actions{
+  display:flex;
+  gap:14px;
+  justify-content:center;
+  margin-top:22px;
+  flex-wrap:wrap;
+}
+
+.btn{
+  min-width:180px;
+  padding:10px 18px;
+  border-radius:12px;
+  font-size:14px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  transition:.25s ease;
+  box-shadow:0 6px 14px rgba(0,0,0,.35);
+}
+
+.btn-pdf{
+  background:linear-gradient(135deg,#b48a2b,#e5c86f);
+  color:#000;
+}
+.btn-pdf:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 22px rgba(212,175,55,.45);
+}
+
+.btn-whats{
+  background:linear-gradient(135deg,#1ebd5a,#2de073);
+  color:#fff;
+}
+.btn-whats:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 22px rgba(37,211,102,.45);
+}
+
+/* ================== IMPRESSÃO ================== */
 @media print{
   body{background:#fff;color:#000}
   .no-print{display:none}
@@ -71,33 +185,68 @@ button{
 <body>
 
 <!-- LOGIN -->
-<div id="loginCard">
-  <h2>Acesso Operador</h2>
+<div id="loginCard" class="card">
+  <h2 style="color:var(--gold)">Acesso Operador</h2>
   <input id="loginUser" placeholder="Usuário">
   <input id="loginPass" type="password" placeholder="Senha">
-  <button onclick="login()">Entrar</button>
+  <button class="btn btn-pdf" style="width:100%" onclick="login()">Entrar</button>
 </div>
 
 <!-- SISTEMA -->
 <div id="sistema" class="hidden">
+<div class="card">
 
-  <h2>Emissão de Voucher</h2>
+<h2 style="color:var(--gold)">Emissão de Voucher</h2>
 
-  <input id="cliente" placeholder="Nome do Cliente">
-  <input id="cpf" placeholder="CPF" oninput="maskCPF(this)">
-  <input id="telefone" placeholder="Telefone" oninput="maskPhone(this)">
-  <input id="valor" placeholder="Valor" oninput="maskValor(this)">
-  
-  <select id="formaPagamento">
-    <option value="" disabled selected>Forma de Pagamento</option>
-    <option>PIX</option>
-    <option>DINHEIRO</option>
-    <option>CARTÃO CRÉDITO</option>
-    <option>CARTÃO DÉBITO</option>
-  </select>
+<div class="grid">
+  <div>
+    <input id="cliente" placeholder="Nome do Cliente">
+    <input id="cpf" placeholder="CPF" oninput="maskCPF(this)">
+    <input id="telefone" placeholder="Telefone" oninput="maskPhone(this)">
+  </div>
+  <div>
+    <input id="valor" placeholder="Valor" oninput="maskValor(this)">
+    <select id="formaPagamento">
+      <option value="" disabled selected>Forma de Pagamento</option>
+      <option>PIX</option>
+      <option>DINHEIRO</option>
+      <option>CARTÃO CRÉDITO</option>
+      <option>CARTÃO DÉBITO</option>
+    </select>
+  </div>
+</div>
 
-  <button onclick="emitir()">Emitir e Imprimir</button>
+<button class="btn btn-pdf" style="width:100%" onclick="emitir()">Emitir Voucher</button>
 
+<!-- VOUCHER -->
+<div id="voucherPNG">
+  <div class="v-left">
+    <h1 style="font-size:42px">GIFT</h1>
+    <h2 style="color:var(--gold)">VOUCHER</h2>
+    <p id="vNome"></p>
+    <p id="vForma"></p>
+    <p id="vEmissor"></p>
+    <p id="vValidade"></p>
+  </div>
+
+  <div class="v-cut"></div>
+
+  <div class="v-right">
+    <h1 style="font-size:72px;font-family:'Great Vibes'">
+      R$ <span id="vValor"></span>
+    </h1>
+    <svg id="barcode"></svg>
+  </div>
+
+  <div class="small" id="vTextoLegal"></div>
+</div>
+
+<div class="actions no-print hidden" id="acoes">
+  <button class="btn btn-pdf" onclick="baixarPDF()">📄 Baixar PDF</button>
+  <button class="btn btn-whats" onclick="enviarWhats()">💬 WhatsApp</button>
+</div>
+
+</div>
 </div>
 
 <script>
@@ -107,62 +256,87 @@ const sb = supabase.createClient(
 );
 
 let operador=null;
+let voucherAtual={};
 
-/* LOGIN — NADA É GUARDADO */
+/* LOGIN */
 async function login(){
-  const {data}=await sb
-    .from("usuarios")
+  const {data}=await sb.from("usuarios")
     .select("usuario")
     .eq("usuario",loginUser.value)
     .eq("senha",loginPass.value);
 
-  if(!data.length){ alert("Acesso inválido"); return; }
+  if(!data.length){alert("Usuário ou senha inválidos");return;}
 
   operador=data[0].usuario;
-  loginCard.classList.add("hidden");
-  sistema.classList.remove("hidden");
-
   loginUser.value="";
   loginPass.value="";
+  loginCard.classList.add("hidden");
+  sistema.classList.remove("hidden");
 }
 
-/* EMISSÃO */
-async function emitir(){
-  const nome=cliente.value.trim();
-  const cpfv=cpf.value.replace(/\D/g,"");
-  const tel=telefone.value;
-  const valorNum=parseFloat(valor.dataset.raw||0);
-  const forma=formaPagamento.value;
+/* GERAR CÓDIGO */
+async function gerarCodigo(){
+  while(true){
+    let c=Math.floor(100000000+Math.random()*900000000).toString();
+    let {data}=await sb.from("vouchers").select("id").eq("codigo",c);
+    if(!data.length) return c;
+  }
+}
 
-  if(!nome||!cpfv||!valorNum||!forma){
+/* EMITIR */
+async function emitir(){
+  let nome=cliente.value.trim();
+  let cpfv=cpf.value.replace(/\D/g,"");
+  let tel=telefone.value;
+  let val=Number(valor.dataset.raw||0);
+  let forma=formaPagamento.value;
+
+  if(!nome||!cpfv||!val||!forma){
     alert("Preencha todos os campos");
     return;
   }
 
-  const codigo=Math.floor(100000000+Math.random()*900000000);
-  const validade=new Date();
-  validade.setDate(validade.getDate()+60);
+  let codigo=await gerarCodigo();
+  let d=new Date();
+  let validade=new Date(d); validade.setDate(validade.getDate()+60);
 
   await sb.from("vouchers").insert([{
     codigo,
     cliente:nome,
     cpf:cpfv,
     telefone:tel,
-    valor:valorNum,
-    saldo:valorNum,
+    valor:val,
+    saldo:val,
     forma_pagamento:forma,
     usuario_emissao:operador,
+    data_emissao:d.toISOString(),
+    data_validade:validade.toISOString(),
     status:"ATIVO"
   }]);
 
-  imprimirTermica(nome,cpfv,codigo,valorNum,forma,operador,validade);
+  gerarVoucher(nome,val,forma,codigo,validade,operador);
+  imprimirTermica(nome,cpfv,codigo,val,forma,operador,validade);
 }
 
-/* IMPRESSÃO TÉRMICA — 2 VIAS + CORTE */
+/* VOUCHER */
+function gerarVoucher(nome,val,forma,codigo,validade,emissor){
+  voucherAtual={nome,val};
+  vNome.innerHTML="<b>Cliente:</b> "+nome;
+  vForma.innerHTML="<b>Pagamento:</b> "+forma;
+  vEmissor.innerHTML="<b>Emissor:</b> "+emissor;
+  vValidade.innerHTML="<b>Válido até:</b> "+validade.toLocaleDateString("pt-BR");
+  vValor.innerText=val.toLocaleString("pt-BR",{minimumFractionDigits:2});
+  vTextoLegal.innerText=`Válido até ${validade.toLocaleDateString("pt-BR")} • 60 dias após emissão.`;
+  JsBarcode("#barcode",codigo,{width:2,height:42});
+  voucherPNG.style.display="block";
+  acoes.classList.remove("hidden");
+}
+
+/* IMPRESSÃO */
 function imprimirTermica(nome,cpf,codigo,valor,forma,emissor,validade){
   const html=`
   <div class="via">
-    <center><b>MERCATTO DELÍCIA</b><br>VIA DO CLIENTE</center><br>
+    <center><b>MERCATTO DELÍCIA</b><br>VIA CLIENTE</center><br>
     Cliente:${nome}<br>
     CPF:${cpf}<br>
     Código:${codigo}<br>
@@ -175,7 +349,7 @@ function imprimirTermica(nome,cpf,codigo,valor,forma,emissor,validade){
   <div class="via">
     <center><b>MERCATTO DELÍCIA</b><br>VIA RESTAURANTE</center><br>
     Cliente:${nome}<br>
-    CPF:${cpf}<br>
+    CPF:${cpf.substring(0,3)}***<br>
     Código:${codigo}<br>
     Valor:R$ ${valor.toLocaleString("pt-BR",{minimumFractionDigits:2})}<br>
     Pagamento:${forma}<br>
@@ -184,10 +358,27 @@ function imprimirTermica(nome,cpf,codigo,valor,forma,emissor,validade){
   </div>
   `;
 
-  const w=window.open("","_blank");
-  w.document.write(`<html><body>${html}</body></html>`);
+  const w=window.open("");
+  w.document.write(`<body>${html}</body>`);
   w.document.close();
   w.onload=()=>{w.print();w.close();}
+}
+
+/* PDF */
+function baixarPDF(){
+  html2canvas(voucherPNG,{scale:3}).then(c=>{
+    let a=document.createElement("a");
+    a.download="voucher.pdf";
+    a.href=c.toDataURL();
+    a.click();
+  });
+}
+
+/* WHATS */
+function enviarWhats(){
+  window.open(`https://wa.me/?text=${encodeURIComponent(
+    `Voucher Mercatto\nCliente:${voucherAtual.nome}\nValor:R$ ${voucherAtual.val.toLocaleString("pt-BR",{minimumFractionDigits:2})}`
+  )}`,"_blank");
 }
 
 /* MÁSCARAS */
@@ -197,13 +388,11 @@ function maskCPF(e){
     .replace(/(\d{3})(\d)/,"$1.$2")
     .replace(/(\d{3})(\d{1,2})$/,"$1-$2");
 }
-
 function maskPhone(e){
   e.value=e.value.replace(/\D/g,"")
     .replace(/(\d{2})(\d)/,"($1) $2")
     .replace(/(\d{5})(\d)/,"$1-$2");
 }
-
 function maskValor(e){
   let v=e.value.replace(/\D/g,"");
   let num=(v/100)||0;
