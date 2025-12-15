@@ -3,18 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <title>Resgate de Voucher • Mercatto</title>
-
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-@media print{
-  body{margin:0}
-  .page-break{page-break-after:always}
-}
-
 :root{
   --bg:#0b0b0b;
   --card:#141414;
@@ -22,38 +16,30 @@
   --gold2:#b48a2b;
   --radius:16px;
 }
-
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
 body{background:var(--bg);color:#fff;padding:20px}
 .hidden{display:none}
 
 .card{
-  max-width:980px;
-  margin:24px auto;
+  max-width:1000px;margin:24px auto;
   background:var(--card);
   border:1px solid var(--gold2);
   border-radius:var(--radius);
-  padding:26px;
+  padding:28px;
 }
-
-h1,h2{color:var(--gold);margin-bottom:16px}
+h1{color:var(--gold);margin-bottom:18px}
 
 input{
-  width:100%;
-  padding:14px;
+  width:100%;padding:14px;
   background:#1a1a1a;
   border:1px solid var(--gold2);
-  color:#fff;
-  border-radius:12px;
-  margin-bottom:12px;
-  font-size:15px;
+  color:#fff;border-radius:12px;
+  margin-bottom:12px;font-size:15px;
 }
-
 button{
   padding:14px 22px;
   background:var(--gold);
-  color:#000;
-  border:none;
+  color:#000;border:none;
   border-radius:12px;
   font-weight:800;
   cursor:pointer;
@@ -63,55 +49,29 @@ button{
   background:#181818;
   border-left:4px solid var(--gold);
   border-radius:12px;
-  padding:16px;
-  margin-top:14px;
+  padding:16px;margin-top:14px;
+  cursor:pointer;
 }
-
 .badge{
-  padding:4px 10px;
-  border-radius:20px;
-  font-size:11px;
-  font-weight:800;
+  padding:4px 10px;border-radius:20px;
+  font-size:11px;font-weight:800;
 }
 .ATIVO{background:#1f7a4a}
 .RESGATADO{background:#8a1f1f}
 
-/* MODAL SENHA */
 .modal{
-  position:fixed; inset:0;
+  position:fixed;inset:0;
   background:rgba(0,0,0,.75);
-  display:none;
-  align-items:center;
-  justify-content:center;
+  display:none;align-items:center;justify-content:center;
   z-index:99;
 }
 .modal-box{
-  width:360px;
-  background:#111;
+  width:380px;background:#111;
   border:2px solid var(--gold);
-  border-radius:14px;
-  padding:22px;
-}
-.eye{
-  position:absolute;
-  right:14px;
-  top:14px;
-  cursor:pointer;
-  color:#ccc;
+  border-radius:14px;padding:22px;
 }
 
-/* FILTRO */
-#filtro{
-  position:fixed;
-  bottom:24px;
-  right:24px;
-  background:#111;
-  border:1px solid var(--gold2);
-  border-radius:14px;
-  padding:10px;
-  display:none;
-}
-#filtro button{width:100%;margin:4px 0}
+.eye{position:absolute;right:14px;top:14px;cursor:pointer}
 </style>
 </head>
 
@@ -129,6 +89,10 @@ button{
     <h1>Consulta & Resgate</h1>
     <input id="busca" placeholder="CPF ou Código do Voucher">
     <button onclick="consultar()">Consultar</button>
+
+    <input id="valorResgate" class="hidden" placeholder="Valor a resgatar (R$)">
+    <button id="btnResgatar" class="hidden" onclick="resgatarParcial()">Resgatar</button>
+
     <div id="resultado"></div>
   </div>
 </div>
@@ -145,10 +109,13 @@ button{
   </div>
 </div>
 
-<!-- FILTRO -->
-<div id="filtro">
-  <button onclick="filtrar('ATIVO')">Ativos</button>
-  <button onclick="filtrar('RESGATADO')">Resgatados</button>
+<!-- MODAL DETALHES -->
+<div id="modalDetalhes" class="modal">
+  <div class="modal-box">
+    <h3>Detalhes do Voucher</h3>
+    <div id="detalhes"></div>
+    <button onclick="modalDetalhes.style.display='none'">Fechar</button>
+  </div>
 </div>
 
 <script>
@@ -157,7 +124,7 @@ const sb = supabase.createClient(
   "sb_publishable_djiQsCSrnLUm0iA_eNjjMw__7rfP11m"
 );
 
-let operador={}, vouchersCPF=[], senhaReal="", senhaOK=false, modoCPF=false;
+let operador={}, vouchers=[], senhaOK=false, modoCPF=false;
 
 async function login(){
   let {data}=await sb.from("usuarios")
@@ -170,86 +137,97 @@ async function login(){
 
 async function consultar(){
   resultado.innerHTML="";
-  filtro.style.display="none";
   senhaOK=false;
+  valorResgate.classList.add("hidden");
+  btnResgatar.classList.add("hidden");
 
   let q=busca.value.replace(/\D/g,"");
   modoCPF=q.length===11;
 
   let {data}=await sb.from("vouchers")
-    .select("*").or(`codigo.eq.${q},cpf.eq.${q}`);
+    .select("*")
+    .or(`codigo.eq.${q},cpf.eq.${q}`)
+    .order("data_emissao",{ascending:true});
 
-  if(!data.length) return resultado.innerHTML="<div class='box'>Nada encontrado</div>";
+  if(!data.length){
+    resultado.innerHTML="<div class='box'>Nada encontrado</div>";
+    return;
+  }
+
+  vouchers=data;
 
   if(modoCPF){
-    vouchersCPF=data;
-    senhaReal=data[0].senha_cliente||"";
     modalSenha.style.display="flex";
   }else{
-    mostrarCodigo(data[0]);
+    senhaOK=true;
+    mostrarLista();
   }
 }
 
 function confirmarSenha(){
-  if(senhaCliente.value!==senhaReal) return alert("Senha incorreta");
+  if(senhaCliente.value!==vouchers[0].senha_cliente){
+    alert("Senha incorreta");return;
+  }
   senhaOK=true;
   modalSenha.style.display="none";
-  filtro.style.display="block";
-  filtrar("ATIVO");
+  mostrarLista();
 }
 
-function filtrar(st){
-  if(!senhaOK) return;
-  let lista=vouchersCPF.filter(v=>v.status===st);
-  resultado.innerHTML=lista.map(v=>box(v,true)).join("");
+function mostrarLista(){
+  valorResgate.classList.remove("hidden");
+  btnResgatar.classList.remove("hidden");
+
+  resultado.innerHTML=vouchers.map(v=>`
+    <div class="box" onclick='abrirDetalhes(${JSON.stringify(v)})'>
+      <b>Voucher:</b> ${v.codigo}<br>
+      <b>Saldo:</b> R$ ${Number(v.saldo).toFixed(2)}<br>
+      ${v.status==="RESGATADO"
+        ? `<b>Resgatado:</b> R$ ${v.valor_resgatado}<br>
+           <b>Data:</b> ${new Date(v.data_resgate).toLocaleString("pt-BR")}<br>
+           <b>Operador:</b> ${v.usuario_resgate}`
+        : ""}
+      <span class="badge ${v.status}">${v.status}</span>
+    </div>
+  `).join("");
 }
 
-function mostrarCodigo(v){
-  resultado.innerHTML=box(v,false);
-}
+async function resgatarParcial(){
+  let valor=parseFloat(valorResgate.value.replace(",","."));  
+  if(!senhaOK||valor<=0) return;
 
-function box(v,cpf){
-  return `
-  <div class="box">
-    <b>Cliente:</b> ${v.cliente}<br>
-    <b>Código:</b> ${v.codigo}<br>
-    <b>Saldo:</b> R$ ${Number(v.saldo).toFixed(2)}<br>
-    <span class="badge ${v.status}">${v.status}</span><br><br>
-    ${v.saldo>0?`<button onclick="finalizar('${v.codigo}',${cpf})">Finalizar</button>`:""}
-  </div>`;
-}
+  for(let v of vouchers){
+    if(valor<=0) break;
+    if(v.saldo<=0) continue;
 
-async function finalizar(codigo,cpf){
-  if(cpf && !senhaOK) return;
+    let usar=Math.min(v.saldo,valor);
+    valor-=usar;
 
-  let {data}=await sb.from("vouchers").select("*").eq("codigo",codigo);
-  let v=data[0];
+    await sb.from("vouchers").update({
+      saldo:v.saldo-usar,
+      status:(v.saldo-usar)==0?"RESGATADO":"ATIVO",
+      valor_resgatado:(v.valor_resgatado||0)+usar,
+      data_resgate:new Date().toISOString(),
+      usuario_resgate:operador.usuario
+    }).eq("codigo",v.codigo);
 
-  await sb.from("vouchers").update({
-    saldo:0,status:"RESGATADO",
-    data_resgate:new Date().toISOString(),
-    usuario_resgate:operador.usuario
-  }).eq("codigo",codigo);
-
-  imprimir(v);
+    imprimir(v,usar);
+  }
   consultar();
 }
 
-function imprimir(v){
+function imprimir(v,valor){
   let cpfMasc=v.cpf.substring(0,3)+"***";
-
-  const via=(t,cpf)=>`
+  let via=(t,cpf,showCode)=>`
   <div style="font-family:monospace;font-size:13px;width:240px">
     <center>
       <b>MERCATTO DELÍCIA</b><br>
-      <b>COMPROVANTE DE RESGATE</b><br>
-      ${t}<br>
+      <b>COMPROVANTE DE RESGATE</b><br>${t}<br>
       --------------------
     </center>
     Cliente: ${v.cliente}<br>
     CPF: ${cpf}<br>
-    Código: ${v.codigo}<br>
-    Valor: R$ ${v.valor}<br>
+    ${showCode?`Código: ${v.codigo}<br>`:""}
+    Valor: R$ ${valor.toFixed(2)}<br>
     Operador: ${operador.usuario}<br>
     Data: ${new Date().toLocaleString("pt-BR")}<br>
     --------------------
@@ -257,11 +235,18 @@ function imprimir(v){
 
   let w=window.open("","","width=260,height=700");
   w.document.write(`
-    ${via("VIA DO CLIENTE",v.cpf)}
-    <div class="page-break"></div>
-    ${via("VIA DO MERCATTO",cpfMasc)}
+    ${via("VIA DO CLIENTE",v.cpf,true)}
+    <div style="page-break-after:always"></div>
+    ${via("VIA DO MERCATTO",cpfMasc,false)}
     <script>window.onload=()=>{window.print();window.close()}<\/script>
   `);
+}
+
+function abrirDetalhes(v){
+  detalhes.innerHTML=Object.entries(v).map(
+    ([k,val])=>`<b>${k}:</b> ${val}<br>`
+  ).join("");
+  modalDetalhes.style.display="flex";
 }
 
 function toggleSenha(){
