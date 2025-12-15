@@ -51,9 +51,6 @@ input{
   color:#fff;
   font-size:16px;
   autocomplete:off;
-  autocorrect:off;
-  autocapitalize:off;
-  spellcheck:false;
 }
 
 button{
@@ -117,7 +114,7 @@ button{
   <p class="sub">Digite seu CPF e senha</p>
 
   <input id="cpf" placeholder="CPF" oninput="maskCPF(this)">
-  <input id="senha" type="password" placeholder="Senha (4 dígitos)">
+  <input id="senha" type="password" placeholder="Senha (4 dígitos)" maxlength="4">
 
   <button onclick="entrar()">Entrar</button>
   <p id="msg" style="color:#f39c12;margin-top:10px"></p>
@@ -152,31 +149,44 @@ const sb = supabase.createClient(
   "sb_publishable_djiQsCSrnLUm0iA_eNjjMw__7rfP11m"
 );
 
-let CPF_ATUAL="";
-let VOUCHERS=[];
+let CPF_ATUAL = "";
+
+/* AUTO LOGIN */
+window.onload = async () => {
+  const cpfSalvo = localStorage.getItem("carteira_cpf");
+  const senhaSalva = localStorage.getItem("carteira_senha");
+
+  if(cpfSalvo && senhaSalva){
+    CPF_ATUAL = cpfSalvo;
+    await carregarCarteira();
+  }
+};
 
 /* LOGIN */
 async function entrar(){
-  CPF_ATUAL=cpf.value.replace(/\D/g,"");
-  if(CPF_ATUAL.length!==11){msg.innerText="CPF inválido";return;}
+  CPF_ATUAL = cpf.value.replace(/\D/g,"");
+  if(CPF_ATUAL.length !== 11){
+    msg.innerText="CPF inválido";
+    return;
+  }
 
-  const {data}=await sb.from("vouchers").select("*").eq("cpf",CPF_ATUAL);
-  if(!data.length){msg.innerText="CPF não encontrado";return;}
+  const senhaLocal = localStorage.getItem("senha_"+CPF_ATUAL);
 
-  loginCard.classList.add("hidden");
-
-  if(!data[0].senha_cliente){
+  if(!senhaLocal){
+    loginCard.classList.add("hidden");
     senhaCard.classList.remove("hidden");
     return;
   }
 
-  if(senha.value!==data[0].senha_cliente){
+  if(senha.value !== senhaLocal){
     msg.innerText="Senha incorreta";
-    loginCard.classList.remove("hidden");
     return;
   }
 
-  carregarCarteira(data);
+  localStorage.setItem("carteira_cpf", CPF_ATUAL);
+  localStorage.setItem("carteira_senha", senha.value);
+
+  await carregarCarteira();
 }
 
 /* CRIAR SENHA */
@@ -186,63 +196,54 @@ async function criarSenha(){
     return;
   }
 
-  await sb.from("vouchers")
-    .update({senha_cliente:senhaNova.value})
-    .eq("cpf",CPF_ATUAL);
+  localStorage.setItem("senha_"+CPF_ATUAL, senhaNova.value);
+  localStorage.setItem("carteira_cpf", CPF_ATUAL);
+  localStorage.setItem("carteira_senha", senhaNova.value);
 
-  senhaCard.classList.add("hidden");
-  const {data}=await sb.from("vouchers").select("*").eq("cpf",CPF_ATUAL);
-  carregarCarteira(data);
+  await carregarCarteira();
 }
 
 /* CARTEIRA */
-async function carregarCarteira(vouchers){
+async function carregarCarteira(){
+  loginCard.classList.add("hidden");
+  senhaCard.classList.add("hidden");
   carteira.classList.remove("hidden");
-  boasVindas.innerText=`Olá, ${vouchers[0].cliente}`;
-  VOUCHERS=vouchers;
 
-  const codigos=vouchers.map(v=>v.codigo);
-  const {data:movs}=await sb.from("vouchers_movimentos")
+  const { data: vouchers } = await sb
+    .from("vouchers")
     .select("*")
-    .in("codigo_voucher",codigos)
-    .order("created_at",{ascending:false});
+    .eq("cpf", CPF_ATUAL)
+    .order("data_emissao", { ascending:false });
 
-  const saldo=movs.reduce((s,m)=>s+Number(m.valor),0);
-  saldoTotal.innerText=saldo.toLocaleString("pt-BR",{minimumFractionDigits:2});
-
-  extrato.innerHTML="";
-
-  for(const v of vouchers){
-    const movV=movs.filter(m=>m.codigo_voucher===v.codigo);
-
-    extrato.innerHTML+=`
-      <div class="mov">
-        <div class="linha">
-          <b>Voucher ${v.codigo}</b>
-          <b>R$ ${Number(v.valor).toLocaleString("pt-BR",{minimumFractionDigits:2})}</b>
-        </div>
-        <small>Emitido em ${new Date(v.data_emissao).toLocaleString("pt-BR")}</small><br>
-        <small>Saldo atual: R$ ${Number(v.saldo).toLocaleString("pt-BR",{minimumFractionDigits:2})}</small><br>
-        <span class="badge ${v.status}">${v.status}</span>
-
-        ${
-          movV.length
-          ? movV.map(m=>`
-            <div class="resgate">
-              ${m.tipo==="RESGATE"?"−":"+"}
-              R$ ${Math.abs(m.valor).toLocaleString("pt-BR",{minimumFractionDigits:2})}
-              • ${new Date(m.created_at).toLocaleString("pt-BR")}
-            </div>
-          `).join("")
-          : `<div class="resgate">Sem movimentações</div>`
-        }
-      </div>
-    `;
+  if(!vouchers || !vouchers.length){
+    extrato.innerHTML="<p>Nenhum voucher encontrado.</p>";
+    return;
   }
+
+  boasVindas.innerText = `Olá, ${vouchers[0].cliente}`;
+
+  const saldo = vouchers.reduce((s,v)=>s+Number(v.saldo),0);
+  saldoTotal.innerText = saldo.toLocaleString("pt-BR",{minimumFractionDigits:2});
+
+  extrato.innerHTML = vouchers.map(v=>`
+    <div class="mov">
+      <div class="linha">
+        <b>Voucher ${v.codigo}</b>
+        <b>R$ ${Number(v.valor).toLocaleString("pt-BR",{minimumFractionDigits:2})}</b>
+      </div>
+      <small>Emitido em ${new Date(v.data_emissao).toLocaleString("pt-BR")}</small><br>
+      <small>Saldo atual: R$ ${Number(v.saldo).toLocaleString("pt-BR",{minimumFractionDigits:2})}</small><br>
+      <span class="badge ${v.status}">${v.status}</span>
+    </div>
+  `).join("");
 }
 
 /* SAIR */
-function sair(){location.reload();}
+function sair(){
+  localStorage.removeItem("carteira_cpf");
+  localStorage.removeItem("carteira_senha");
+  location.reload();
+}
 
 /* CPF */
 function maskCPF(el){
