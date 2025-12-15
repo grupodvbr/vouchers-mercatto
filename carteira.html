@@ -4,17 +4,12 @@
 <meta charset="UTF-8">
 <title>Minha Carteira • Mercatto Delícia</title>
 
-<!-- 🚫 BLOQUEIA ZOOM -->
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
-<!-- PWA -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0b0b0b">
 
-<!-- FONT -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-
-<!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
@@ -28,15 +23,12 @@
   --muted:#9a9a9a;
   --radius:18px;
 }
-
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
-
 body{
   background:linear-gradient(180deg,#000,#0e0e0e);
   color:#fff;
   padding:16px;
 }
-
 .hidden{display:none}
 
 /* CARD */
@@ -80,6 +72,16 @@ input{
   font-size:18px;
   cursor:pointer;
   color:#ccc;
+}
+
+/* CHECK */
+.remember{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:14px;
 }
 
 /* BOTÕES */
@@ -127,16 +129,19 @@ button{
   border-bottom:1px dashed #333;
 }
 .mov:last-child{border:none}
-.mov b{font-size:15px}
+.mov .linha{
+  display:flex;
+  justify-content:space-between;
+  font-size:15px;
+}
 .mov span{
   display:block;
   font-size:12px;
   color:var(--muted);
-  margin-top:2px;
 }
 .badge{
-  display:inline-block;
   margin-top:6px;
+  display:inline-block;
   padding:4px 12px;
   border-radius:20px;
   font-size:11px;
@@ -146,7 +151,7 @@ button{
 .PARCIAL{background:#9a6b00}
 .RESGATADO{background:#8a1f1f}
 
-/* PWA BANNER */
+/* PWA */
 #pwaBanner{
   position:fixed;
   bottom:12px;
@@ -158,9 +163,6 @@ button{
   padding:14px;
   display:none;
 }
-#pwaBanner button{
-  margin-top:10px;
-}
 </style>
 </head>
 
@@ -168,19 +170,25 @@ button{
 
 <!-- LOGIN -->
 <div id="loginCard" class="card">
+  <img src="logo.png" style="width:120px;display:block;margin:auto;margin-bottom:10px">
   <h1>Minha Carteira</h1>
   <p class="sub">Acesse com seu CPF</p>
 
   <input id="cpf" placeholder="CPF" oninput="maskCPF(this)">
-  <button onclick="entrar()">Entrar</button>
 
+  <div class="remember">
+    <input type="checkbox" id="lembrar">
+    <label for="lembrar">Lembrar meu acesso</label>
+  </div>
+
+  <button onclick="entrar()">Entrar</button>
   <p id="msg" style="color:#f39c12;margin-top:10px"></p>
 </div>
 
 <!-- CRIAR SENHA -->
 <div id="senhaCard" class="card hidden">
-  <h2>Criar Senha</h2>
-  <p class="sub">Senha de 4 números para autorizar resgates</p>
+  <h2>Primeiro acesso</h2>
+  <p class="sub">Crie uma senha de 4 números</p>
 
   <div class="input-group">
     <input id="senhaNova" type="password" maxlength="4" placeholder="Senha (4 dígitos)">
@@ -192,9 +200,8 @@ button{
 
 <!-- CARTEIRA -->
 <div id="carteira" class="card hidden">
-
   <h2 id="boasVindas"></h2>
-  <p class="sub">Voucher Mercatto</p>
+  <p class="sub">Voucher Mercatto Delícia</p>
 
   <div class="saldo-card">
     <div class="saldo-label">Saldo disponível</div>
@@ -212,12 +219,11 @@ button{
 <!-- PWA -->
 <div id="pwaBanner">
   <b>Adicionar à tela inicial</b>
-  <p class="sub">Tenha o Mercatto Delícia como app</p>
+  <p class="sub">Use como aplicativo</p>
   <button onclick="instalarPWA()">Adicionar</button>
 </div>
 
 <script>
-/* SUPABASE */
 const sb = supabase.createClient(
   "https://ckkqcxbzfkjzicvoeehw.supabase.co",
   "sb_publishable_djiQsCSrnLUm0iA_eNjjMw__7rfP11m"
@@ -230,7 +236,7 @@ let deferredPrompt=null;
 window.onload=()=>{
   const cpfSalvo = localStorage.getItem("cpf_logado");
   if(cpfSalvo){
-    CPF_ATUAL=cpfSalvo;
+    CPF_ATUAL = cpfSalvo;
     carregarCarteira();
   }
 };
@@ -243,36 +249,32 @@ async function entrar(){
     return;
   }
 
-  const { data } = await sb.from("vouchers")
-    .select("*")
-    .eq("cpf",CPF_ATUAL);
-
+  const { data } = await sb.from("vouchers").select("*").eq("cpf",CPF_ATUAL);
   if(!data.length){
     msg.innerText="CPF não encontrado";
     return;
   }
 
-  let temSenha = data.some(v=>v.senha_cliente);
   loginCard.classList.add("hidden");
 
-  if(!temSenha){
+  if(!data[0].senha_cliente){
     senhaCard.classList.remove("hidden");
   }else{
-    localStorage.setItem("cpf_logado",CPF_ATUAL);
+    if(lembrar.checked){
+      localStorage.setItem("cpf_logado",CPF_ATUAL);
+    }
     carregarCarteira();
   }
 }
 
 /* CRIAR SENHA */
 async function criarSenha(){
-  let s = senhaNova.value;
-  if(!/^\d{4}$/.test(s)){
-    alert("Senha deve conter 4 números");
+  if(!/^\d{4}$/.test(senhaNova.value)){
+    alert("Senha inválida");
     return;
   }
-
   await sb.from("vouchers")
-    .update({ senha_cliente:s })
+    .update({senha_cliente:senhaNova.value})
     .eq("cpf",CPF_ATUAL);
 
   localStorage.setItem("cpf_logado",CPF_ATUAL);
@@ -287,19 +289,21 @@ async function carregarCarteira(){
   const { data } = await sb.from("vouchers")
     .select("*")
     .eq("cpf",CPF_ATUAL)
-    .order("data_emissao",{ascending:true});
+    .order("data_emissao",{ascending:false});
 
   boasVindas.innerText = `Bem-vindo, ${data[0].cliente}`;
 
   let saldo = data.reduce((s,v)=>s+(v.saldo ?? v.valor),0);
-  saldoTotal.innerText = saldo.toFixed(2).replace(".",",");
+  saldoTotal.innerText = saldo.toLocaleString("pt-BR",{minimumFractionDigits:2});
 
   extrato.innerHTML = data.map(v=>`
     <div class="mov">
-      <b>Voucher ${v.codigo}</b>
+      <div class="linha">
+        <b>Voucher ${v.codigo}</b>
+        <b>R$ ${Number(v.valor).toLocaleString("pt-BR",{minimumFractionDigits:2})}</b>
+      </div>
       <span>${new Date(v.data_emissao).toLocaleString("pt-BR")}</span>
-      Valor: R$ ${v.valor}<br>
-      Saldo: R$ ${(v.saldo ?? v.valor).toFixed(2)}<br>
+      <span>Saldo: R$ ${(v.saldo ?? v.valor).toLocaleString("pt-BR",{minimumFractionDigits:2})}</span>
       <span class="badge ${v.status}">${v.status}</span>
     </div>
   `).join("");
@@ -323,7 +327,7 @@ function maskCPF(el){
 }
 
 /* PWA */
-window.addEventListener("beforeinstallprompt", e=>{
+window.addEventListener("beforeinstallprompt",e=>{
   e.preventDefault();
   deferredPrompt=e;
   pwaBanner.style.display="block";
