@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Consulta & Resgate • Voucher Mercatto</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --preto:#0f0f0f;
+  --gold:#d4af37;
+  --gold2:#b48a2b;
+  --radius:14px;
+}
+*{box-sizing:border-box;font-family:Inter;margin:0;padding:0}
+body{background:#000;color:#fff;padding:24px}
+.hidden{display:none}
+
+.card{
+  background:#111;
+  border:1px solid var(--gold2);
+  border-radius:var(--radius);
+  padding:24px;
+  max-width:900px;
+  margin:30px auto;
+}
+h1,h2{color:var(--gold)}
+input{
+  width:100%;
+  padding:14px;
+  margin-bottom:12px;
+  background:#1a1a1a;
+  border:1px solid var(--gold2);
+  color:#fff;
+  border-radius:10px;
+}
+button{
+  padding:12px 20px;
+  background:var(--gold);
+  color:#000;
+  border:none;
+  border-radius:10px;
+  font-weight:700;
+  cursor:pointer;
+}
+.result{
+  background:#121212;
+  padding:14px;
+  border-left:4px solid var(--gold);
+  margin-top:14px;
+  border-radius:10px;
+}
+.badge{
+  font-size:12px;
+  padding:3px 10px;
+  border-radius:20px;
+  font-weight:700;
+}
+.ATIVO{background:#1f7a4a}
+.PARCIAL{background:#9a6b00}
+.RESGATADO{background:#8a1f1f}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="loginCard" class="card">
+  <h2>Acesso Restrito</h2>
+  <input id="loginUser" placeholder="Usuário">
+  <input id="loginPass" type="password" placeholder="Senha">
+  <button onclick="login()">Entrar</button>
+  <p id="loginMsg" style="color:#ff6666"></p>
+</div>
+
+<!-- SISTEMA -->
+<div id="sistema" class="hidden">
+
+<div class="card">
+  <h1>Consulta de Carteira</h1>
+  <input id="busca" placeholder="Digite CPF ou Código do Voucher">
+  <button onclick="consultar()">Consultar</button>
+  <div id="resultado"></div>
+</div>
+
+</div>
+
+<!-- IMPRESSÃO -->
+<div id="printArea" class="hidden">
+  <div id="printContent"></div>
+</div>
+
+<script>
+const sb = supabase.createClient(
+  "https://ckkqcxbzfkjzicvoeehw.supabase.co",
+  "sb_publishable_djiQsCSrnLUm0iA_eNjjMw__7rfP11m"
+);
+
+/* LOGIN */
+async function login(){
+  const { data } = await sb.from("usuarios")
+    .select("*")
+    .eq("usuario",loginUser.value)
+    .eq("senha",loginPass.value);
+
+  if(!data.length){
+    loginMsg.innerText="Usuário inválido";
+    return;
+  }
+  localStorage.setItem("user",loginUser.value);
+  loginCard.classList.add("hidden");
+  sistema.classList.remove("hidden");
+}
+
+/* CONSULTA */
+async function consultar(){
+  resultado.innerHTML="";
+  let q = busca.value.replace(/\D/g,"");
+
+  const { data } = await sb.from("vouchers")
+    .select("*")
+    .or(`codigo.eq.${q},cpf.eq.${q}`)
+    .order("data_emissao",{ascending:true});
+
+  if(!data.length){
+    resultado.innerHTML="<div class='result'>Nada encontrado</div>";
+    return;
+  }
+
+  let saldoTotal = data.reduce((s,v)=>s+(v.saldo ?? v.valor),0);
+
+  resultado.innerHTML = `
+    <div class="result">
+      <b>CPF:</b> ${data[0].cpf}<br>
+      <b>Saldo Total:</b> R$ ${saldoTotal.toFixed(2)}
+    </div>
+    ${data.map(v=>`
+      <div class="result">
+        <b>Voucher:</b> ${v.codigo}<br>
+        Valor: R$ ${v.valor}<br>
+        Saldo: R$ ${(v.saldo ?? v.valor).toFixed(2)}<br>
+        Pagamento: ${v.forma_pagamento}<br>
+        <span class="badge ${v.status}">${v.status}</span><br><br>
+        ${(v.saldo ?? v.valor)>0 ? `
+          <button onclick="resgatar('${v.codigo}',${(v.saldo ?? v.valor)})">
+            Resgatar
+          </button>` : ``}
+      </div>
+    `).join("")}
+  `;
+}
+
+/* RESGATE */
+async function resgatar(codigo,saldo){
+  let valor = prompt(`Saldo disponível: R$ ${saldo.toFixed(2)}\nQuanto deseja resgatar?`);
+  valor = parseFloat(valor.replace(",","."));
+  if(!valor || valor<=0 || valor>saldo){
+    alert("Valor inválido");
+    return;
+  }
+
+  let novoSaldo = saldo - valor;
+  let status = novoSaldo===0 ? "RESGATADO" : "PARCIAL";
+
+  await sb.from("vouchers").update({
+    saldo:novoSaldo,
+    valor_resgatado: supabase.raw(`COALESCE(valor_resgatado,0)+${valor}`),
+    status,
+    data_resgate:new Date().toISOString(),
+    usuario_resgate:localStorage.getItem("user")
+  }).eq("codigo",codigo);
+
+  await imprimirRecibo(codigo,valor);
+  consultar();
+}
+
+/* RECIBO DUPLO */
+async function imprimirRecibo(codigo,valorResgate){
+  const { data } = await sb.from("vouchers")
+    .select("*")
+    .eq("codigo",codigo);
+
+  let v = data[0];
+  let agora = new Date().toLocaleString("pt-BR");
+
+  printContent.innerHTML = `
+    ${recibo(v,valorResgate,"VIA DO CLIENTE",agora)}
+    <hr>
+    ${recibo(v,valorResgate,"VIA DO RESTAURANTE",agora)}
+  `;
+
+  let w = window.open("", "", "width=260,height=600");
+  w.document.write(`
+    <html>
+      <body style="font-family:monospace;font-size:13px">
+        ${printContent.innerHTML}
+        <script>
+          window.onload=function(){window.print();window.close();}
+        <\/script>
+      </body>
+    </html>
+  `);
+}
+
+function recibo(v,valor,tipo,data){
+  return `
+  <center>
+    <b>MERCATTO DELÍCIA</b><br>
+    <b>${tipo}</b><br>
+    ------------------------------<br>
+  </center>
+  Cliente: ${v.cliente}<br>
+  CPF: ${v.cpf}<br>
+  Código: ${v.codigo}<br>
+  Valor Voucher: R$ ${v.valor}<br>
+  Valor Resgatado: R$ ${valor.toFixed(2)}<br>
+  Saldo Restante: R$ ${(v.saldo ?? 0).toFixed(2)}<br>
+  Pagamento: ${v.forma_pagamento}<br>
+  Operador: ${localStorage.getItem("user")}<br>
+  Data: ${data}<br>
+  ------------------------------<br><br>
+  `;
+}
+</script>
+
+</body>
+</html>
