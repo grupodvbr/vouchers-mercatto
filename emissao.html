@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"> 
-<title>Emissão de Voucher • Mercatto</title>
+<title>Voucher Mercatto • Emissão</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <!-- FONTES -->
@@ -16,26 +16,26 @@
 
 <style>
 :root{
-  --bg:#000;
-  --panel:#111;
-  --gold:#d4af37;
-  --gold2:#b48a2b;
+  --preto:#1a1a1a;
+  --preto2:#101010;
+  --gold:#f1c40f;
+  --gold2:#e67e22;
   --radius:16px;
   --shadow:0 0 25px rgba(0,0,0,.6);
 }
-*{margin:0;padding:0;box-sizing:border-box;font-family:"Inter"}
-body{background:var(--bg);color:#fff;padding:24px}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
+body{background:#000;color:#fff;padding:24px}
 .hidden{display:none}
 
 /* LOGIN */
 #loginCard{
   width:400px;margin:110px auto;padding:28px;
-  background:rgba(20,20,20,.9);
+  background:rgba(20,20,20,.85);
   border-radius:var(--radius);
   border:2px solid var(--gold2);
   box-shadow:var(--shadow);
 }
-#loginCard img{width:160px;display:block;margin:0 auto 15px}
+#loginCard img{width:160px;display:block;margin:auto;margin-bottom:15px}
 #loginCard input{
   width:100%;padding:14px;margin-bottom:14px;
   background:#161616;border:1px solid #6e5a1a;
@@ -49,12 +49,16 @@ body{background:var(--bg);color:#fff;padding:24px}
 
 /* SISTEMA */
 .container{
-  max-width:900px;
+  max-width:1100px;
   margin:auto;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:28px;
 }
 .card{
-  background:rgba(15,15,15,.9);
-  padding:26px;border-radius:var(--radius);
+  background:rgba(15,15,15,.88);
+  padding:26px;
+  border-radius:var(--radius);
   border:1px solid var(--gold2);
   box-shadow:var(--shadow)
 }
@@ -71,23 +75,33 @@ button{
   font-weight:700;cursor:pointer
 }
 
-/* VOUCHER */
+/* LOADER */
+#overlayLoad{
+  position:fixed;inset:0;
+  display:none;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.75);
+  color:var(--gold);font-size:26px;z-index:999
+}
+
+/* =======================
+   VOUCHER PREMIUM
+======================= */
 #voucherPNG{
   width:700px;height:300px;
-  margin-top:20px;
+  display:none;margin-top:18px;
   border-radius:16px;
   overflow:hidden;
   border:3px solid var(--gold);
-  display:none;
+  box-shadow:0 0 25px rgba(212,175,55,.45);
   position:relative;
-  background:linear-gradient(to right,#000 0%,#111 45%,#fdf6e3 100%);
+  background:linear-gradient(to right,#000 0%,#0a0a0a 45%,#111 45%,#fdf6e3 100%);
 }
 </style>
 </head>
 
 <body>
 
-<div id="overlayLoad" class="hidden">Processando...</div>
+<div id="overlayLoad">Processando...</div>
 
 <!-- LOGIN -->
 <div id="loginCard">
@@ -100,51 +114,62 @@ button{
 
 <!-- SISTEMA -->
 <div id="sistema" class="hidden">
-  <div class="container">
-    <h1 style="color:var(--gold);margin-bottom:22px;">
-      Emissão de Voucher
-      <button onclick="logout()" style="float:right;background:#b02626;color:#fff;">Sair</button>
-    </h1>
+<h1 style="color:var(--gold);margin-bottom:22px">
+  Emissão de Voucher
+  <button onclick="logout()" style="float:right;background:#b02626;color:#fff">Sair</button>
+</h1>
 
-    <div class="card">
-      <h2>Dados do Cliente</h2>
+<div class="container">
 
-      <input id="cliente" placeholder="Nome do Cliente">
-      <input id="cpf" placeholder="CPF" oninput="maskCPF(this)">
-      <input id="telefone" placeholder="Telefone" oninput="maskPhone(this)">
-      <input id="valor" placeholder="Valor" oninput="maskValor(this)">
+<div class="card">
+<h2>Emitir Voucher</h2>
 
-      <select id="formaPagamento">
-        <option value="" disabled selected>Forma de Pagamento</option>
-        <option>PIX</option>
-        <option>DINHEIRO</option>
-        <option>CARTÃO CRÉDITO</option>
-        <option>CARTÃO DÉBITO</option>
-      </select>
+<input id="cliente" placeholder="Nome do Cliente">
+<input id="cpf" placeholder="CPF" oninput="maskCPF(this)">
+<input id="telefone" placeholder="Telefone" oninput="maskPhone(this)">
+<input id="valor" placeholder="Valor" oninput="maskValor(this)">
 
-      <button onclick="emitir()">Emitir Voucher</button>
+<select id="formaPagamento">
+  <option value="" disabled selected>Forma de Pagamento</option>
+  <option>PIX</option>
+  <option>DINHEIRO</option>
+  <option>CARTÃO CRÉDITO</option>
+  <option>CARTÃO DÉBITO</option>
+</select>
 
-      <div id="voucherPNG">
-        <div style="position:absolute;left:0;width:45%;padding:25px">
-          <h1>GIFT</h1>
-          <h2 style="color:var(--gold)">VOUCHER</h2>
-          <p id="v_nome"></p>
-          <p id="v_codigo"></p>
-          <p id="v_pagamento"></p>
-          <p id="v_valor"></p>
-        </div>
-        <div style="position:absolute;right:0;width:50%;padding:35px">
-          <h1 style="font-family:'Great Vibes';font-size:60px">
-            R$ <span id="v_valorGrande"></span>
-          </h1>
-          <svg id="barcode"></svg>
-        </div>
-      </div>
+<button onclick="emitir()">Emitir Voucher</button>
 
-      <button id="btnPNG" class="hidden" onclick="baixarPNG()">Baixar PNG</button>
-      <button id="btnWhats" class="hidden" onclick="enviarWhats()" style="background:#25d366;color:#fff;">WhatsApp</button>
-    </div>
-  </div>
+<div id="voucherPNG">
+
+<!-- LADO ESCURO -->
+<div style="position:absolute;left:0;width:45%;height:100%;padding:25px;color:white;display:flex;flex-direction:column;justify-content:center">
+<h1 style="font-size:42px;font-weight:800;letter-spacing:2px">GIFT</h1>
+<h2 style="font-size:34px;color:#d4af37;margin-top:-10px;letter-spacing:3px">VOUCHER</h2>
+<p id="v_nome"></p>
+<p id="v_codigo"></p>
+<p id="v_pagamento"></p>
+<p id="v_valor" style="font-weight:700;color:#d4af37"></p>
+</div>
+
+<!-- CURVA -->
+<div style="position:absolute;left:44%;width:90px;height:100%;background:linear-gradient(135deg,#b48a2b,#d4af37,#f7e7b0);clip-path:polygon(0 0,100% 0,70% 100%,0% 100%)"></div>
+
+<!-- LADO CLARO -->
+<div style="position:absolute;left:50%;width:50%;height:100%;padding:35px;color:#5a4d29">
+<h1 style="font-size:70px;font-family:'Great Vibes';font-weight:300">
+R$ <span id="valorGrande"></span>
+</h1>
+<svg id="barcode"></svg>
+<p id="codigoNumerico" style="text-align:center;font-weight:700"></p>
+</div>
+
+</div>
+
+<button id="btnPNG" class="hidden" onclick="baixarPNG()">Baixar PNG</button>
+<button id="btnWhats" class="hidden" onclick="enviarWhats()" style="background:#25d366;color:#fff">WhatsApp</button>
+
+</div>
+</div>
 </div>
 
 <script>
@@ -153,48 +178,55 @@ const sb = supabase.createClient(
   "sb_publishable_djiQsCSrnLUm0iA_eNjjMw__7rfP11m"
 );
 
+function show(){overlayLoad.style.display="flex"}
+function hide(){overlayLoad.style.display="none"}
+
 async function login(){
   const { data } = await sb.from("usuarios")
-    .select("*")
-    .eq("usuario",loginUser.value)
-    .eq("senha",loginPass.value);
-
-  if(!data.length){ loginMsg.innerText="Usuário inválido"; return }
+    .select("*").eq("usuario",loginUser.value).eq("senha",loginPass.value);
+  if(!data.length){loginMsg.innerText="Inválido";return}
   localStorage.setItem("user",loginUser.value);
   loginCard.classList.add("hidden");
   sistema.classList.remove("hidden");
 }
-
-function logout(){ localStorage.clear(); location.reload(); }
+function logout(){localStorage.clear();location.reload()}
 
 async function emitir(){
-  let codigo = Math.floor(100000000+Math.random()*900000000).toString();
-  let v = valor.value.replace("R$ ","");
+  show();
 
-  await sb.from("vouchers").insert([{
+  let cpfLimpo = cpf.value.replace(/\D/g,"");
+  let valorNum = (parseInt(valor.value.replace(/\D/g,""))/100).toFixed(2);
+  let codigo = Math.floor(100000000+Math.random()*900000000).toString();
+
+  const { error } = await sb.from("vouchers").insert([{
     codigo,
     cliente:cliente.value,
-    cpf:cpf.value,
+    cpf:cpfLimpo,
     telefone:telefone.value,
-    valor:v,
+    valor:valorNum,
+    saldo:valorNum,
     forma_pagamento:formaPagamento.value,
     data_emissao:new Date().toISOString(),
     usuario_emissao:localStorage.getItem("user"),
     status:"ATIVO"
   }]);
 
+  hide();
+  if(error){alert(error.message);return}
+
   v_nome.innerHTML="<b>Cliente:</b> "+cliente.value;
   v_codigo.innerHTML="<b>Código:</b> "+codigo;
   v_pagamento.innerHTML="<b>Pagamento:</b> "+formaPagamento.value;
-  v_valor.innerHTML="<b>Valor:</b> R$ "+v;
-  v_valorGrande.innerText=v;
+  v_valor.innerHTML="<b>Valor:</b> R$ "+valorNum;
+  valorGrande.innerText=valorNum;
+  codigoNumerico.innerText=codigo;
 
-  JsBarcode("#barcode",codigo,{format:"CODE128",width:2,height:40});
+  JsBarcode("#barcode",codigo,{format:"CODE128",width:2,height:42});
   voucherPNG.style.display="block";
   btnPNG.classList.remove("hidden");
   btnWhats.classList.remove("hidden");
 
-  window.voucherAtual={codigo,nome:cliente.value,valor:v,tel:telefone.value};
+  window.voucherAtual={codigo,nome:cliente.value,valor:valorNum,tel:telefone.value};
 }
 
 function baixarPNG(){
@@ -205,7 +237,6 @@ function baixarPNG(){
     a.click();
   });
 }
-
 function enviarWhats(){
   let tel=voucherAtual.tel.replace(/\D/g,"");
   let msg=`Voucher Mercatto%0ACódigo: ${voucherAtual.codigo}%0ACliente: ${voucherAtual.nome}%0AValor: R$ ${voucherAtual.valor}`;
@@ -213,22 +244,9 @@ function enviarWhats(){
 }
 
 /* MÁSCARAS */
-function maskCPF(el){
-  el.value=el.value.replace(/\D/g,"")
-  .replace(/(\d{3})(\d)/,"$1.$2")
-  .replace(/(\d{3})(\d)/,"$1.$2")
-  .replace(/(\d{3})(\d{1,2})$/,"$1-$2");
-}
-function maskPhone(el){
-  el.value=el.value.replace(/\D/g,"")
-  .replace(/(\d{2})(\d)/,"($1) $2")
-  .replace(/(\d{5})(\d)/,"$1-$2");
-}
-function maskValor(el){
-  let v=el.value.replace(/\D/g,"");
-  v=(v/100).toFixed(2).replace(".",",");
-  el.value="R$ "+v;
-}
+function maskCPF(el){el.value=el.value.replace(/\D/g,"").replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d{1,2})$/,"$1-$2")}
+function maskPhone(el){el.value=el.value.replace(/\D/g,"").replace(/(\d{2})(\d)/,"($1) $2").replace(/(\d{5})(\d)/,"$1-$2")}
+function maskValor(el){let v=el.value.replace(/\D/g,"");el.value="R$ "+(v/100).toFixed(2).replace(".",",")}
 </script>
 
 </body>
