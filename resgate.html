@@ -4,9 +4,10 @@
 <meta charset="UTF-8">
 <title>Resgate de Voucher • Mercatto</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport"
+content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
@@ -20,22 +21,28 @@
   --card:#141414;
   --gold:#d4af37;
   --gold2:#b48a2b;
+  --ok:#2ecc71;
+  --danger:#e74c3c;
+  --muted:#999;
   --radius:16px;
 }
+
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
 body{background:var(--bg);color:#fff;padding:20px}
 .hidden{display:none}
 
+/* CARD */
 .card{
   max-width:980px;
   margin:24px auto;
   background:var(--card);
   border:1px solid var(--gold2);
   border-radius:var(--radius);
-  padding:24px;
+  padding:26px;
 }
 h1,h2{color:var(--gold);margin-bottom:16px}
 
+/* INPUT */
 input{
   width:100%;
   padding:14px;
@@ -44,23 +51,19 @@ input{
   color:#fff;
   border-radius:12px;
   margin-bottom:12px;
+  font-size:15px;
 }
 button{
-  padding:12px 18px;
+  padding:14px 22px;
   background:var(--gold);
   color:#000;
   border:none;
   border-radius:12px;
-  font-weight:700;
+  font-weight:800;
   cursor:pointer;
 }
 
-.filtros{
-  display:flex;
-  gap:10px;
-  margin:10px 0;
-}
-
+/* RESULTADOS */
 .box{
   background:#181818;
   border-left:4px solid var(--gold);
@@ -71,16 +74,16 @@ button{
 .badge{
   padding:4px 10px;
   border-radius:20px;
-  font-size:12px;
-  font-weight:700;
+  font-size:11px;
+  font-weight:800;
 }
 .ATIVO{background:#1f7a4a}
-.PARCIAL{background:#9a6b00}
 .RESGATADO{background:#8a1f1f}
 
+/* MODAL */
 .modal{
   position:fixed; inset:0;
-  background:rgba(0,0,0,.75);
+  background:rgba(0,0,0,.7);
   display:none;
   align-items:center;
   justify-content:center;
@@ -92,6 +95,29 @@ button{
   border:2px solid var(--gold);
   border-radius:14px;
   padding:22px;
+}
+.eye{
+  position:absolute;
+  right:14px;
+  top:14px;
+  cursor:pointer;
+  color:#ccc;
+}
+
+/* FILTRO FLUTUANTE */
+#filtro{
+  position:fixed;
+  bottom:24px;
+  right:24px;
+  background:#111;
+  border:1px solid var(--gold2);
+  border-radius:14px;
+  padding:10px;
+  display:none;
+}
+#filtro button{
+  margin:4px 0;
+  width:100%;
 }
 </style>
 </head>
@@ -113,23 +139,26 @@ button{
     <h1>Consulta & Resgate</h1>
     <input id="busca" placeholder="CPF ou Código do Voucher">
     <button onclick="consultar()">Consultar</button>
-
-    <div id="filtros" class="filtros hidden">
-      <button onclick="filtrar('ATIVOS')">Ativos</button>
-      <button onclick="filtrar('RESGATADOS')">Resgatados</button>
-    </div>
-
     <div id="resultado"></div>
   </div>
 </div>
 
-<!-- MODAL SENHA -->
+<!-- MODAL SENHA CLIENTE -->
 <div id="modalSenha" class="modal">
   <div class="modal-box">
     <h3>Senha do Cliente</h3>
-    <input id="senhaCliente" type="password" maxlength="4" placeholder="Senha 4 dígitos">
+    <div style="position:relative">
+      <input id="senhaCliente" type="password" maxlength="4" placeholder="Senha 4 dígitos">
+      <span class="eye" onclick="toggleSenha()">👁️</span>
+    </div>
     <button onclick="confirmarSenha()">Confirmar</button>
   </div>
+</div>
+
+<!-- FILTRO -->
+<div id="filtro">
+  <button onclick="filtrar('ATIVO')">Ativos</button>
+  <button onclick="filtrar('RESGATADO')">Resgatados</button>
 </div>
 
 <script>
@@ -138,10 +167,10 @@ const sb = supabase.createClient(
   "sb_publishable_djiQsCSrnLUm0iA_eNjjMw__7rfP11m"
 );
 
-let usuarioLogado = {};
+let usuario = {};
 let vouchersCPF = [];
-let senhaClienteReal = "";
-let filtroAtual = "ATIVOS";
+let senhaReal = "";
+let senhaConfirmada = false;
 
 /* LOGIN */
 async function login(){
@@ -150,9 +179,9 @@ async function login(){
     .eq("usuario",loginUser.value)
     .eq("senha",loginPass.value);
 
-  if(!data.length){ loginMsg.innerText="Usuário inválido"; return; }
+  if(!data.length){ loginMsg.innerText="Inválido"; return }
 
-  usuarioLogado = data[0];
+  usuario = data[0];
   loginCard.classList.add("hidden");
   sistema.classList.remove("hidden");
 }
@@ -160,10 +189,11 @@ async function login(){
 /* CONSULTA */
 async function consultar(){
   resultado.innerHTML="";
-  filtros.classList.add("hidden");
+  senhaConfirmada=false;
+  filtro.style.display="none";
 
   let q = busca.value.replace(/\D/g,"");
-  let isCPF = q.length === 11;
+  let isCPF = q.length===11;
 
   const { data } = await sb.from("vouchers")
     .select("*")
@@ -177,54 +207,47 @@ async function consultar(){
 
   if(isCPF){
     vouchersCPF = data;
-    senhaClienteReal = data[0].senha_cliente || "";
+    senhaReal = data[0].senha_cliente || "";
     modalSenha.style.display="flex";
   }else{
-    mostrarVoucher(data[0]);
+    mostrarCodigo(data[0]);
   }
 }
 
 /* CONFIRMAR SENHA */
 function confirmarSenha(){
-  if(senhaCliente.value !== senhaClienteReal){
+  if(senhaCliente.value !== senhaReal){
     alert("Senha incorreta");
     return;
   }
   modalSenha.style.display="none";
-  filtros.classList.remove("hidden");
-  filtrar("ATIVOS");
+  senhaConfirmada=true;
+  filtro.style.display="block";
+  filtrar("ATIVO");
 }
 
 /* FILTRO */
-function filtrar(tipo){
-  filtroAtual = tipo;
-  mostrarCarteira();
+function filtrar(status){
+  if(!senhaConfirmada) return;
+
+  let lista = vouchersCPF.filter(v=>v.status===status);
+  resultado.innerHTML = lista.map(v=>`
+    <div class="box">
+      <b>Voucher:</b> ${v.codigo}<br>
+      Saldo: R$ ${Number(v.saldo).toFixed(2)}<br>
+      <span class="badge ${v.status}">${v.status}</span><br><br>
+      ${v.saldo>0 ? `<button onclick="finalizar('${v.codigo}')">Finalizar</button>`:''}
+    </div>
+  `).join("");
 }
 
-/* MOSTRAR CPF */
-function mostrarCarteira(){
-  resultado.innerHTML = vouchersCPF
-    .filter(v=>{
-      if(filtroAtual==="ATIVOS") return v.status!=="RESGATADO";
-      return v.status==="RESGATADO";
-    })
-    .map(v=>`
-      <div class="box">
-        <b>Voucher:</b> ${v.codigo}<br>
-        Saldo: R$ ${v.saldo}<br>
-        <span class="badge ${v.status}">${v.status}</span><br><br>
-        ${v.saldo>0 ? `<button onclick="finalizar('${v.codigo}')">Finalizar</button>`:''}
-      </div>
-    `).join("");
-}
-
-/* MOSTRAR CÓDIGO */
-function mostrarVoucher(v){
+/* POR CÓDIGO */
+function mostrarCodigo(v){
   resultado.innerHTML=`
     <div class="box">
       <b>Cliente:</b> ${v.cliente}<br>
       <b>Código:</b> ${v.codigo}<br>
-      <b>Saldo:</b> R$ ${v.saldo}<br>
+      <b>Saldo:</b> R$ ${Number(v.saldo).toFixed(2)}<br>
       <span class="badge ${v.status}">${v.status}</span><br><br>
       ${v.saldo>0 ? `<button onclick="finalizar('${v.codigo}')">Finalizar</button>`:''}
     </div>
@@ -233,50 +256,52 @@ function mostrarVoucher(v){
 
 /* FINALIZAR */
 async function finalizar(codigo){
+  if(!senhaConfirmada && busca.value.replace(/\D/g,"").length===11) return;
+
   const { data } = await sb.from("vouchers").select("*").eq("codigo",codigo);
-  let v = data[0];
+  let v=data[0];
 
   await sb.from("vouchers").update({
     saldo:0,
     status:"RESGATADO",
     data_resgate:new Date().toISOString(),
-    usuario_resgate:usuarioLogado.usuario
+    usuario_resgate:usuario.usuario
   }).eq("codigo",codigo);
 
-  imprimirDuasVias(v);
+  imprimir(v);
   consultar();
 }
 
 /* IMPRESSÃO */
-function imprimirDuasVias(v){
-  let cpfMasc = v.cpf.substring(0,3)+"***";
+function imprimir(v){
+  let cpfMasc=v.cpf.substring(0,3)+"***";
 
-  const pagina = (titulo,cpfShow)=>`
-    <div style="width:240px;font-family:monospace;font-size:13px">
-      <center>
-        <b>MERCATTO DELÍCIA</b><br>
-        ${titulo}<br>
-        ------------------------
-      </center>
-      Cliente: ${v.cliente}<br>
-      CPF: ${cpfShow}<br>
-      Código: ${v.codigo}<br>
-      Valor: R$ ${v.valor}<br>
-      Operador: ${usuarioLogado.usuario}<br>
-      Data: ${new Date().toLocaleString("pt-BR")}<br>
-      ------------------------
-    </div>
-  `;
+  const via=(t,cpf)=>`
+  <div style="width:240px;font-family:monospace;font-size:13px">
+    <center><b>MERCATTO DELÍCIA</b><br>${t}<br>-------------------</center>
+    Cliente: ${v.cliente}<br>
+    CPF: ${cpf}<br>
+    Código: ${v.codigo}<br>
+    Valor: R$ ${v.valor}<br>
+    Operador: ${usuario.usuario}<br>
+    Data: ${new Date().toLocaleString("pt-BR")}<br>
+    -------------------
+  </div>`;
 
-  let w = window.open("","","width=260,height=800");
+  let w=window.open("","","width=260,height=800");
   w.document.write(`
-    ${pagina("VIA DO CLIENTE",v.cpf)}
+    ${via("VIA DO CLIENTE",v.cpf)}
     <div class="page-break"></div>
-    ${pagina("VIA DO RESTAURANTE",cpfMasc)}
+    ${via("VIA DO RESTAURANTE",cpfMasc)}
     <script>
-      window.onload=function(){window.print();window.close();}
+      window.onload=()=>{window.print();window.close();}
     <\/script>
   `);
+}
+
+/* UTIL */
+function toggleSenha(){
+  senhaCliente.type = senhaCliente.type==="password"?"text":"password";
 }
 </script>
 
