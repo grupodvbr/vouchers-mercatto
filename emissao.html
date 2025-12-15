@@ -14,59 +14,135 @@
 
 <style>
 :root{
+  --bg:#070707;
+  --card:#111;
+  --line:#1f1f1f;
   --gold:#d4af37;
   --gold2:#b48a2b;
-  --radius:16px;
+  --radius:18px;
 }
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
-body{background:#000;color:#fff;padding:24px}
+body{background:radial-gradient(circle at top,#0b0b0b,#000);color:#fff;padding:28px}
 .hidden{display:none}
 
 .card{
   max-width:1100px;
   margin:auto;
-  background:#111;
+  background:linear-gradient(180deg,#111,#0d0d0d);
   border:1px solid var(--gold2);
   border-radius:var(--radius);
-  padding:26px;
+  padding:28px;
+  box-shadow:0 20px 40px rgba(0,0,0,.6);
+}
+
+.header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid var(--line);
+  padding-bottom:18px;
+  margin-bottom:24px;
+}
+.header h2{
+  color:var(--gold);
+  font-weight:800;
+  letter-spacing:.4px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:22px;
+}
+
+.section{
+  background:#0f0f0f;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:20px;
+}
+
+.section h3{
+  color:var(--gold);
+  margin-bottom:14px;
+  font-size:15px;
+  text-transform:uppercase;
+  letter-spacing:.8px;
 }
 
 input,select{
   width:100%;
   padding:14px;
   margin-bottom:14px;
-  background:#1a1a1a;
+  background:#151515;
   border:1px solid var(--gold2);
   border-radius:12px;
   color:#fff;
+  font-size:15px;
 }
 
 button{
-  padding:14px 22px;
-  border-radius:12px;
+  width:100%;
+  padding:16px;
+  border-radius:14px;
   border:none;
-  background:var(--gold);
+  background:linear-gradient(135deg,var(--gold2),var(--gold));
   color:#000;
-  font-weight:800;
+  font-weight:900;
   cursor:pointer;
+  font-size:16px;
+  letter-spacing:.5px;
+  box-shadow:0 10px 22px rgba(212,175,55,.25);
+}
+button:hover{filter:brightness(1.05)}
+
+.actions{
+  margin-top:22px;
 }
 
 /* LOGIN */
-#loginCard{max-width:420px;margin:80px auto}
+#loginCard{
+  max-width:420px;
+  margin:100px auto;
+}
 
 /* VOUCHER */
 #voucherPNG{
-  width:700px;height:300px;
-  display:none;margin-top:22px;
-  border-radius:16px;
+  width:720px;height:300px;
+  display:none;
+  margin:34px auto 0;
+  border-radius:18px;
   overflow:hidden;
   border:3px solid var(--gold);
   background:linear-gradient(to right,#000 0%,#0a0a0a 45%,#111 45%,#fdf6e3 100%);
   position:relative;
+  box-shadow:0 14px 40px rgba(0,0,0,.6);
 }
+
+.v-left{
+  position:absolute;
+  left:0;width:45%;height:100%;
+  padding:26px;color:#fff;
+}
+.v-left h1{font-size:44px}
+.v-left h2{color:var(--gold)}
+
+.v-cut{
+  position:absolute;
+  left:44%;width:90px;height:100%;
+  background:linear-gradient(135deg,#b48a2b,#d4af37,#f7e7b0);
+  clip-path:polygon(0 0,100% 0,70% 100%,0 100%);
+}
+
+.v-right{
+  position:absolute;
+  left:50%;width:50%;height:100%;
+  padding:36px;color:#5a4d29;
+}
+
 .small{
   position:absolute;
-  bottom:8px;
+  bottom:10px;
   left:20px;
   right:20px;
   font-size:10px;
@@ -80,7 +156,9 @@ button{
 
 <!-- LOGIN -->
 <div id="loginCard" class="card">
-  <h2 style="color:var(--gold)">Acesso Operador</h2>
+  <div class="header">
+    <h2>Acesso Operador</h2>
+  </div>
   <input id="loginUser" placeholder="Usuário">
   <input id="loginPass" type="password" placeholder="Senha">
   <button onclick="login()">Entrar</button>
@@ -90,40 +168,52 @@ button{
 <div id="sistema" class="hidden">
 <div class="card">
 
-<h2 style="color:var(--gold)">Emissão de Voucher</h2>
+<div class="header">
+  <h2>Emissão de Voucher</h2>
+</div>
 
-<input id="cliente" placeholder="Nome do Cliente">
-<input id="cpf" placeholder="CPF" oninput="maskCPF(this)">
-<input id="telefone" placeholder="Telefone" oninput="maskPhone(this)">
-<input id="valor" placeholder="Valor" oninput="maskValor(this)">
+<div class="grid">
 
-<select id="formaPagamento">
-  <option value="" disabled selected>Forma de Pagamento</option>
-  <option>PIX</option>
-  <option>DINHEIRO</option>
-  <option>CARTÃO CRÉDITO</option>
-  <option>CARTÃO DÉBITO</option>
-</select>
+  <div class="section">
+    <h3>Dados do Cliente</h3>
+    <input id="cliente" placeholder="Nome do Cliente">
+    <input id="cpf" placeholder="CPF" oninput="maskCPF(this)">
+    <input id="telefone" placeholder="Telefone" oninput="maskPhone(this)">
+  </div>
 
-<button onclick="emitir()">Emitir Voucher</button>
+  <div class="section">
+    <h3>Pagamento & Valor</h3>
+    <input id="valor" placeholder="Valor" oninput="maskValor(this)">
+    <select id="formaPagamento">
+      <option value="" disabled selected>Forma de Pagamento</option>
+      <option>PIX</option>
+      <option>DINHEIRO</option>
+      <option>CARTÃO CRÉDITO</option>
+      <option>CARTÃO DÉBITO</option>
+    </select>
+  </div>
+
+</div>
+
+<div class="actions">
+  <button onclick="emitir()">Emitir Voucher</button>
+</div>
 
 <!-- VOUCHER VISUAL -->
 <div id="voucherPNG">
-  <div style="position:absolute;left:0;width:45%;height:100%;padding:25px;color:#fff">
-    <h1 style="font-size:42px">GIFT</h1>
-    <h2 style="color:var(--gold)">VOUCHER</h2>
+  <div class="v-left">
+    <h1>GIFT</h1>
+    <h2>VOUCHER</h2>
     <p id="vNome"></p>
     <p id="vForma"></p>
     <p id="vEmissor"></p>
     <p id="vValidade"></p>
   </div>
 
-  <div style="position:absolute;left:44%;width:90px;height:100%;
-    background:linear-gradient(135deg,#b48a2b,#d4af37,#f7e7b0);
-    clip-path:polygon(0 0,100% 0,70% 100%,0 100%)"></div>
+  <div class="v-cut"></div>
 
-  <div style="position:absolute;left:50%;width:50%;height:100%;padding:35px;color:#5a4d29">
-    <h1 style="font-size:70px;font-family:'Great Vibes'">
+  <div class="v-right">
+    <h1 style="font-size:72px;font-family:'Great Vibes'">
       R$ <span id="vValor"></span>
     </h1>
     <svg id="barcode"></svg>
@@ -142,7 +232,6 @@ const sb = supabase.createClient(
 );
 
 const QR_BASE_URL = "https://grupodvbr.github.io/vouchers-mercatto/carteira.html";
-
 let operador=null;
 
 /* LOGIN */
