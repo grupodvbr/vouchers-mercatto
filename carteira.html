@@ -31,7 +31,6 @@ body{
 }
 .hidden{display:none}
 
-/* CARD */
 .card{
   max-width:420px;
   margin:22px auto;
@@ -41,20 +40,9 @@ body{
   border:1px solid var(--gold2);
 }
 
-/* TITULOS */
-h1,h2{
-  color:var(--gold);
-  font-weight:800;
-  margin-bottom:10px;
-}
-.sub{
-  font-size:14px;
-  color:var(--muted);
-  margin-bottom:14px;
-}
+h1,h2{color:var(--gold);font-weight:800;margin-bottom:10px}
+.sub{font-size:14px;color:var(--muted);margin-bottom:14px}
 
-/* INPUT */
-.input-group{position:relative}
 input{
   width:100%;
   padding:15px;
@@ -65,26 +53,7 @@ input{
   color:#fff;
   font-size:16px;
 }
-.eye{
-  position:absolute;
-  right:14px;
-  top:16px;
-  font-size:18px;
-  cursor:pointer;
-  color:#ccc;
-}
 
-/* CHECK */
-.remember{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  font-size:13px;
-  color:var(--muted);
-  margin-bottom:14px;
-}
-
-/* BOTÕES */
 button{
   width:100%;
   padding:15px;
@@ -96,12 +65,9 @@ button{
   font-size:16px;
   cursor:pointer;
 }
-.logout{
-  background:var(--danger);
-  margin-top:18px;
-}
 
-/* SALDO */
+.logout{background:var(--danger);margin-top:18px}
+
 .saldo-card{
   background:linear-gradient(135deg,#1a1a1a,#101010);
   border-radius:16px;
@@ -109,36 +75,12 @@ button{
   border:1px solid #333;
   margin-bottom:18px;
 }
-.saldo-label{
-  font-size:13px;
-  color:var(--muted);
-}
-.saldo{
-  font-size:34px;
-  font-weight:800;
-  color:var(--ok);
-}
+.saldo-label{font-size:13px;color:var(--muted)}
+.saldo{font-size:34px;font-weight:800;color:var(--ok)}
 
-/* EXTRATO */
-.extrato h3{
-  font-size:16px;
-  margin-bottom:10px;
-}
-.mov{
-  padding:14px 0;
-  border-bottom:1px dashed #333;
-}
+.mov{padding:14px 0;border-bottom:1px dashed #333}
 .mov:last-child{border:none}
-.mov .linha{
-  display:flex;
-  justify-content:space-between;
-  font-size:15px;
-}
-.mov span{
-  display:block;
-  font-size:12px;
-  color:var(--muted);
-}
+.linha{display:flex;justify-content:space-between}
 .badge{
   margin-top:6px;
   display:inline-block;
@@ -146,22 +88,6 @@ button{
   border-radius:20px;
   font-size:11px;
   font-weight:800;
-}
-.ATIVO{background:#1f7a4a}
-.PARCIAL{background:#9a6b00}
-.RESGATADO{background:#8a1f1f}
-
-/* PWA */
-#pwaBanner{
-  position:fixed;
-  bottom:12px;
-  left:12px;
-  right:12px;
-  background:#111;
-  border:1px solid var(--gold2);
-  border-radius:14px;
-  padding:14px;
-  display:none;
 }
 </style>
 </head>
@@ -172,55 +98,40 @@ button{
 <div id="loginCard" class="card">
   <img src="logo.png" style="width:120px;display:block;margin:auto;margin-bottom:10px">
   <h1>Minha Carteira</h1>
-  <p class="sub">Acesse com seu CPF</p>
+  <p class="sub">Digite seu CPF e senha</p>
 
   <input id="cpf" placeholder="CPF" oninput="maskCPF(this)">
+  <input id="senha" type="password" placeholder="Senha">
 
-  <div class="remember">
-    <input type="checkbox" id="lembrar">
-    <label for="lembrar">Lembrar meu acesso</label>
-  </div>
+  <label style="font-size:13px;color:var(--muted)">
+    <input type="checkbox" id="lembrar"> Lembrar meu acesso
+  </label>
 
   <button onclick="entrar()">Entrar</button>
   <p id="msg" style="color:#f39c12;margin-top:10px"></p>
 </div>
 
-<!-- CRIAR SENHA -->
+<!-- PRIMEIRO ACESSO -->
 <div id="senhaCard" class="card hidden">
   <h2>Primeiro acesso</h2>
   <p class="sub">Crie uma senha de 4 números</p>
 
-  <div class="input-group">
-    <input id="senhaNova" type="password" maxlength="4" placeholder="Senha (4 dígitos)">
-    <span class="eye" onclick="toggleSenha()">👁️</span>
-  </div>
-
-  <button onclick="criarSenha()">Salvar Senha</button>
+  <input id="senhaNova" maxlength="4" type="password" placeholder="Senha (4 dígitos)">
+  <button onclick="criarSenha()">Salvar senha</button>
 </div>
 
 <!-- CARTEIRA -->
 <div id="carteira" class="card hidden">
   <h2 id="boasVindas"></h2>
-  <p class="sub">Voucher Mercatto Delícia</p>
 
   <div class="saldo-card">
     <div class="saldo-label">Saldo disponível</div>
     <div class="saldo">R$ <span id="saldoTotal">0,00</span></div>
   </div>
 
-  <div class="extrato">
-    <h3>Extrato</h3>
-    <div id="extrato"></div>
-  </div>
+  <div id="extrato"></div>
 
   <button class="logout" onclick="sair()">Sair</button>
-</div>
-
-<!-- PWA -->
-<div id="pwaBanner">
-  <b>Adicionar à tela inicial</b>
-  <p class="sub">Use como aplicativo</p>
-  <button onclick="instalarPWA()">Adicionar</button>
 </div>
 
 <script>
@@ -229,42 +140,61 @@ const sb = supabase.createClient(
   "sb_publishable_djiQsCSrnLUm0iA_eNjjMw__7rfP11m"
 );
 
-let CPF_ATUAL="";
-let deferredPrompt=null;
+let CPF_ATUAL = "";
 
-/* AUTO LOGIN */
-window.onload=()=>{
+/* AUTO LOGIN SE TIVER CPF + SENHA */
+window.onload = async () => {
   const cpfSalvo = localStorage.getItem("cpf_logado");
-  if(cpfSalvo){
+  if(!cpfSalvo) return;
+
+  const { data } = await sb.from("vouchers")
+    .select("senha_cliente")
+    .eq("cpf", cpfSalvo)
+    .limit(1);
+
+  if(data?.[0]?.senha_cliente){
     CPF_ATUAL = cpfSalvo;
     carregarCarteira();
   }
 };
 
-/* ENTRAR */
+/* LOGIN */
 async function entrar(){
   CPF_ATUAL = cpf.value.replace(/\D/g,"");
-  if(CPF_ATUAL.length!==11){
-    msg.innerText="CPF inválido";
+  if(CPF_ATUAL.length !== 11){
+    msg.innerText = "CPF inválido";
     return;
   }
 
-  const { data } = await sb.from("vouchers").select("*").eq("cpf",CPF_ATUAL);
+  const { data } = await sb.from("vouchers")
+    .select("*")
+    .eq("cpf", CPF_ATUAL);
+
   if(!data.length){
-    msg.innerText="CPF não encontrado";
+    msg.innerText = "CPF não encontrado";
     return;
   }
+
+  const senhaDB = data[0].senha_cliente;
 
   loginCard.classList.add("hidden");
 
-  if(!data[0].senha_cliente){
+  if(!senhaDB){
     senhaCard.classList.remove("hidden");
-  }else{
-    if(lembrar.checked){
-      localStorage.setItem("cpf_logado",CPF_ATUAL);
-    }
-    carregarCarteira();
+    return;
   }
+
+  if(senha.value !== senhaDB){
+    loginCard.classList.remove("hidden");
+    msg.innerText = "Senha incorreta";
+    return;
+  }
+
+  if(lembrar.checked){
+    localStorage.setItem("cpf_logado", CPF_ATUAL);
+  }
+
+  carregarCarteira();
 }
 
 /* CRIAR SENHA */
@@ -273,11 +203,12 @@ async function criarSenha(){
     alert("Senha inválida");
     return;
   }
-  await sb.from("vouchers")
-    .update({senha_cliente:senhaNova.value})
-    .eq("cpf",CPF_ATUAL);
 
-  localStorage.setItem("cpf_logado",CPF_ATUAL);
+  await sb.from("vouchers")
+    .update({ senha_cliente: senhaNova.value })
+    .eq("cpf", CPF_ATUAL);
+
+  localStorage.setItem("cpf_logado", CPF_ATUAL);
   senhaCard.classList.add("hidden");
   carregarCarteira();
 }
@@ -288,12 +219,12 @@ async function carregarCarteira(){
 
   const { data } = await sb.from("vouchers")
     .select("*")
-    .eq("cpf",CPF_ATUAL)
+    .eq("cpf", CPF_ATUAL)
     .order("data_emissao",{ascending:false});
 
-  boasVindas.innerText = `Bem-vindo, ${data[0].cliente}`;
+  boasVindas.innerText = `Olá, ${data[0].cliente}`;
 
-  let saldo = data.reduce((s,v)=>s+(v.saldo ?? v.valor),0);
+  const saldo = data.reduce((s,v)=>s+(v.saldo ?? v.valor),0);
   saldoTotal.innerText = saldo.toLocaleString("pt-BR",{minimumFractionDigits:2});
 
   extrato.innerHTML = data.map(v=>`
@@ -302,42 +233,24 @@ async function carregarCarteira(){
         <b>Voucher ${v.codigo}</b>
         <b>R$ ${Number(v.valor).toLocaleString("pt-BR",{minimumFractionDigits:2})}</b>
       </div>
-      <span>${new Date(v.data_emissao).toLocaleString("pt-BR")}</span>
-      <span>Saldo: R$ ${(v.saldo ?? v.valor).toLocaleString("pt-BR",{minimumFractionDigits:2})}</span>
-      <span class="badge ${v.status}">${v.status}</span>
+      <small>${new Date(v.data_emissao).toLocaleString("pt-BR")}</small>
+      <span class="badge">${v.status}</span>
     </div>
   `).join("");
 }
 
 /* SAIR */
 function sair(){
-  localStorage.clear();
+  localStorage.removeItem("cpf_logado");
   location.reload();
 }
 
-/* UTIL */
-function toggleSenha(){
-  senhaNova.type = senhaNova.type==="password"?"text":"password";
-}
+/* CPF */
 function maskCPF(el){
   el.value = el.value.replace(/\D/g,"")
     .replace(/(\d{3})(\d)/,"$1.$2")
     .replace(/(\d{3})(\d)/,"$1.$2")
     .replace(/(\d{3})(\d{1,2})$/,"$1-$2");
-}
-
-/* PWA */
-window.addEventListener("beforeinstallprompt",e=>{
-  e.preventDefault();
-  deferredPrompt=e;
-  pwaBanner.style.display="block";
-});
-function instalarPWA(){
-  deferredPrompt.prompt();
-  pwaBanner.style.display="none";
-}
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("sw.js");
 }
 </script>
 
