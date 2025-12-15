@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <title>Resgate de Voucher • Mercatto</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -11,28 +13,30 @@
 <style>
 :root{
   --bg:#0b0b0b;
-  --card:#121212;
+  --card:#141414;
   --gold:#d4af37;
   --gold2:#b48a2b;
+  --ok:#2ecc71;
+  --warn:#f39c12;
+  --danger:#e74c3c;
   --radius:16px;
-  --line:#2a2a2a;
 }
-*{box-sizing:border-box;font-family:Inter;margin:0;padding:0}
-body{background:var(--bg);color:#fff;padding:28px}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
+body{background:var(--bg);color:#fff;padding:20px}
 .hidden{display:none}
 
 /* CARD */
 .card{
   max-width:980px;
-  margin:30px auto;
+  margin:24px auto;
   background:var(--card);
   border:1px solid var(--gold2);
   border-radius:var(--radius);
-  padding:26px;
+  padding:24px;
 }
-h1,h2{color:var(--gold);margin-bottom:18px}
+h1,h2{color:var(--gold);margin-bottom:16px}
 
-/* FORM */
+/* INPUT */
 input{
   width:100%;
   padding:14px;
@@ -52,18 +56,18 @@ button{
   cursor:pointer;
 }
 
-/* RESULTADOS */
+/* RESULT */
 .box{
-  background:#141414;
+  background:#181818;
   border-left:4px solid var(--gold);
   border-radius:12px;
   padding:16px;
   margin-top:14px;
 }
 .badge{
-  font-size:12px;
   padding:4px 10px;
   border-radius:20px;
+  font-size:12px;
   font-weight:700;
 }
 .ATIVO{background:#1f7a4a}
@@ -73,17 +77,18 @@ button{
 /* MODAL */
 .modal{
   position:fixed; inset:0;
-  background:rgba(0,0,0,.7);
+  background:rgba(0,0,0,.75);
   display:none;
   align-items:center;
   justify-content:center;
+  z-index:99;
 }
 .modal-box{
-  width:420px;
+  width:360px;
   background:#111;
   border:2px solid var(--gold);
   border-radius:14px;
-  padding:24px;
+  padding:22px;
 }
 </style>
 </head>
@@ -109,12 +114,21 @@ button{
   </div>
 </div>
 
-<!-- MODAL SENHA -->
+<!-- MODAL SENHA CLIENTE -->
 <div id="modalSenha" class="modal">
   <div class="modal-box">
-    <h3 id="tituloSenha"></h3>
-    <input id="senhaInput" type="password" maxlength="4" placeholder="Senha 4 dígitos">
-    <button onclick="confirmarSenha()">Confirmar</button>
+    <h3>Senha do Cliente</h3>
+    <input id="senhaCliente" type="password" maxlength="4" placeholder="Senha 4 dígitos">
+    <button onclick="confirmarSenhaCliente()">Confirmar</button>
+  </div>
+</div>
+
+<!-- MODAL ADMIN -->
+<div id="modalAdmin" class="modal">
+  <div class="modal-box">
+    <h3>Senha do Administrador</h3>
+    <input id="senhaAdmin" type="password" placeholder="Senha Admin">
+    <button onclick="confirmarAdmin()">Confirmar</button>
   </div>
 </div>
 
@@ -125,7 +139,8 @@ const sb = supabase.createClient(
 );
 
 let usuarioLogado = {};
-let acaoAtual = null;
+let contexto = {};
+let senhaRealCliente = "";
 
 /* LOGIN */
 async function login(){
@@ -134,7 +149,7 @@ async function login(){
     .eq("usuario",loginUser.value)
     .eq("senha",loginPass.value);
 
-  if(!data.length){ loginMsg.innerText="Inválido"; return }
+  if(!data.length){ loginMsg.innerText="Usuário inválido"; return; }
 
   usuarioLogado = data[0];
   loginCard.classList.add("hidden");
@@ -145,7 +160,7 @@ async function login(){
 async function consultar(){
   resultado.innerHTML="";
   let q = busca.value.replace(/\D/g,"");
-  let isCPF = q.length === 11;
+  let isCPF = q.length===11;
 
   const { data } = await sb.from("vouchers")
     .select("*")
@@ -158,33 +173,42 @@ async function consultar(){
   }
 
   if(isCPF){
-    acaoAtual = { tipo:"CPF", cpf:q, vouchers:data };
-    abrirSenha("Digite a senha do cliente");
+    senhaRealCliente = data[0].senha_cliente;
+    contexto = { tipo:"CPF", vouchers:data };
+    modalSenha.style.display="flex";
   }else{
     mostrarVoucher(data[0]);
   }
 }
 
-/* MOSTRAR CPF */
-function mostrarCarteira(vouchers){
-  let saldo = vouchers.reduce((s,v)=>s+Number(v.saldo),0);
+/* CONFIRMAR SENHA CLIENTE */
+function confirmarSenhaCliente(){
+  if(senhaCliente.value !== senhaRealCliente){
+    alert("Senha inválida");
+    return;
+  }
+  modalSenha.style.display="none";
+  mostrarCarteira(contexto.vouchers);
+}
+
+/* MOSTRAR CARTEIRA */
+function mostrarCarteira(vs){
+  let saldo = vs.reduce((s,v)=>s+Number(v.saldo),0);
   resultado.innerHTML = `
-    <div class="box">
-      <b>Saldo Total:</b> R$ ${saldo.toFixed(2)}
-    </div>
-    ${vouchers.map(v=>`
+    <div class="box"><b>Saldo Total:</b> R$ ${saldo.toFixed(2)}</div>
+    ${vs.map(v=>`
       <div class="box">
         <b>Voucher:</b> ${v.codigo}<br>
         Valor: R$ ${v.valor}<br>
         Saldo: R$ ${v.saldo}<br>
         <span class="badge ${v.status}">${v.status}</span><br><br>
-        ${v.saldo>0 ? `<button onclick="resgatarCPF('${v.codigo}',${v.saldo})">Resgatar</button>`:''}
+        ${v.saldo>0 ? `<button onclick="resgatar('${v.codigo}',${v.saldo},'${v.cpf}','${v.cliente}')">Resgatar</button>`:''}
       </div>
     `).join("")}
   `;
 }
 
-/* MOSTRAR CÓDIGO */
+/* MOSTRAR POR CÓDIGO */
 function mostrarVoucher(v){
   resultado.innerHTML=`
     <div class="box">
@@ -192,55 +216,77 @@ function mostrarVoucher(v){
       <b>Código:</b> ${v.codigo}<br>
       <b>Saldo:</b> R$ ${v.saldo}<br>
       <span class="badge ${v.status}">${v.status}</span><br><br>
-      ${v.saldo>0 ? `<button onclick="resgatarCodigo('${v.codigo}',${v.saldo})">Resgatar</button>`:''}
+      ${v.saldo>0 ? `<button onclick="resgatar('${v.codigo}',${v.saldo},'${v.cpf}','${v.cliente}',true)">Resgatar</button>`:''}
     </div>
   `;
 }
 
-/* RESGATE CPF */
-function resgatarCPF(codigo,saldo){
-  let valor = prompt(`Saldo disponível R$ ${saldo}\nValor do resgate:`);
-  if(!valor) return;
-  efetivarResgate(codigo,Number(valor));
-}
-
-/* RESGATE CÓDIGO */
-function resgatarCodigo(codigo,saldo){
+/* RESGATE */
+async function resgatar(codigo,saldo,cpf,nome,porCodigo=false){
   let valor = saldo;
 
-  if(usuarioLogado.perfil === "ADMIN"){
-    valor = prompt(`Saldo R$ ${saldo}\nValor do resgate:`) || saldo;
+  if(porCodigo && usuarioLogado.perfil==="ADMIN"){
+    contexto={codigo,saldo,cpf,nome};
+    modalAdmin.style.display="flex";
+    return;
   }
 
-  efetivarResgate(codigo,Number(valor));
+  efetivar(codigo,valor,cpf,nome);
 }
 
-/* RESGATE */
-async function efetivarResgate(codigo,valor){
-  const { data } = await sb.from("vouchers").select("*").eq("codigo",codigo);
-  let v = data[0];
+/* CONFIRMAR ADMIN */
+function confirmarAdmin(){
+  if(senhaAdmin.value!==usuarioLogado.senha){
+    alert("Senha admin inválida"); return;
+  }
+  modalAdmin.style.display="none";
+  let v = prompt("Valor do resgate:");
+  efetivar(contexto.codigo,Number(v),contexto.cpf,contexto.nome);
+}
 
-  let novoSaldo = v.saldo - valor;
-  let status = novoSaldo===0 ? "RESGATADO" : "PARCIAL";
+/* EFETIVAR */
+async function efetivar(codigo,valor,cpf,nome){
+  const { data } = await sb.from("vouchers").select("*").eq("codigo",codigo);
+  let v=data[0];
+
+  let novo=v.saldo-valor;
+  let status=novo===0?"RESGATADO":"PARCIAL";
 
   await sb.from("vouchers").update({
-    saldo:novoSaldo,
+    saldo:novo,
     status,
     data_resgate:new Date().toISOString(),
     usuario_resgate:usuarioLogado.usuario
   }).eq("codigo",codigo);
 
+  imprimirRecibo(nome,cpf,codigo,valor,novo);
   consultar();
 }
 
-/* SENHA */
-function abrirSenha(t){
-  tituloSenha.innerText=t;
-  modalSenha.style.display="flex";
-}
-function confirmarSenha(){
-  modalSenha.style.display="none";
-  mostrarCarteira(acaoAtual.vouchers);
+/* RECIBO 2 VIAS COM CORTE */
+function imprimirRecibo(nome,cpf,codigo,valor,saldo){
+  let cpfMask=cpf.substring(0,3)+"***";
+
+  const via=(t,cpfShow)=>`
+  <div style="width:240px;font-family:monospace;font-size:13px">
+    <center><b>MERCATTO DELÍCIA</b><br>${t}<br>----------------</center>
+    Cliente: ${nome}<br>
+    CPF: ${cpfShow}<br>
+    Código: ${codigo}<br>
+    Valor: R$ ${valor.toFixed(2)}<br>
+    Saldo: R$ ${saldo.toFixed(2)}<br>
+    Operador: ${usuarioLogado.usuario}<br>
+    Data: ${new Date().toLocaleString("pt-BR")}<br>
+    ----------------
+  </div>`;
+
+  let w=window.open("","","width=260,height=700");
+  w.document.write(`
+    ${via("VIA DO CLIENTE",cpf)}
+    <br><center>✂️ CORTE AQUI ✂️</center><br>
+    ${via("VIA DO RESTAURANTE",cpfMask)}
+    <script>window.onload=()=>{window.print();window.close();}<\/script>
+  `);
 }
 </script>
 
