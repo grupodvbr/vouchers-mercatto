@@ -2,86 +2,143 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Minha Carteira • Mercatto</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Minha Carteira • Voucher Mercatto</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<!-- 🚫 BLOQUEIA ZOOM -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root{
-  --bg:#0f0f0f;
-  --card:#151515;
+  --bg:#0b0b0b;
+  --card:#141414;
   --gold:#d4af37;
   --gold2:#b48a2b;
   --ok:#2ecc71;
   --warn:#f39c12;
   --danger:#e74c3c;
-  --radius:16px;
+  --muted:#aaa;
+  --radius:18px;
 }
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
-body{background:var(--bg);color:#fff;padding:24px}
+body{
+  background:linear-gradient(180deg,#000,#0e0e0e);
+  color:#fff;
+  padding:18px;
+}
 .hidden{display:none}
 
+/* CARD BASE */
 .card{
   max-width:420px;
-  margin:40px auto;
+  margin:20px auto;
   background:var(--card);
   border-radius:var(--radius);
-  padding:26px;
+  padding:22px;
   border:1px solid var(--gold2);
 }
 
-h1,h2{color:var(--gold);margin-bottom:16px}
+/* TITULOS */
+h1,h2{
+  color:var(--gold);
+  margin-bottom:14px;
+  font-weight:800;
+}
+.sub{
+  color:var(--muted);
+  font-size:14px;
+  margin-bottom:14px;
+}
+
+/* INPUTS */
+.input-group{
+  position:relative;
+}
 input{
   width:100%;
-  padding:14px;
+  padding:15px;
   margin-bottom:14px;
-  border-radius:10px;
+  border-radius:12px;
   border:1px solid var(--gold2);
   background:#1a1a1a;
   color:#fff;
-  font-size:15px;
+  font-size:16px;
 }
+
+/* OLHINHO */
+.eye{
+  position:absolute;
+  right:14px;
+  top:16px;
+  cursor:pointer;
+  font-size:18px;
+  color:#ccc;
+}
+
+/* BOTÕES */
 button{
   width:100%;
-  padding:14px;
+  padding:15px;
   border:none;
-  border-radius:10px;
+  border-radius:14px;
   background:var(--gold);
   color:#000;
-  font-weight:700;
+  font-weight:800;
+  font-size:16px;
   cursor:pointer;
 }
-.badge{
-  padding:4px 10px;
-  border-radius:20px;
+.logout{
+  background:var(--danger);
+  margin-top:18px;
+}
+
+/* SALDO */
+.saldo-card{
+  background:linear-gradient(135deg,#1a1a1a,#101010);
+  border-radius:16px;
+  padding:18px;
+  margin-bottom:18px;
+  border:1px solid #333;
+}
+.saldo-label{
+  font-size:13px;
+  color:var(--muted);
+}
+.saldo{
+  font-size:34px;
+  font-weight:800;
+  color:var(--ok);
+}
+
+/* EXTRATO */
+.extrato{
+  margin-top:10px;
+}
+.mov{
+  padding:14px 0;
+  border-bottom:1px dashed #333;
+}
+.mov:last-child{border:none}
+.mov b{font-size:15px}
+.mov span{
+  display:block;
   font-size:12px;
-  font-weight:700;
+  color:var(--muted);
+  margin-top:2px;
+}
+.badge{
+  display:inline-block;
+  margin-top:6px;
+  padding:4px 12px;
+  border-radius:20px;
+  font-size:11px;
+  font-weight:800;
 }
 .ATIVO{background:#1f7a4a}
 .PARCIAL{background:#9a6b00}
 .RESGATADO{background:#8a1f1f}
-
-.extrato{
-  margin-top:18px;
-}
-.mov{
-  padding:12px 0;
-  border-bottom:1px dashed #333;
-  font-size:14px;
-}
-.mov span{display:block;font-size:12px;color:#aaa}
-.saldo{
-  font-size:28px;
-  font-weight:700;
-  color:var(--ok);
-  margin-bottom:10px;
-}
-.logout{
-  background:var(--danger);
-  margin-top:20px;
-}
 </style>
 </head>
 
@@ -90,27 +147,39 @@ button{
 <!-- LOGIN CPF -->
 <div id="loginCard" class="card">
   <h1>Minha Carteira</h1>
-  <input id="cpf" placeholder="Digite seu CPF">
+  <p class="sub">Acesse usando seu CPF</p>
+
+  <input id="cpf" placeholder="CPF" oninput="maskCPF(this)">
   <button onclick="entrar()">Entrar</button>
-  <p id="msg" style="color:#f39c12"></p>
+
+  <p id="msg" style="color:var(--warn);margin-top:10px"></p>
 </div>
 
 <!-- CRIAR SENHA -->
 <div id="senhaCard" class="card hidden">
   <h2>Criar Senha</h2>
-  <p style="font-size:14px;margin-bottom:10px">
-    Crie uma senha de <b>4 números</b>.<br>
-    Ela será solicitada para autorizar resgates.
-  </p>
-  <input id="senhaNova" maxlength="4" placeholder="Senha (4 dígitos)">
+  <p class="sub">Senha de 4 números para autorizar resgates</p>
+
+  <div class="input-group">
+    <input id="senhaNova" type="password" maxlength="4" placeholder="Senha (4 dígitos)">
+    <span class="eye" onclick="toggleSenha()">👁️</span>
+  </div>
+
   <button onclick="criarSenha()">Salvar Senha</button>
 </div>
 
 <!-- CARTEIRA -->
 <div id="carteira" class="card hidden">
-  <h2 id="clienteNome"></h2>
-  <div class="saldo">R$ <span id="saldoTotal">0,00</span></div>
 
+  <h2 id="boasVindas"></h2>
+  <p class="sub">Voucher Mercatto</p>
+
+  <div class="saldo-card">
+    <div class="saldo-label">Saldo disponível</div>
+    <div class="saldo">R$ <span id="saldoTotal">0,00</span></div>
+  </div>
+
+  <h2 style="font-size:18px">Extrato</h2>
   <div class="extrato" id="extrato"></div>
 
   <button class="logout" onclick="sair()">Sair</button>
@@ -128,6 +197,11 @@ let CPF_ATUAL="";
 async function entrar(){
   CPF_ATUAL = cpf.value.replace(/\D/g,"");
 
+  if(CPF_ATUAL.length!==11){
+    msg.innerText="CPF inválido";
+    return;
+  }
+
   if(localStorage.getItem("cpf_logado")===CPF_ATUAL){
     carregarCarteira();
     return;
@@ -143,7 +217,6 @@ async function entrar(){
   }
 
   let temSenha = data.some(v=>v.senha_cliente);
-
   loginCard.classList.add("hidden");
 
   if(!temSenha){
@@ -158,7 +231,7 @@ async function entrar(){
 async function criarSenha(){
   let s = senhaNova.value;
   if(!/^\d{4}$/.test(s)){
-    alert("Senha deve conter 4 números");
+    alert("A senha deve conter 4 números");
     return;
   }
 
@@ -171,7 +244,7 @@ async function criarSenha(){
   carregarCarteira();
 }
 
-/* CARTEIRA */
+/* CARREGAR CARTEIRA */
 async function carregarCarteira(){
   carteira.classList.remove("hidden");
 
@@ -180,7 +253,7 @@ async function carregarCarteira(){
     .eq("cpf",CPF_ATUAL)
     .order("data_emissao",{ascending:true});
 
-  clienteNome.innerText = data[0].cliente;
+  boasVindas.innerText = `Bem-vindo, ${data[0].cliente}`;
 
   let saldo = data.reduce((s,v)=>s+(v.saldo ?? v.valor),0);
   saldoTotal.innerText = saldo.toFixed(2).replace(".",",");
@@ -200,6 +273,17 @@ async function carregarCarteira(){
 function sair(){
   localStorage.removeItem("cpf_logado");
   location.reload();
+}
+
+/* UTIL */
+function toggleSenha(){
+  senhaNova.type = senhaNova.type === "password" ? "text" : "password";
+}
+function maskCPF(el){
+  el.value = el.value.replace(/\D/g,"")
+    .replace(/(\d{3})(\d)/,"$1.$2")
+    .replace(/(\d{3})(\d)/,"$1.$2")
+    .replace(/(\d{3})(\d{1,2})$/,"$1-$2");
 }
 </script>
 
