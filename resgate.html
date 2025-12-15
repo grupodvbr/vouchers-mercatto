@@ -54,7 +54,21 @@ button{
 
 hr{border:none;border-top:1px solid #333;margin:14px 0}
 
-.small{font-size:12px;color:#bbb}
+.modal{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.75);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:99;
+}
+.modal-box{
+  width:360px;
+  background:#111;
+  border:2px solid var(--gold);
+  border-radius:14px;
+  padding:22px;
+}
 </style>
 </head>
 
@@ -99,6 +113,15 @@ hr{border:none;border-top:1px solid #333;margin:14px 0}
 </div>
 </div>
 
+<!-- MODAL SENHA CLIENTE -->
+<div id="modalSenha" class="modal">
+  <div class="modal-box">
+    <h3>Senha do Cliente</h3>
+    <input id="senhaCliente" type="password" maxlength="4" placeholder="Senha de 4 dígitos">
+    <button onclick="confirmarSenha()">Confirmar</button>
+  </div>
+</div>
+
 <script>
 const sb = supabase.createClient(
   "https://ckkqcxbzfkjzicvoeehw.supabase.co",
@@ -108,6 +131,7 @@ const sb = supabase.createClient(
 let operador=null;
 let vouchers=[];
 let modoCPF=false;
+let senhaOK=false;
 
 /* LOGIN */
 async function login(){
@@ -128,6 +152,7 @@ async function consultar(){
   resumoCPF.classList.add("hidden");
   resultadoCodigo.innerHTML="";
   extrato.innerHTML="";
+  senhaOK=false;
   vouchers=[];
 
   let q = busca.value.replace(/\D/g,"");
@@ -146,10 +171,21 @@ async function consultar(){
   vouchers=data;
 
   if(modoCPF){
-    mostrarResumoCPF();
+    modalSenha.style.display="flex";
   }else{
     mostrarVoucherCodigo(data[0]);
   }
+}
+
+/* CONFIRMAR SENHA CPF */
+function confirmarSenha(){
+  if(senhaCliente.value !== vouchers[0].senha_cliente){
+    alert("Senha incorreta");
+    return;
+  }
+  modalSenha.style.display="none";
+  senhaOK=true;
+  mostrarResumoCPF();
 }
 
 /* RESUMO CPF */
@@ -177,6 +213,8 @@ function mostrarResumoCPF(){
 
 /* RESGATE CPF (FIFO) */
 async function resgatarCPF(){
+  if(!senhaOK) return;
+
   let valor=parseFloat(valorResgate.value.replace(",","."));  
   let saldoTotal=vouchers.reduce((s,v)=>s+Number(v.saldo),0);
 
@@ -205,7 +243,7 @@ async function resgatarCPF(){
   consultar();
 }
 
-/* POR CÓDIGO */
+/* CONSULTA POR CÓDIGO */
 function mostrarVoucherCodigo(v){
   resultadoCodigo.innerHTML=`
     <div class="box">
