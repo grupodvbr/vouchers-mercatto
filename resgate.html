@@ -4,8 +4,7 @@
 <meta charset="UTF-8">
 <title>Resgate de Voucher • Mercatto</title>
 
-<meta name="viewport"
-content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -47,13 +46,19 @@ input{
   margin-bottom:12px;
 }
 button{
-  padding:14px 22px;
+  padding:12px 18px;
   background:var(--gold);
   color:#000;
   border:none;
   border-radius:12px;
   font-weight:700;
   cursor:pointer;
+}
+
+.filtros{
+  display:flex;
+  gap:10px;
+  margin:10px 0;
 }
 
 .box{
@@ -108,6 +113,12 @@ button{
     <h1>Consulta & Resgate</h1>
     <input id="busca" placeholder="CPF ou Código do Voucher">
     <button onclick="consultar()">Consultar</button>
+
+    <div id="filtros" class="filtros hidden">
+      <button onclick="filtrar('ATIVOS')">Ativos</button>
+      <button onclick="filtrar('RESGATADOS')">Resgatados</button>
+    </div>
+
     <div id="resultado"></div>
   </div>
 </div>
@@ -130,6 +141,7 @@ const sb = supabase.createClient(
 let usuarioLogado = {};
 let vouchersCPF = [];
 let senhaClienteReal = "";
+let filtroAtual = "ATIVOS";
 
 /* LOGIN */
 async function login(){
@@ -148,6 +160,8 @@ async function login(){
 /* CONSULTA */
 async function consultar(){
   resultado.innerHTML="";
+  filtros.classList.add("hidden");
+
   let q = busca.value.replace(/\D/g,"");
   let isCPF = q.length === 11;
 
@@ -170,26 +184,38 @@ async function consultar(){
   }
 }
 
-/* CONFIRMA SENHA CPF */
+/* CONFIRMAR SENHA */
 function confirmarSenha(){
   if(senhaCliente.value !== senhaClienteReal){
     alert("Senha incorreta");
     return;
   }
   modalSenha.style.display="none";
+  filtros.classList.remove("hidden");
+  filtrar("ATIVOS");
+}
+
+/* FILTRO */
+function filtrar(tipo){
+  filtroAtual = tipo;
   mostrarCarteira();
 }
 
 /* MOSTRAR CPF */
 function mostrarCarteira(){
-  resultado.innerHTML = vouchersCPF.map(v=>`
-    <div class="box">
-      <b>Voucher:</b> ${v.codigo}<br>
-      Saldo: R$ ${v.saldo}<br>
-      <span class="badge ${v.status}">${v.status}</span><br><br>
-      ${v.saldo>0 ? `<button onclick="finalizar('${v.codigo}')">Finalizar</button>`:''}
-    </div>
-  `).join("");
+  resultado.innerHTML = vouchersCPF
+    .filter(v=>{
+      if(filtroAtual==="ATIVOS") return v.status!=="RESGATADO";
+      return v.status==="RESGATADO";
+    })
+    .map(v=>`
+      <div class="box">
+        <b>Voucher:</b> ${v.codigo}<br>
+        Saldo: R$ ${v.saldo}<br>
+        <span class="badge ${v.status}">${v.status}</span><br><br>
+        ${v.saldo>0 ? `<button onclick="finalizar('${v.codigo}')">Finalizar</button>`:''}
+      </div>
+    `).join("");
 }
 
 /* MOSTRAR CÓDIGO */
@@ -221,7 +247,7 @@ async function finalizar(codigo){
   consultar();
 }
 
-/* IMPRESSÃO REAL — 2 PÁGINAS = 2 CORTES */
+/* IMPRESSÃO */
 function imprimirDuasVias(v){
   let cpfMasc = v.cpf.substring(0,3)+"***";
 
@@ -248,10 +274,7 @@ function imprimirDuasVias(v){
     <div class="page-break"></div>
     ${pagina("VIA DO RESTAURANTE",cpfMasc)}
     <script>
-      window.onload=function(){
-        window.print();
-        window.close();
-      }
+      window.onload=function(){window.print();window.close();}
     <\/script>
   `);
 }
