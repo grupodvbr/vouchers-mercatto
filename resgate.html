@@ -2,39 +2,44 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Resgate & Extrato • Mercatto</title>
+<title>Consulta & Resgate • Voucher Mercatto</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root{
-  --bg:#0b0b0b;
-  --card:#141414;
+  --bg:#000;
+  --card:#111;
   --gold:#d4af37;
+  --gold2:#b48a2b;
+  --radius:14px;
 }
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
-body{background:var(--bg);color:#fff;padding:20px}
+body{background:#000;color:#fff;padding:24px}
 .hidden{display:none}
 
 .card{
-  max-width:960px;
-  margin:20px auto;
   background:var(--card);
-  border:1px solid var(--gold);
-  border-radius:16px;
+  border:1px solid var(--gold2);
+  border-radius:var(--radius);
   padding:24px;
+  max-width:960px;
+  margin:30px auto;
 }
+
+h1,h2{color:var(--gold);margin-bottom:14px}
 
 input,button{
   width:100%;
   padding:14px;
   margin-bottom:12px;
-  background:#111;
-  border:1px solid var(--gold);
+  background:#1a1a1a;
+  border:1px solid var(--gold2);
   color:#fff;
-  border-radius:12px;
+  border-radius:10px;
+  font-size:15px;
 
   /* 🔒 */
   autocomplete:off;
@@ -44,20 +49,32 @@ input,button{
 }
 
 button{
-  background:var(--gold);
+  background:linear-gradient(135deg,#b48a2b,#d4af37);
   color:#000;
   font-weight:800;
   cursor:pointer;
 }
 
-.box{
-  background:#181818;
-  border-left:4px solid var(--gold);
+.result{
+  background:#121212;
   padding:14px;
-  border-radius:12px;
-  margin-top:12px;
+  border-left:4px solid var(--gold);
+  margin-top:14px;
+  border-radius:10px;
 }
 
+.badge{
+  display:inline-block;
+  font-size:12px;
+  padding:4px 10px;
+  border-radius:20px;
+  font-weight:800;
+}
+.ATIVO{background:#1f7a4a}
+.PARCIAL{background:#9a6b00}
+.RESGATADO{background:#8a1f1f}
+
+/* IMPRESSÃO TÉRMICA */
 @media print{
   body{background:#fff;color:#000}
   .no-print{display:none}
@@ -79,6 +96,7 @@ button{
   <input id="loginUser" placeholder="Usuário">
   <input id="loginPass" type="password" placeholder="Senha">
   <button onclick="login()">Entrar</button>
+  <p id="loginMsg" style="color:#ff6666"></p>
 </div>
 
 <!-- SISTEMA -->
@@ -87,10 +105,10 @@ button{
 
 <h1>Consulta & Resgate</h1>
 
-<input id="busca" placeholder="CPF ou Código">
+<input id="busca" placeholder="CPF ou Código do Voucher">
 <button onclick="consultar()">Consultar</button>
 
-<div id="resumo" class="hidden"></div>
+<div id="resultado"></div>
 
 </div>
 </div>
@@ -102,8 +120,7 @@ const sb = supabase.createClient(
 );
 
 let operador=null;
-let consultaAtual=null;
-let evtSource=null;
+let vouchers=[];
 
 /* LOGIN */
 async function login(){
@@ -112,7 +129,10 @@ async function login(){
     .eq("usuario",loginUser.value)
     .eq("senha",loginPass.value);
 
-  if(!data.length){alert("Acesso inválido");return;}
+  if(!data.length){
+    loginMsg.innerText="Usuário ou senha inválidos";
+    return;
+  }
 
   operador=data[0].usuario;
   loginUser.value="";
@@ -123,63 +143,85 @@ async function login(){
 
 /* CONSULTA */
 async function consultar(){
-  resumo.innerHTML="";
-  resumo.classList.add("hidden");
+  resultado.innerHTML="";
+  vouchers=[];
 
-  const q=busca.value.replace(/\D/g,"");
-  consultaAtual=q;
+  let q=busca.value.replace(/\D/g,"");
 
   const {data}=await sb.from("vouchers")
     .select("*")
-    .or(`cpf.eq.${q},codigo.eq.${q}`)
+    .or(`codigo.eq.${q},cpf.eq.${q}`)
     .order("data_emissao",{ascending:true});
 
   if(!data.length){
-    resumo.innerHTML="<div class='box'>Nada encontrado</div>";
-    resumo.classList.remove("hidden");
+    resultado.innerHTML="<div class='result'>Nada encontrado</div>";
     return;
   }
 
-  renderResumo(data);
-  iniciarSSE(q);
-}
+  vouchers=data;
+  let saldoTotal=vouchers.reduce((s,v)=>s+Number(v.saldo),0);
 
-/* RENDER */
-function renderResumo(vouchers){
-  const saldo=vouchers.reduce((s,v)=>s+Number(v.saldo),0);
-
-  resumo.innerHTML=`
-    <div class="box">
-      <h2>Saldo Total</h2>
-      <h1>R$ ${saldo.toLocaleString("pt-BR",{minimumFractionDigits:2})}</h1>
+  resultado.innerHTML=`
+    <div class="result">
+      <b>CPF:</b> ${vouchers[0].cpf}<br>
+      <b>Saldo Total:</b> R$ ${saldoTotal.toLocaleString("pt-BR",{minimumFractionDigits:2})}
     </div>
 
     ${vouchers.map(v=>`
-      <div class="box">
-        Código: ${v.codigo}<br>
-        Saldo: R$ ${Number(v.saldo).toLocaleString("pt-BR",{minimumFractionDigits:2})}
+      <div class="result">
+        <b>Código:</b> ${v.codigo}<br>
+        Valor: R$ ${Number(v.valor).toLocaleString("pt-BR",{minimumFractionDigits:2})}<br>
+        Saldo: R$ ${Number(v.saldo).toLocaleString("pt-BR",{minimumFractionDigits:2})}<br>
+        Pagamento: ${v.forma_pagamento}<br>
+        <span class="badge ${v.status}">${v.status}</span><br><br>
+        ${v.saldo>0?`
+          <button onclick="resgatar('${v.codigo}')">Resgatar</button>
+        `:""}
       </div>
     `).join("")}
   `;
-
-  resumo.classList.remove("hidden");
 }
 
-/* SSE */
-function iniciarSSE(chave){
-  if(evtSource) evtSource.close();
+/* RESGATE */
+async function resgatar(codigo){
+  let v=vouchers.find(x=>x.codigo===codigo);
+  if(!v||v.saldo<=0) return;
 
-  evtSource=new EventSource(`/api/sse-resgates?chave=${chave}`);
+  let valor=prompt(
+    `Saldo disponível: R$ ${v.saldo.toLocaleString("pt-BR",{minimumFractionDigits:2})}\nQuanto deseja resgatar?`
+  );
+  if(!valor) return;
 
-  evtSource.onmessage=e=>{
-    if(e.data==="update" && consultaAtual===chave){
-      consultar();
-    }
-  };
+  valor=parseFloat(valor.replace(".","").replace(",","."));
+  if(valor<=0||valor>v.saldo){
+    alert("Valor inválido");
+    return;
+  }
+
+  let novoSaldo=v.saldo-valor;
+  let status=novoSaldo===0?"RESGATADO":"PARCIAL";
+
+  await sb.from("vouchers").update({
+    saldo:novoSaldo,
+    valor_resgatado:(v.valor_resgatado||0)+valor,
+    status,
+    data_resgate:new Date().toISOString(),
+    usuario_resgate:operador
+  }).eq("codigo",codigo);
+
+  await sb.from("vouchers_resgates").insert({
+    codigo_voucher:codigo,
+    valor,
+    data:new Date().toISOString(),
+    operador
+  });
+
+  imprimirRecibo(v,valor);
+  consultar();
 }
 
 /* IMPRESSÃO */
-function imprimirTermica(v,valor){
+function imprimirRecibo(v,valor){
   const html=`
   <div class="via">
     <center><b>MERCATTO DELÍCIA</b><br>VIA CLIENTE</center><br>
@@ -197,6 +239,7 @@ function imprimirTermica(v,valor){
     ${new Date().toLocaleString("pt-BR")}
   </div>
   `;
+
   const w=window.open("");
   w.document.write(`<body>${html}</body>`);
   w.document.close();
