@@ -78,14 +78,12 @@ button{
 
 <!-- SISTEMA -->
 <div id="sistema" class="hidden">
-
-<div class="card">
-  <h1>Consulta de Carteira</h1>
-  <input id="busca" placeholder="Digite CPF ou Código do Voucher">
-  <button onclick="consultar()">Consultar</button>
-  <div id="resultado"></div>
-</div>
-
+  <div class="card">
+    <h1>Consulta de Carteira</h1>
+    <input id="busca" placeholder="Digite CPF ou Código do Voucher">
+    <button onclick="consultar()">Consultar</button>
+    <div id="resultado"></div>
+  </div>
 </div>
 
 <!-- IMPRESSÃO -->
@@ -145,7 +143,7 @@ async function consultar(){
         Pagamento: ${v.forma_pagamento}<br>
         <span class="badge ${v.status}">${v.status}</span><br><br>
         ${(v.saldo ?? v.valor)>0 ? `
-          <button onclick="resgatar('${v.codigo}',${(v.saldo ?? v.valor)})">
+          <button onclick="resgatar('${v.codigo}',${(v.saldo ?? v.valor)},'${v.senha_cliente}')">
             Resgatar
           </button>` : ``}
       </div>
@@ -153,10 +151,17 @@ async function consultar(){
   `;
 }
 
-/* RESGATE */
-async function resgatar(codigo,saldo){
+/* RESGATE COM SENHA */
+async function resgatar(codigo,saldo,senhaReal){
+  let senha = prompt("Digite a senha de 4 dígitos do cliente:");
+  if(!senha || senha!==senhaReal){
+    alert("Senha inválida");
+    return;
+  }
+
   let valor = prompt(`Saldo disponível: R$ ${saldo.toFixed(2)}\nQuanto deseja resgatar?`);
   valor = parseFloat(valor.replace(",","."));
+
   if(!valor || valor<=0 || valor>saldo){
     alert("Valor inválido");
     return;
