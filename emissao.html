@@ -181,54 +181,119 @@ const sb = supabase.createClient(
 function show(){overlayLoad.style.display="flex"}
 function hide(){overlayLoad.style.display="none"}
 
+/* LOGIN */
 async function login(){
-  const { data } = await sb.from("usuarios")
-    .select("*").eq("usuario",loginUser.value).eq("senha",loginPass.value);
-  if(!data.length){loginMsg.innerText="Inválido";return}
+  const { data, error } = await sb
+    .from("usuarios")
+    .select("*")
+    .eq("usuario",loginUser.value)
+    .eq("senha",loginPass.value);
+
+  if(error || !data.length){
+    loginMsg.innerText="Usuário ou senha inválidos";
+    return;
+  }
+
   localStorage.setItem("user",loginUser.value);
   loginCard.classList.add("hidden");
   sistema.classList.remove("hidden");
 }
-function logout(){localStorage.clear();location.reload()}
 
+function logout(){
+  localStorage.clear();
+  location.reload();
+}
+
+/* GERAR CÓDIGO ÚNICO (GARANTIDO) */
+async function gerarCodigoUnico(){
+  while(true){
+    let codigo = Math.floor(100000000 + Math.random()*900000000).toString();
+
+    const { data, error } = await sb
+      .from("vouchers")
+      .select("id")
+      .eq("codigo",codigo)
+      .limit(1);
+
+    if(error) throw error;
+    if(!data.length) return codigo; // único
+  }
+}
+
+/* EMISSÃO */
 async function emitir(){
   show();
 
-  let cpfLimpo = cpf.value.replace(/\D/g,"");
-  let valorNum = (parseInt(valor.value.replace(/\D/g,""))/100).toFixed(2);
-  let codigo = Math.floor(100000000+Math.random()*900000000).toString();
+  try{
+    let nome = cliente.value.trim();
+    let cpfLimpo = cpf.value.replace(/\D/g,"");
+    let telefoneVal = telefone.value.trim();
+    let valorNum = (parseInt(valor.value.replace(/\D/g,""))/100).toFixed(2);
+    let formaPag = formaPagamento.value;
 
-  const { error } = await sb.from("vouchers").insert([{
-    codigo,
-    cliente:cliente.value,
-    cpf:cpfLimpo,
-    telefone:telefone.value,
-    valor:valorNum,
-    saldo:valorNum,
-    forma_pagamento:formaPagamento.value,
-    data_emissao:new Date().toISOString(),
-    usuario_emissao:localStorage.getItem("user"),
-    status:"ATIVO"
-  }]);
+    if(!nome || !cpfLimpo || !valorNum || !formaPag){
+      hide();
+      alert("Preencha todos os campos obrigatórios");
+      return;
+    }
 
-  hide();
-  if(error){alert(error.message);return}
+    // 🔐 gera código único real
+    let codigo = await gerarCodigoUnico();
 
-  v_nome.innerHTML="<b>Cliente:</b> "+cliente.value;
-  v_codigo.innerHTML="<b>Código:</b> "+codigo;
-  v_pagamento.innerHTML="<b>Pagamento:</b> "+formaPagamento.value;
-  v_valor.innerHTML="<b>Valor:</b> R$ "+valorNum;
-  valorGrande.innerText=valorNum;
-  codigoNumerico.innerText=codigo;
+    // 🔥 INSERT REAL
+    const { error } = await sb.from("vouchers").insert([{
+      codigo,
+      cliente: nome,
+      cpf: cpfLimpo,
+      telefone: telefoneVal,
+      valor: valorNum,
+      saldo: valorNum,
+      forma_pagamento: formaPag,
+      data_emissao: new Date().toISOString(),
+      usuario_emissao: localStorage.getItem("user"),
+      status: "ATIVO"
+    }]);
 
-  JsBarcode("#barcode",codigo,{format:"CODE128",width:2,height:42});
-  voucherPNG.style.display="block";
-  btnPNG.classList.remove("hidden");
-  btnWhats.classList.remove("hidden");
+    if(error){
+      hide();
+      alert("ERRO AO SALVAR:\n" + error.message);
+      return;
+    }
 
-  window.voucherAtual={codigo,nome:cliente.value,valor:valorNum,tel:telefone.value};
+    // ✅ SÓ CHEGA AQUI SE SALVOU
+    v_nome.innerHTML = "<b>Cliente:</b> " + nome;
+    v_codigo.innerHTML = "<b>Código:</b> " + codigo;
+    v_pagamento.innerHTML = "<b>Pagamento:</b> " + formaPag;
+    v_valor.innerHTML = "<b>Valor:</b> R$ " + valorNum;
+    valorGrande.innerText = valorNum;
+    codigoNumerico.innerText = codigo;
+
+    JsBarcode("#barcode", codigo, {
+      format:"CODE128",
+      width:2,
+      height:42,
+      displayValue:false
+    });
+
+    voucherPNG.style.display="block";
+    btnPNG.classList.remove("hidden");
+    btnWhats.classList.remove("hidden");
+
+    window.voucherAtual = {
+      codigo,
+      nome,
+      valor: valorNum,
+      tel: telefoneVal
+    };
+
+  }catch(err){
+    alert("Erro inesperado:\n" + err.message);
+  }finally{
+    hide();
+  }
 }
 
+/* PNG */
 function baixarPNG(){
   html2canvas(voucherPNG,{scale:3}).then(c=>{
     let a=document.createElement("a");
@@ -237,17 +302,36 @@ function baixarPNG(){
     a.click();
   });
 }
+
+/* WHATS */
 function enviarWhats(){
-  let tel=voucherAtual.tel.replace(/\D/g,"");
-  let msg=`Voucher Mercatto%0ACódigo: ${voucherAtual.codigo}%0ACliente: ${voucherAtual.nome}%0AValor: R$ ${voucherAtual.valor}`;
+  let tel = voucherAtual.tel.replace(/\D/g,"");
+  let msg =
+    `Voucher Mercatto%0A`+
+    `Código: ${voucherAtual.codigo}%0A`+
+    `Cliente: ${voucherAtual.nome}%0A`+
+    `Valor: R$ ${voucherAtual.valor}`;
   window.open(`https://wa.me/55${tel}?text=${msg}`);
 }
 
 /* MÁSCARAS */
-function maskCPF(el){el.value=el.value.replace(/\D/g,"").replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d{1,2})$/,"$1-$2")}
-function maskPhone(el){el.value=el.value.replace(/\D/g,"").replace(/(\d{2})(\d)/,"($1) $2").replace(/(\d{5})(\d)/,"$1-$2")}
-function maskValor(el){let v=el.value.replace(/\D/g,"");el.value="R$ "+(v/100).toFixed(2).replace(".",",")}
+function maskCPF(el){
+  el.value = el.value.replace(/\D/g,"")
+    .replace(/(\d{3})(\d)/,"$1.$2")
+    .replace(/(\d{3})(\d)/,"$1.$2")
+    .replace(/(\d{3})(\d{1,2})$/,"$1-$2");
+}
+function maskPhone(el){
+  el.value = el.value.replace(/\D/g,"")
+    .replace(/(\d{2})(\d)/,"($1) $2")
+    .replace(/(\d{5})(\d)/,"$1-$2");
+}
+function maskValor(el){
+  let v = el.value.replace(/\D/g,"");
+  el.value = "R$ " + (v/100).toFixed(2).replace(".",",");
+}
 </script>
+
 
 </body>
 </html>
