@@ -17,7 +17,6 @@ content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
   --gold:#d4af37;
   --gold2:#b48a2b;
   --ok:#2ecc71;
-  --warn:#f39c12;
   --danger:#e74c3c;
   --radius:16px;
 }
@@ -123,15 +122,6 @@ button{
   </div>
 </div>
 
-<!-- MODAL ADMIN -->
-<div id="modalAdmin" class="modal">
-  <div class="modal-box">
-    <h3>Senha do Administrador</h3>
-    <input id="senhaAdmin" type="password" placeholder="Senha Admin">
-    <button onclick="confirmarAdmin()">Confirmar</button>
-  </div>
-</div>
-
 <script>
 const sb = supabase.createClient(
   "https://ckkqcxbzfkjzicvoeehw.supabase.co",
@@ -139,8 +129,8 @@ const sb = supabase.createClient(
 );
 
 let usuarioLogado = {};
-let contexto = {};
-let senhaRealCliente = "";
+let vouchersCPF = [];
+let senhaReal = "";
 
 /* LOGIN */
 async function login(){
@@ -160,7 +150,7 @@ async function login(){
 async function consultar(){
   resultado.innerHTML="";
   let q = busca.value.replace(/\D/g,"");
-  let isCPF = q.length===11;
+  let isCPF = q.length === 11;
 
   const { data } = await sb.from("vouchers")
     .select("*")
@@ -173,42 +163,38 @@ async function consultar(){
   }
 
   if(isCPF){
-    senhaRealCliente = data[0].senha_cliente;
-    contexto = { tipo:"CPF", vouchers:data };
+    vouchersCPF = data;
+    senhaReal = data[0].senha_cliente || "";
     modalSenha.style.display="flex";
   }else{
     mostrarVoucher(data[0]);
   }
 }
 
-/* CONFIRMAR SENHA CLIENTE */
+/* CONFIRMA SENHA CLIENTE */
 function confirmarSenhaCliente(){
-  if(senhaCliente.value !== senhaRealCliente){
-    alert("Senha inválida");
+  if(!senhaReal || senhaCliente.value !== senhaReal){
+    alert("Senha incorreta");
     return;
   }
   modalSenha.style.display="none";
-  mostrarCarteira(contexto.vouchers);
+  mostrarCarteira();
 }
 
-/* MOSTRAR CARTEIRA */
-function mostrarCarteira(vs){
-  let saldo = vs.reduce((s,v)=>s+Number(v.saldo),0);
-  resultado.innerHTML = `
-    <div class="box"><b>Saldo Total:</b> R$ ${saldo.toFixed(2)}</div>
-    ${vs.map(v=>`
-      <div class="box">
-        <b>Voucher:</b> ${v.codigo}<br>
-        Valor: R$ ${v.valor}<br>
-        Saldo: R$ ${v.saldo}<br>
-        <span class="badge ${v.status}">${v.status}</span><br><br>
-        ${v.saldo>0 ? `<button onclick="resgatar('${v.codigo}',${v.saldo},'${v.cpf}','${v.cliente}')">Resgatar</button>`:''}
-      </div>
-    `).join("")}
-  `;
+/* MOSTRAR CPF */
+function mostrarCarteira(){
+  resultado.innerHTML = vouchersCPF.map(v=>`
+    <div class="box">
+      <b>Voucher:</b> ${v.codigo}<br>
+      Valor: R$ ${v.valor}<br>
+      Saldo: R$ ${v.saldo}<br>
+      <span class="badge ${v.status}">${v.status}</span><br><br>
+      ${v.saldo>0 ? `<button onclick="finalizar('${v.codigo}')">Finalizar</button>` : ``}
+    </div>
+  `).join("");
 }
 
-/* MOSTRAR POR CÓDIGO */
+/* MOSTRAR CÓDIGO */
 function mostrarVoucher(v){
   resultado.innerHTML=`
     <div class="box">
@@ -216,76 +202,59 @@ function mostrarVoucher(v){
       <b>Código:</b> ${v.codigo}<br>
       <b>Saldo:</b> R$ ${v.saldo}<br>
       <span class="badge ${v.status}">${v.status}</span><br><br>
-      ${v.saldo>0 ? `<button onclick="resgatar('${v.codigo}',${v.saldo},'${v.cpf}','${v.cliente}',true)">Resgatar</button>`:''}
+      ${v.saldo>0 ? `<button onclick="finalizar('${v.codigo}')">Finalizar</button>` : ``}
     </div>
   `;
 }
 
-/* RESGATE */
-async function resgatar(codigo,saldo,cpf,nome,porCodigo=false){
-  let valor = saldo;
-
-  if(porCodigo && usuarioLogado.perfil==="ADMIN"){
-    contexto={codigo,saldo,cpf,nome};
-    modalAdmin.style.display="flex";
-    return;
-  }
-
-  efetivar(codigo,valor,cpf,nome);
-}
-
-/* CONFIRMAR ADMIN */
-function confirmarAdmin(){
-  if(senhaAdmin.value!==usuarioLogado.senha){
-    alert("Senha admin inválida"); return;
-  }
-  modalAdmin.style.display="none";
-  let v = prompt("Valor do resgate:");
-  efetivar(contexto.codigo,Number(v),contexto.cpf,contexto.nome);
-}
-
-/* EFETIVAR */
-async function efetivar(codigo,valor,cpf,nome){
+/* FINALIZAR */
+async function finalizar(codigo){
   const { data } = await sb.from("vouchers").select("*").eq("codigo",codigo);
-  let v=data[0];
-
-  let novo=v.saldo-valor;
-  let status=novo===0?"RESGATADO":"PARCIAL";
+  let v = data[0];
 
   await sb.from("vouchers").update({
-    saldo:novo,
-    status,
+    saldo:0,
+    status:"RESGATADO",
     data_resgate:new Date().toISOString(),
     usuario_resgate:usuarioLogado.usuario
   }).eq("codigo",codigo);
 
-  imprimirRecibo(nome,cpf,codigo,valor,novo);
+  imprimirRecibo(v);
   consultar();
 }
 
-/* RECIBO 2 VIAS COM CORTE */
-function imprimirRecibo(nome,cpf,codigo,valor,saldo){
-  let cpfMask=cpf.substring(0,3)+"***";
+/* IMPRESSÃO – 2 VIAS + CORTE */
+function imprimirRecibo(v){
+  let cpfMasc = v.cpf.substring(0,3)+"***";
 
-  const via=(t,cpfShow)=>`
+  const via = (titulo,cpfShow)=>`
   <div style="width:240px;font-family:monospace;font-size:13px">
-    <center><b>MERCATTO DELÍCIA</b><br>${t}<br>----------------</center>
-    Cliente: ${nome}<br>
+    <center>
+      <b>MERCATTO DELÍCIA</b><br>
+      ${titulo}<br>
+      -----------------------
+    </center>
+    Cliente: ${v.cliente}<br>
     CPF: ${cpfShow}<br>
-    Código: ${codigo}<br>
-    Valor: R$ ${valor.toFixed(2)}<br>
-    Saldo: R$ ${saldo.toFixed(2)}<br>
+    Código: ${v.codigo}<br>
+    Valor: R$ ${v.valor}<br>
     Operador: ${usuarioLogado.usuario}<br>
     Data: ${new Date().toLocaleString("pt-BR")}<br>
-    ----------------
+    -----------------------
   </div>`;
 
-  let w=window.open("","","width=260,height=700");
+  let w = window.open("","","width=260,height=800");
   w.document.write(`
-    ${via("VIA DO CLIENTE",cpf)}
-    <br><center>✂️ CORTE AQUI ✂️</center><br>
-    ${via("VIA DO RESTAURANTE",cpfMask)}
-    <script>window.onload=()=>{window.print();window.close();}<\/script>
+    ${via("VIA DO CLIENTE",v.cpf)}
+    <br><center> CORTE AQUI </center><br>
+    ${via("VIA DO RESTAURANTE",cpfMasc)}
+    <script>
+      window.onload=()=>{
+        window.print();
+        setTimeout(()=>window.print(),600);
+        setTimeout(()=>window.close(),1200);
+      }
+    <\/script>
   `);
 }
 </script>
