@@ -5,8 +5,6 @@
 <title>Minha Carteira • Mercatto Delícia</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-
-<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0b0b0b">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -78,7 +76,10 @@ button{
 .saldo-label{font-size:13px;color:var(--muted)}
 .saldo{font-size:34px;font-weight:800;color:var(--ok)}
 
-.mov{padding:14px 0;border-bottom:1px dashed #333}
+.mov{
+  padding:14px 0;
+  border-bottom:1px dashed #333;
+}
 .mov:last-child{border:none}
 .linha{display:flex;justify-content:space-between}
 .badge{
@@ -88,6 +89,7 @@ button{
   border-radius:20px;
   font-size:11px;
   font-weight:800;
+  background:#333;
 }
 </style>
 </head>
@@ -96,12 +98,11 @@ button{
 
 <!-- LOGIN -->
 <div id="loginCard" class="card">
-  <img src="logo.png" style="width:120px;display:block;margin:auto;margin-bottom:10px">
   <h1>Minha Carteira</h1>
   <p class="sub">Digite seu CPF e senha</p>
 
   <input id="cpf" placeholder="CPF" oninput="maskCPF(this)">
-  <input id="senha" type="password" placeholder="Senha">
+  <input id="senha" type="password" placeholder="Senha (4 dígitos)">
 
   <label style="font-size:13px;color:var(--muted)">
     <input type="checkbox" id="lembrar"> Lembrar meu acesso
@@ -113,8 +114,8 @@ button{
 
 <!-- PRIMEIRO ACESSO -->
 <div id="senhaCard" class="card hidden">
-  <h2>Primeiro acesso</h2>
-  <p class="sub">Crie uma senha de 4 números</p>
+  <h2>Criar senha</h2>
+  <p class="sub">Defina uma senha de 4 números</p>
 
   <input id="senhaNova" maxlength="4" type="password" placeholder="Senha (4 dígitos)">
   <button onclick="criarSenha()">Salvar senha</button>
@@ -142,25 +143,22 @@ const sb = supabase.createClient(
 
 let CPF_ATUAL = "";
 
-/* AUTO LOGIN SE TIVER CPF + SENHA */
+/* AUTO LOGIN */
 window.onload = async () => {
   const cpfSalvo = localStorage.getItem("cpf_logado");
   if(!cpfSalvo) return;
 
-  const { data } = await sb.from("vouchers")
-    .select("senha_cliente")
-    .eq("cpf", cpfSalvo)
-    .limit(1);
-
-  if(data?.[0]?.senha_cliente){
-    CPF_ATUAL = cpfSalvo;
-    carregarCarteira();
-  }
+  CPF_ATUAL = cpfSalvo;
+  loginComSenha(true);
 };
 
 /* LOGIN */
 async function entrar(){
   CPF_ATUAL = cpf.value.replace(/\D/g,"");
+  loginComSenha(false);
+}
+
+async function loginComSenha(auto){
   if(CPF_ATUAL.length !== 11){
     msg.innerText = "CPF inválido";
     return;
@@ -175,7 +173,7 @@ async function entrar(){
     return;
   }
 
-  const senhaDB = data[0].senha_cliente;
+  const senhaDB = data[0].senha_cliente || "";
 
   loginCard.classList.add("hidden");
 
@@ -184,17 +182,17 @@ async function entrar(){
     return;
   }
 
-  if(senha.value !== senhaDB){
-    loginCard.classList.remove("hidden");
+  if(!auto && senha.value !== senhaDB){
     msg.innerText = "Senha incorreta";
+    loginCard.classList.remove("hidden");
     return;
   }
 
-  if(lembrar.checked){
+  if(lembrar.checked || auto){
     localStorage.setItem("cpf_logado", CPF_ATUAL);
   }
 
-  carregarCarteira();
+  carregarCarteira(data);
 }
 
 /* CRIAR SENHA */
@@ -210,21 +208,18 @@ async function criarSenha(){
 
   localStorage.setItem("cpf_logado", CPF_ATUAL);
   senhaCard.classList.add("hidden");
-  carregarCarteira();
+
+  const { data } = await sb.from("vouchers").select("*").eq("cpf",CPF_ATUAL);
+  carregarCarteira(data);
 }
 
 /* CARTEIRA */
-async function carregarCarteira(){
+function carregarCarteira(data){
   carteira.classList.remove("hidden");
-
-  const { data } = await sb.from("vouchers")
-    .select("*")
-    .eq("cpf", CPF_ATUAL)
-    .order("data_emissao",{ascending:false});
 
   boasVindas.innerText = `Olá, ${data[0].cliente}`;
 
-  const saldo = data.reduce((s,v)=>s+(v.saldo ?? v.valor),0);
+  const saldo = data.reduce((s,v)=>s + Number(v.saldo || 0),0);
   saldoTotal.innerText = saldo.toLocaleString("pt-BR",{minimumFractionDigits:2});
 
   extrato.innerHTML = data.map(v=>`
@@ -233,8 +228,12 @@ async function carregarCarteira(){
         <b>Voucher ${v.codigo}</b>
         <b>R$ ${Number(v.valor).toLocaleString("pt-BR",{minimumFractionDigits:2})}</b>
       </div>
-      <small>${new Date(v.data_emissao).toLocaleString("pt-BR")}</small>
+      <small>Emitido em ${new Date(v.data_emissao).toLocaleString("pt-BR")}</small><br>
+      <small>Saldo atual: R$ ${Number(v.saldo).toLocaleString("pt-BR",{minimumFractionDigits:2})}</small><br>
       <span class="badge">${v.status}</span>
+      ${v.valor_resgatado?`
+        <br><small>Último resgate: ${new Date(v.data_resgate).toLocaleString("pt-BR")} • ${v.usuario_resgate}</small>
+      `:""}
     </div>
   `).join("");
 }
