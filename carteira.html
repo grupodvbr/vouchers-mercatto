@@ -91,6 +91,13 @@ button{
   font-weight:800;
   background:#333;
 }
+.resgate{
+  margin-top:8px;
+  padding-left:10px;
+  border-left:3px solid var(--gold2);
+  font-size:13px;
+  color:#ddd;
+}
 </style>
 </head>
 
@@ -214,7 +221,7 @@ async function criarSenha(){
 }
 
 /* CARTEIRA */
-function carregarCarteira(data){
+async function carregarCarteira(data){
   carteira.classList.remove("hidden");
 
   boasVindas.innerText = `Olá, ${data[0].cliente}`;
@@ -222,20 +229,39 @@ function carregarCarteira(data){
   const saldo = data.reduce((s,v)=>s + Number(v.saldo || 0),0);
   saldoTotal.innerText = saldo.toLocaleString("pt-BR",{minimumFractionDigits:2});
 
-  extrato.innerHTML = data.map(v=>`
-    <div class="mov">
-      <div class="linha">
-        <b>Voucher ${v.codigo}</b>
-        <b>R$ ${Number(v.valor).toLocaleString("pt-BR",{minimumFractionDigits:2})}</b>
+  extrato.innerHTML = "";
+
+  for(const v of data){
+    const { data: resgates } = await sb
+      .from("vouchers_resgates")
+      .select("*")
+      .eq("codigo_voucher", v.codigo)
+      .order("data",{ascending:false});
+
+    extrato.innerHTML += `
+      <div class="mov">
+        <div class="linha">
+          <b>Voucher ${v.codigo}</b>
+          <b>R$ ${Number(v.valor).toLocaleString("pt-BR",{minimumFractionDigits:2})}</b>
+        </div>
+        <small>Emitido em ${new Date(v.data_emissao).toLocaleString("pt-BR")}</small><br>
+        <small>Saldo atual: R$ ${Number(v.saldo).toLocaleString("pt-BR",{minimumFractionDigits:2})}</small><br>
+        <span class="badge">${v.status}</span>
+
+        ${
+          resgates.length
+          ? resgates.map(r=>`
+            <div class="resgate">
+              − R$ ${Number(r.valor).toLocaleString("pt-BR",{minimumFractionDigits:2})}
+              • ${new Date(r.data).toLocaleString("pt-BR")}
+              • ${r.operador}
+            </div>
+          `).join("")
+          : `<div class="resgate">Nenhum resgate realizado</div>`
+        }
       </div>
-      <small>Emitido em ${new Date(v.data_emissao).toLocaleString("pt-BR")}</small><br>
-      <small>Saldo atual: R$ ${Number(v.saldo).toLocaleString("pt-BR",{minimumFractionDigits:2})}</small><br>
-      <span class="badge">${v.status}</span>
-      ${v.valor_resgatado?`
-        <br><small>Último resgate: ${new Date(v.data_resgate).toLocaleString("pt-BR")} • ${v.usuario_resgate}</small>
-      `:""}
-    </div>
-  `).join("");
+    `;
+  }
 }
 
 /* SAIR */
