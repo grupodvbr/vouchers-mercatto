@@ -226,15 +226,16 @@ function gerarVoucher(nome,val,forma,codigo,validade,emissor){
 
 /* RECIBOS COM QR */
 function imprimirRecibos(nome,cpf,codigo,valor,forma,emissor){
-  let cpfMasc=cpf.substring(0,3)+"***";
+  let cpfMasc = cpf.substring(0,3) + "***";
   let qrUrl = `${QR_BASE_URL}?cpf=${cpf}`;
 
-  const viaCliente=`
+  const viaCliente = `
   <div style="width:240px;font-family:monospace;font-size:13px">
     <center>
       <b>MERCATTO DELÍCIA</b><br>
       <b>COMPROVANTE DE EMISSÃO</b><br>
-      VIA DO CLIENTE<br>--------------------
+      VIA DO CLIENTE<br>
+      --------------------
     </center>
     Cliente: ${nome}<br>
     CPF: ${cpf}<br>
@@ -242,8 +243,9 @@ function imprimirRecibos(nome,cpf,codigo,valor,forma,emissor){
     Valor: R$ ${valor}<br>
     Pagamento: ${forma}<br>
     Emissor: ${emissor}<br><br>
+
     <center>
-      <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrUrl)}"><br>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(qrUrl)}"><br><br>
       <small>
         COMO CONSULTAR SEU SALDO:<br>
         1. Aponte a câmera para o QR Code<br>
@@ -253,12 +255,13 @@ function imprimirRecibos(nome,cpf,codigo,valor,forma,emissor){
     </center>
   </div>`;
 
-  const viaMercatto=`
+  const viaMercatto = `
   <div style="width:240px;font-family:monospace;font-size:13px">
     <center>
       <b>MERCATTO DELÍCIA</b><br>
       <b>COMPROVANTE DE EMISSÃO</b><br>
-      VIA DO MERCATTO<br>--------------------
+      VIA DO MERCATTO<br>
+      --------------------
     </center>
     Cliente: ${nome}<br>
     CPF: ${cpfMasc}<br>
@@ -267,13 +270,39 @@ function imprimirRecibos(nome,cpf,codigo,valor,forma,emissor){
     Emissor: ${emissor}<br>
   </div>`;
 
-  let w=window.open("","","width=260,height=800");
+  // ✅ ABRE A JANELA IMEDIATAMENTE (GESTO DO USUÁRIO)
+  const w = window.open("", "_blank", "width=260,height=800");
+
+  if(!w){
+    alert("⚠️ O navegador bloqueou a impressão. Permita pop-ups.");
+    return;
+  }
+
+  w.document.open();
   w.document.write(`
-    ${viaCliente}
-    <div style="page-break-after:always"></div>
-    ${viaMercatto}
-    <script>window.onload=()=>{window.print();window.close()}<\/script>
+    <html>
+      <head>
+        <title>Comprovante</title>
+        <style>
+          body{margin:0;padding:0}
+          .page-break{page-break-after:always}
+        </style>
+      </head>
+      <body>
+        ${viaCliente}
+        <div class="page-break"></div>
+        ${viaMercatto}
+      </body>
+    </html>
   `);
+  w.document.close();
+
+  // ✅ GARANTE QUE A IMPRESSÃO OCORRA
+  w.focus();
+  setTimeout(()=>{
+    w.print();
+    w.close();
+  }, 500);
 }
 
 /* PDF */
