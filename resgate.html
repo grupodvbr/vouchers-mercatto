@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Resgate de Voucher • Mercatto</title>
+<title>Resgate & Extrato • Mercatto</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -21,12 +21,13 @@ body{background:var(--bg);color:#fff;padding:20px}
 .hidden{display:none}
 
 .card{
-  max-width:900px;margin:24px auto;
+  max-width:980px;margin:24px auto;
   background:var(--card);
   border:1px solid var(--gold2);
   border-radius:var(--radius);
-  padding:28px;
+  padding:26px;
 }
+
 h1,h2{color:var(--gold);margin-bottom:16px}
 
 input{
@@ -36,7 +37,8 @@ input{
   margin-bottom:12px;font-size:15px;
 }
 button{
-  padding:14px 22px;
+  width:100%;
+  padding:14px;
   background:var(--gold);color:#000;
   border:none;border-radius:12px;
   font-weight:800;cursor:pointer;
@@ -46,26 +48,19 @@ button{
   background:#181818;
   border-left:4px solid var(--gold);
   border-radius:12px;
-  padding:16px;margin-top:14px;
+  padding:14px;
+  margin-top:12px;
 }
 
-.modal{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.75);
-  display:none;align-items:center;justify-content:center;
-  z-index:99;
-}
-.modal-box{
-  width:380px;background:#111;
-  border:2px solid var(--gold);
-  border-radius:14px;padding:22px;
-}
+hr{border:none;border-top:1px solid #333;margin:14px 0}
+
+.small{font-size:12px;color:#bbb}
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
+<!-- LOGIN OPERADOR -->
 <div id="loginCard" class="card">
   <h2>Acesso Operador</h2>
   <input id="loginUser" placeholder="Usuário">
@@ -75,35 +70,33 @@ button{
 
 <!-- SISTEMA -->
 <div id="sistema" class="hidden">
-  <div class="card">
-    <h1>Consulta & Resgate</h1>
+<div class="card">
 
-    <input id="busca" placeholder="CPF ou Código do Voucher">
-    <button onclick="consultar()">Consultar</button>
+<h1>Consulta • Extrato • Resgate</h1>
 
-    <!-- CPF -->
-    <div id="resumoCPF" class="hidden">
-      <div class="box">
-        <h2>Saldo disponível</h2>
-        <h1 id="saldoTotal">R$ 0,00</h1>
+<input id="busca" placeholder="CPF ou Código do Voucher">
+<button onclick="consultar()">Consultar</button>
 
-        <input id="valorResgate" placeholder="Valor a resgatar (R$)">
-        <button onclick="resgatarParcial()">Resgatar</button>
-      </div>
-    </div>
+<!-- RESUMO CPF -->
+<div id="resumoCPF" class="hidden">
+  <div class="box">
+    <h2>Saldo disponível</h2>
+    <h1 id="saldoTotal">R$ 0,00</h1>
 
-    <!-- CÓDIGO -->
-    <div id="resultadoCodigo"></div>
+    <input id="valorResgate" placeholder="Valor a resgatar (R$)">
+    <button onclick="resgatarCPF()">Resgatar</button>
+  </div>
+
+  <div class="box">
+    <h2>Extrato de Vouchers</h2>
+    <div id="extrato"></div>
   </div>
 </div>
 
-<!-- SENHA CLIENTE -->
-<div id="modalSenha" class="modal">
-  <div class="modal-box">
-    <h3>Senha do Cliente</h3>
-    <input id="senhaCliente" type="password" maxlength="4">
-    <button onclick="confirmarSenha()">Confirmar</button>
-  </div>
+<!-- RESULTADO CÓDIGO -->
+<div id="resultadoCodigo"></div>
+
+</div>
 </div>
 
 <script>
@@ -112,13 +105,19 @@ const sb = supabase.createClient(
   "sb_publishable_djiQsCSrnLUm0iA_eNjjMw__7rfP11m"
 );
 
-let operador={}, vouchers=[], senhaOK=false;
+let operador=null;
+let vouchers=[];
+let modoCPF=false;
 
 /* LOGIN */
 async function login(){
   let {data}=await sb.from("usuarios")
-    .select("*").eq("usuario",loginUser.value).eq("senha",loginPass.value);
-  if(!data.length) return alert("Inválido");
+    .select("*")
+    .eq("usuario",loginUser.value)
+    .eq("senha",loginPass.value);
+
+  if(!data.length){ alert("Login inválido"); return; }
+
   operador=data[0];
   loginCard.classList.add("hidden");
   sistema.classList.remove("hidden");
@@ -126,16 +125,17 @@ async function login(){
 
 /* CONSULTA */
 async function consultar(){
-  senhaOK=false;
   resumoCPF.classList.add("hidden");
   resultadoCodigo.innerHTML="";
+  extrato.innerHTML="";
+  vouchers=[];
 
-  let q=busca.value.replace(/\D/g,"");
-  let isCPF=q.length===11;
+  let q = busca.value.replace(/\D/g,"");
+  modoCPF = q.length===11;
 
   let {data}=await sb.from("vouchers")
     .select("*")
-    .or(`codigo.eq.${q},cpf.eq.${q}`)
+    .or(`cpf.eq.${q},codigo.eq.${q}`)
     .order("data_emissao",{ascending:true});
 
   if(!data.length){
@@ -145,40 +145,48 @@ async function consultar(){
 
   vouchers=data;
 
-  if(isCPF){
-    modalSenha.style.display="flex";
+  if(modoCPF){
+    mostrarResumoCPF();
   }else{
-    mostrarCodigo(data[0]);
+    mostrarVoucherCodigo(data[0]);
   }
-}
-
-/* CONFIRMA SENHA */
-function confirmarSenha(){
-  if(senhaCliente.value!==vouchers[0].senha_cliente){
-    alert("Senha incorreta");return;
-  }
-  modalSenha.style.display="none";
-  senhaOK=true;
-  mostrarResumoCPF();
 }
 
 /* RESUMO CPF */
 function mostrarResumoCPF(){
-  let saldo=vouchers.filter(v=>v.status==="ATIVO")
-    .reduce((s,v)=>s+Number(v.saldo),0);
-
+  let saldo=vouchers.reduce((s,v)=>s+Number(v.saldo),0);
   saldoTotal.innerText="R$ "+saldo.toFixed(2).replace(".",",");
+
+  extrato.innerHTML=vouchers.map(v=>`
+    <div class="box">
+      <b>Código:</b> ${v.codigo}<br>
+      <b>Emitido:</b> ${new Date(v.data_emissao).toLocaleString("pt-BR")}<br>
+      <b>Status:</b> ${v.status}<br>
+      <b>Saldo atual:</b> R$ ${Number(v.saldo).toFixed(2)}<br>
+      ${v.valor_resgatado?`
+        <hr>
+        <b>Total resgatado:</b> R$ ${Number(v.valor_resgatado).toFixed(2)}<br>
+        <b>Último resgate:</b> ${new Date(v.data_resgate).toLocaleString("pt-BR")}<br>
+        <b>Operador:</b> ${v.usuario_resgate}
+      `:""}
+    </div>
+  `).join("");
+
   resumoCPF.classList.remove("hidden");
 }
 
-/* RESGATE CPF (FIFO + RECIBO) */
-async function resgatarParcial(){
+/* RESGATE CPF (FIFO) */
+async function resgatarCPF(){
   let valor=parseFloat(valorResgate.value.replace(",","."));  
-  if(!senhaOK||valor<=0) return;
+  let saldoTotal=vouchers.reduce((s,v)=>s+Number(v.saldo),0);
+
+  if(valor<=0 || valor>saldoTotal){
+    alert("Valor inválido"); return;
+  }
 
   for(let v of vouchers){
     if(valor<=0) break;
-    if(v.status!=="ATIVO") continue;
+    if(v.saldo<=0) continue;
 
     let usar=Math.min(v.saldo,valor);
     valor-=usar;
@@ -194,23 +202,24 @@ async function resgatarParcial(){
     imprimirRecibo(v,usar);
   }
 
-  alert("Resgate realizado");
   consultar();
 }
 
 /* POR CÓDIGO */
-function mostrarCodigo(v){
+function mostrarVoucherCodigo(v){
   resultadoCodigo.innerHTML=`
     <div class="box">
       <b>Cliente:</b> ${v.cliente}<br>
+      <b>Código:</b> ${v.codigo}<br>
       <b>Saldo:</b> R$ ${Number(v.saldo).toFixed(2)}<br>
-      <button onclick="resgatarCodigo('${v.codigo}')">Resgatar</button>
+      ${v.saldo>0?`<button onclick="resgatarCodigo('${v.codigo}')">Resgatar</button>`:""}
     </div>
   `;
 }
 
 async function resgatarCodigo(codigo){
   let v=vouchers.find(x=>x.codigo===codigo);
+  if(v.saldo<=0) return;
 
   await sb.from("vouchers").update({
     saldo:0,status:"RESGATADO",
@@ -228,7 +237,7 @@ function imprimirRecibo(v,valor){
   let cpfMasc=v.cpf.substring(0,3)+"***";
 
   const via=(titulo,cpf,showCodigo)=>`
-  <div style="font-family:monospace;font-size:13px;width:240px">
+  <div style="width:240px;font-family:monospace;font-size:13px">
     <center>
       <b>MERCATTO DELÍCIA</b><br>
       <b>COMPROVANTE DE RESGATE</b><br>${titulo}<br>
@@ -240,10 +249,10 @@ function imprimirRecibo(v,valor){
     Valor: R$ ${valor.toFixed(2)}<br>
     Operador: ${operador.usuario}<br>
     Data: ${new Date().toLocaleString("pt-BR")}<br>
-    --------------------
+    ${!showCodigo?`<br>Assinatura:<br>__________________________`:""}
   </div>`;
 
-  let w=window.open("","","width=260,height=700");
+  let w=window.open("","","width=260,height=800");
   w.document.write(`
     ${via("VIA DO CLIENTE",v.cpf,true)}
     <div style="page-break-after:always"></div>
