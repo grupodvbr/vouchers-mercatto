@@ -11,20 +11,22 @@ content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
+@media print{
+  body{margin:0}
+  .page-break{page-break-after:always}
+}
+
 :root{
   --bg:#0b0b0b;
   --card:#141414;
   --gold:#d4af37;
   --gold2:#b48a2b;
-  --ok:#2ecc71;
-  --danger:#e74c3c;
   --radius:16px;
 }
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
 body{background:var(--bg);color:#fff;padding:20px}
 .hidden{display:none}
 
-/* CARD */
 .card{
   max-width:980px;
   margin:24px auto;
@@ -35,7 +37,6 @@ body{background:var(--bg);color:#fff;padding:20px}
 }
 h1,h2{color:var(--gold);margin-bottom:16px}
 
-/* INPUT */
 input{
   width:100%;
   padding:14px;
@@ -55,7 +56,6 @@ button{
   cursor:pointer;
 }
 
-/* RESULT */
 .box{
   background:#181818;
   border-left:4px solid var(--gold);
@@ -73,7 +73,6 @@ button{
 .PARCIAL{background:#9a6b00}
 .RESGATADO{background:#8a1f1f}
 
-/* MODAL */
 .modal{
   position:fixed; inset:0;
   background:rgba(0,0,0,.75);
@@ -113,12 +112,12 @@ button{
   </div>
 </div>
 
-<!-- MODAL SENHA CLIENTE -->
+<!-- MODAL SENHA -->
 <div id="modalSenha" class="modal">
   <div class="modal-box">
     <h3>Senha do Cliente</h3>
     <input id="senhaCliente" type="password" maxlength="4" placeholder="Senha 4 dígitos">
-    <button onclick="confirmarSenhaCliente()">Confirmar</button>
+    <button onclick="confirmarSenha()">Confirmar</button>
   </div>
 </div>
 
@@ -130,7 +129,7 @@ const sb = supabase.createClient(
 
 let usuarioLogado = {};
 let vouchersCPF = [];
-let senhaReal = "";
+let senhaClienteReal = "";
 
 /* LOGIN */
 async function login(){
@@ -164,16 +163,16 @@ async function consultar(){
 
   if(isCPF){
     vouchersCPF = data;
-    senhaReal = data[0].senha_cliente || "";
+    senhaClienteReal = data[0].senha_cliente || "";
     modalSenha.style.display="flex";
   }else{
     mostrarVoucher(data[0]);
   }
 }
 
-/* CONFIRMA SENHA CLIENTE */
-function confirmarSenhaCliente(){
-  if(!senhaReal || senhaCliente.value !== senhaReal){
+/* CONFIRMA SENHA CPF */
+function confirmarSenha(){
+  if(senhaCliente.value !== senhaClienteReal){
     alert("Senha incorreta");
     return;
   }
@@ -186,10 +185,9 @@ function mostrarCarteira(){
   resultado.innerHTML = vouchersCPF.map(v=>`
     <div class="box">
       <b>Voucher:</b> ${v.codigo}<br>
-      Valor: R$ ${v.valor}<br>
       Saldo: R$ ${v.saldo}<br>
       <span class="badge ${v.status}">${v.status}</span><br><br>
-      ${v.saldo>0 ? `<button onclick="finalizar('${v.codigo}')">Finalizar</button>` : ``}
+      ${v.saldo>0 ? `<button onclick="finalizar('${v.codigo}')">Finalizar</button>`:''}
     </div>
   `).join("");
 }
@@ -202,7 +200,7 @@ function mostrarVoucher(v){
       <b>Código:</b> ${v.codigo}<br>
       <b>Saldo:</b> R$ ${v.saldo}<br>
       <span class="badge ${v.status}">${v.status}</span><br><br>
-      ${v.saldo>0 ? `<button onclick="finalizar('${v.codigo}')">Finalizar</button>` : ``}
+      ${v.saldo>0 ? `<button onclick="finalizar('${v.codigo}')">Finalizar</button>`:''}
     </div>
   `;
 }
@@ -219,40 +217,40 @@ async function finalizar(codigo){
     usuario_resgate:usuarioLogado.usuario
   }).eq("codigo",codigo);
 
-  imprimirRecibo(v);
+  imprimirDuasVias(v);
   consultar();
 }
 
-/* IMPRESSÃO – 2 VIAS + CORTE */
-function imprimirRecibo(v){
+/* IMPRESSÃO REAL — 2 PÁGINAS = 2 CORTES */
+function imprimirDuasVias(v){
   let cpfMasc = v.cpf.substring(0,3)+"***";
 
-  const via = (titulo,cpfShow)=>`
-  <div style="width:240px;font-family:monospace;font-size:13px">
-    <center>
-      <b>MERCATTO DELÍCIA</b><br>
-      ${titulo}<br>
-      -----------------------
-    </center>
-    Cliente: ${v.cliente}<br>
-    CPF: ${cpfShow}<br>
-    Código: ${v.codigo}<br>
-    Valor: R$ ${v.valor}<br>
-    Operador: ${usuarioLogado.usuario}<br>
-    Data: ${new Date().toLocaleString("pt-BR")}<br>
-    -----------------------
-  </div>`;
+  const pagina = (titulo,cpfShow)=>`
+    <div style="width:240px;font-family:monospace;font-size:13px">
+      <center>
+        <b>MERCATTO DELÍCIA</b><br>
+        ${titulo}<br>
+        ------------------------
+      </center>
+      Cliente: ${v.cliente}<br>
+      CPF: ${cpfShow}<br>
+      Código: ${v.codigo}<br>
+      Valor: R$ ${v.valor}<br>
+      Operador: ${usuarioLogado.usuario}<br>
+      Data: ${new Date().toLocaleString("pt-BR")}<br>
+      ------------------------
+    </div>
+  `;
 
   let w = window.open("","","width=260,height=800");
   w.document.write(`
-    ${via("VIA DO CLIENTE",v.cpf)}
-    <br><center> CORTE AQUI </center><br>
-    ${via("VIA DO RESTAURANTE",cpfMasc)}
+    ${pagina("VIA DO CLIENTE",v.cpf)}
+    <div class="page-break"></div>
+    ${pagina("VIA DO RESTAURANTE",cpfMasc)}
     <script>
-      window.onload=()=>{
+      window.onload=function(){
         window.print();
-        setTimeout(()=>window.print(),600);
-        setTimeout(()=>window.close(),1200);
+        window.close();
       }
     <\/script>
   `);
