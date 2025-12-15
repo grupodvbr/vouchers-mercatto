@@ -66,7 +66,7 @@ button{
 }
 .small{
   position:absolute;
-  bottom:10px;
+  bottom:8px;
   left:20px;
   right:20px;
   font-size:10px;
@@ -107,7 +107,7 @@ button{
 
 <button onclick="emitir()">Emitir Voucher</button>
 
-<!-- VOUCHER -->
+<!-- VOUCHER BONITO -->
 <div id="voucherPNG">
 
   <!-- ESQUERDA -->
@@ -133,7 +133,7 @@ button{
     <svg id="barcode"></svg>
   </div>
 
-  <!-- LETRAS MIÚDAS -->
+  <!-- TEXTO LEGAL -->
   <div class="small" id="vTextoLegal"></div>
 </div>
 
@@ -149,6 +149,9 @@ const sb = supabase.createClient(
   "https://ckkqcxbzfkjzicvoeehw.supabase.co",
   "sb_publishable_djiQsCSrnLUm0iA_eNjjMw__7rfP11m"
 );
+
+/* 🔗 LINK DA CARTEIRA (PODE ME MANDAR O FINAL) */
+const QR_BASE_URL = "https://mercattodelicia.com/carteira";
 
 let operador=null, voucherAtual={};
 
@@ -198,6 +201,7 @@ async function emitir(){
   }]);
 
   gerarVoucher(nome,val,forma,codigo,validade,operador.usuario);
+  imprimirRecibos(nome,cpfv,codigo,val,forma,operador.usuario);
 }
 
 /* VOUCHER */
@@ -211,14 +215,65 @@ function gerarVoucher(nome,val,forma,codigo,validade,emissor){
   vValor.innerText=val;
 
   vTextoLegal.innerText=
-    `Válido para uso até ${validade.toLocaleDateString("pt-BR")}. `+
-    `Prazo máximo de 60 dias após a data de emissão.`;
+    `Válido até ${validade.toLocaleDateString("pt-BR")} • Prazo máximo de 60 dias após a emissão.`;
 
   JsBarcode("#barcode",codigo,{width:2,height:42});
 
   voucherPNG.style.display="block";
   btnPDF.classList.remove("hidden");
   btnWhats.classList.remove("hidden");
+}
+
+/* RECIBOS COM QR */
+function imprimirRecibos(nome,cpf,codigo,valor,forma,emissor){
+  let cpfMasc=cpf.substring(0,3)+"***";
+  let qrUrl = `${QR_BASE_URL}?cpf=${cpf}`;
+
+  const viaCliente=`
+  <div style="width:240px;font-family:monospace;font-size:13px">
+    <center>
+      <b>MERCATTO DELÍCIA</b><br>
+      <b>COMPROVANTE DE EMISSÃO</b><br>
+      VIA DO CLIENTE<br>--------------------
+    </center>
+    Cliente: ${nome}<br>
+    CPF: ${cpf}<br>
+    Código: ${codigo}<br>
+    Valor: R$ ${valor}<br>
+    Pagamento: ${forma}<br>
+    Emissor: ${emissor}<br><br>
+    <center>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrUrl)}"><br>
+      <small>
+        COMO CONSULTAR SEU SALDO:<br>
+        1. Aponte a câmera para o QR Code<br>
+        2. Informe seu CPF<br>
+        3. Digite sua senha
+      </small>
+    </center>
+  </div>`;
+
+  const viaMercatto=`
+  <div style="width:240px;font-family:monospace;font-size:13px">
+    <center>
+      <b>MERCATTO DELÍCIA</b><br>
+      <b>COMPROVANTE DE EMISSÃO</b><br>
+      VIA DO MERCATTO<br>--------------------
+    </center>
+    Cliente: ${nome}<br>
+    CPF: ${cpfMasc}<br>
+    Código: ${codigo}<br>
+    Valor: R$ ${valor}<br>
+    Emissor: ${emissor}<br>
+  </div>`;
+
+  let w=window.open("","","width=260,height=800");
+  w.document.write(`
+    ${viaCliente}
+    <div style="page-break-after:always"></div>
+    ${viaMercatto}
+    <script>window.onload=()=>{window.print();window.close()}<\/script>
+  `);
 }
 
 /* PDF */
@@ -236,8 +291,7 @@ function enviarWhats(){
   let msg=
 `Voucher Mercatto
 Cliente: ${voucherAtual.nome}
-Valor: R$ ${voucherAtual.val}
-Código: ${voucherAtual.codigo}`;
+Valor: R$ ${voucherAtual.val}`;
   window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,"_blank");
 }
 
