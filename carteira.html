@@ -13,7 +13,7 @@
 <style>
 :root{
   --bg:#0b0b0b;
-  --card:#141414;
+  --card:#151515;
   --gold:#d4af37;
   --gold2:#b48a2b;
   --ok:#2ecc71;
@@ -30,99 +30,82 @@ body{
 .hidden{display:none}
 
 .card{
-  max-width:440px;
-  margin:18px auto;
+  max-width:460px;
+  margin:22px auto;
   background:var(--card);
   border-radius:var(--radius);
-  padding:20px;
+  padding:22px;
   border:1px solid var(--gold2);
 }
 
-h1,h2,h3{color:var(--gold);margin-bottom:8px}
-.sub{font-size:13px;color:var(--muted);margin-bottom:12px}
+h1,h2{color:var(--gold);font-weight:800;margin-bottom:10px}
+.sub{font-size:14px;color:var(--muted);margin-bottom:14px}
 
 input{
   width:100%;
-  padding:14px;
-  margin-bottom:12px;
+  padding:15px;
+  margin-bottom:14px;
   border-radius:12px;
   border:1px solid var(--gold2);
   background:#1a1a1a;
   color:#fff;
+  font-size:16px;
+  autocomplete:off;
+  autocorrect:off;
+  autocapitalize:off;
+  spellcheck:false;
 }
 
 button{
   width:100%;
-  padding:14px;
+  padding:15px;
   border:none;
   border-radius:14px;
   background:var(--gold);
   color:#000;
   font-weight:800;
+  font-size:16px;
   cursor:pointer;
 }
 
-.logout{background:var(--danger);margin-top:16px}
+.logout{background:var(--danger);margin-top:18px}
 
-/* ===== RESUMO ===== */
-.resumo{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-  margin-bottom:16px;
-}
-.resumo-box{
-  background:#101010;
+.saldo-card{
+  background:linear-gradient(135deg,#1a1a1a,#101010);
+  border-radius:16px;
+  padding:18px;
   border:1px solid #333;
-  border-radius:14px;
-  padding:14px;
+  margin-bottom:18px;
 }
-.resumo-box span{font-size:12px;color:var(--muted)}
-.resumo-box b{font-size:20px}
+.saldo-label{font-size:13px;color:var(--muted)}
+.saldo{font-size:34px;font-weight:800;color:var(--ok)}
 
-/* ===== EXTRATO ===== */
-.extrato{
-  margin-top:10px;
-}
 .mov{
-  padding:12px 0;
+  padding:14px 0;
   border-bottom:1px dashed #333;
 }
 .mov:last-child{border:none}
-.mov .linha{
-  display:flex;
-  justify-content:space-between;
-  font-size:14px;
-}
-.credito{color:var(--ok)}
-.debito{color:var(--danger)}
-.small{font-size:12px;color:var(--muted)}
-
-/* ===== VOUCHER ===== */
-.voucher{
-  margin-top:14px;
-  padding:12px;
-  border-radius:14px;
-  background:#101010;
-  border:1px solid #333;
-}
-.voucher header{
-  display:flex;
-  justify-content:space-between;
-  cursor:pointer;
-}
-.voucher-body{display:none;margin-top:10px}
-.voucher.open .voucher-body{display:block}
-
+.linha{display:flex;justify-content:space-between}
 .badge{
-  font-size:11px;
-  padding:3px 10px;
+  margin-top:6px;
+  display:inline-block;
+  padding:4px 12px;
   border-radius:20px;
+  font-size:11px;
   font-weight:800;
 }
 .ATIVO{background:#1f7a4a}
 .PARCIAL{background:#9a6b00}
 .RESGATADO{background:#8a1f1f}
+.mov small{color:#ccc}
+
+.resgate{
+  margin-top:8px;
+  padding-left:10px;
+  border-left:3px solid var(--gold2);
+  font-size:13px;
+  color:#ddd;
+}
 </style>
 </head>
 
@@ -135,33 +118,30 @@ button{
 
   <input id="cpf" placeholder="CPF" oninput="maskCPF(this)">
   <input id="senha" type="password" placeholder="Senha (4 dígitos)">
+
   <button onclick="entrar()">Entrar</button>
-  <p id="msg" style="color:#f39c12"></p>
+  <p id="msg" style="color:#f39c12;margin-top:10px"></p>
+</div>
+
+<!-- CRIAR SENHA -->
+<div id="senhaCard" class="card hidden">
+  <h2>Criar senha</h2>
+  <p class="sub">Defina uma senha de 4 números</p>
+
+  <input id="senhaNova" maxlength="4" type="password" placeholder="Senha (4 dígitos)">
+  <button onclick="criarSenha()">Salvar senha</button>
 </div>
 
 <!-- CARTEIRA -->
 <div id="carteira" class="card hidden">
   <h2 id="boasVindas"></h2>
 
-  <!-- RESUMO -->
-  <div class="resumo">
-    <div class="resumo-box">
-      <span>Saldo disponível</span><br>
-      <b style="color:var(--ok)">R$ <span id="saldoTotal">0,00</span></b>
-    </div>
-    <div class="resumo-box">
-      <span>Total resgatado</span><br>
-      <b style="color:var(--danger)">R$ <span id="totalUsado">0,00</span></b>
-    </div>
+  <div class="saldo-card">
+    <div class="saldo-label">Saldo disponível</div>
+    <div class="saldo">R$ <span id="saldoTotal">0,00</span></div>
   </div>
 
-  <!-- EXTRATO -->
-  <h3>Extrato</h3>
-  <div id="extrato" class="extrato"></div>
-
-  <!-- VOUCHERS -->
-  <h3 style="margin-top:16px">Meus Vouchers</h3>
-  <div id="listaVouchers"></div>
+  <div id="extrato"></div>
 
   <button class="logout" onclick="sair()">Sair</button>
 </div>
@@ -173,7 +153,7 @@ const sb = supabase.createClient(
 );
 
 let CPF_ATUAL="";
-let DADOS=[];
+let VOUCHERS=[];
 
 /* LOGIN */
 async function entrar(){
@@ -183,79 +163,86 @@ async function entrar(){
   const {data}=await sb.from("vouchers").select("*").eq("cpf",CPF_ATUAL);
   if(!data.length){msg.innerText="CPF não encontrado";return;}
 
-  if(data[0].senha_cliente && senha.value!==data[0].senha_cliente){
-    msg.innerText="Senha incorreta";return;
+  loginCard.classList.add("hidden");
+
+  if(!data[0].senha_cliente){
+    senhaCard.classList.remove("hidden");
+    return;
   }
 
-  loginCard.classList.add("hidden");
-  carteira.classList.remove("hidden");
+  if(senha.value!==data[0].senha_cliente){
+    msg.innerText="Senha incorreta";
+    loginCard.classList.remove("hidden");
+    return;
+  }
+
   carregarCarteira(data);
 }
 
-/* CARREGAR */
-async function carregarCarteira(vouchers){
-  DADOS=vouchers;
-  boasVindas.innerText=`Olá, ${vouchers[0].cliente}`;
-
-  let saldo=0, usado=0;
-  let extratoHTML="";
-
-  for(const v of vouchers){
-    saldo+=Number(v.saldo||0);
-    usado+=Number(v.valor_resgatado||0);
-
-    extratoHTML+=`
-      <div class="mov credito">
-        <div class="linha">
-          <span>Voucher ${v.codigo}</span>
-          <b>+ R$ ${Number(v.valor).toLocaleString("pt-BR",{minimumFractionDigits:2})}</b>
-        </div>
-        <div class="small">Emitido em ${new Date(v.data_emissao).toLocaleString("pt-BR")}</div>
-      </div>
-    `;
-
-    const {data:resgates}=await sb
-      .from("vouchers_resgates")
-      .select("*")
-      .eq("codigo_voucher",v.codigo)
-      .order("data",{ascending:false});
-
-    resgates.forEach(r=>{
-      extratoHTML+=`
-        <div class="mov debito">
-          <div class="linha">
-            <span>Resgate • ${v.codigo}</span>
-            <b>− R$ ${Number(r.valor).toLocaleString("pt-BR",{minimumFractionDigits:2})}</b>
-          </div>
-          <div class="small">${new Date(r.data).toLocaleString("pt-BR")} • ${r.operador}</div>
-        </div>
-      `;
-    });
+/* CRIAR SENHA */
+async function criarSenha(){
+  if(!/^\d{4}$/.test(senhaNova.value)){
+    alert("Senha inválida");
+    return;
   }
 
-  saldoTotal.innerText=saldo.toLocaleString("pt-BR",{minimumFractionDigits:2});
-  totalUsado.innerText=usado.toLocaleString("pt-BR",{minimumFractionDigits:2});
-  extrato.innerHTML=extratoHTML;
+  await sb.from("vouchers")
+    .update({senha_cliente:senhaNova.value})
+    .eq("cpf",CPF_ATUAL);
 
-  listaVouchers.innerHTML=vouchers.map(v=>`
-    <div class="voucher" onclick="this.classList.toggle('open')">
-      <header>
-        <b>Voucher ${v.codigo}</b>
+  senhaCard.classList.add("hidden");
+  const {data}=await sb.from("vouchers").select("*").eq("cpf",CPF_ATUAL);
+  carregarCarteira(data);
+}
+
+/* CARTEIRA */
+async function carregarCarteira(vouchers){
+  carteira.classList.remove("hidden");
+  boasVindas.innerText=`Olá, ${vouchers[0].cliente}`;
+  VOUCHERS=vouchers;
+
+  const codigos=vouchers.map(v=>v.codigo);
+  const {data:movs}=await sb.from("vouchers_movimentos")
+    .select("*")
+    .in("codigo_voucher",codigos)
+    .order("created_at",{ascending:false});
+
+  const saldo=movs.reduce((s,m)=>s+Number(m.valor),0);
+  saldoTotal.innerText=saldo.toLocaleString("pt-BR",{minimumFractionDigits:2});
+
+  extrato.innerHTML="";
+
+  for(const v of vouchers){
+    const movV=movs.filter(m=>m.codigo_voucher===v.codigo);
+
+    extrato.innerHTML+=`
+      <div class="mov">
+        <div class="linha">
+          <b>Voucher ${v.codigo}</b>
+          <b>R$ ${Number(v.valor).toLocaleString("pt-BR",{minimumFractionDigits:2})}</b>
+        </div>
+        <small>Emitido em ${new Date(v.data_emissao).toLocaleString("pt-BR")}</small><br>
+        <small>Saldo atual: R$ ${Number(v.saldo).toLocaleString("pt-BR",{minimumFractionDigits:2})}</small><br>
         <span class="badge ${v.status}">${v.status}</span>
-      </header>
-      <div class="voucher-body">
-        <div class="small">Valor: R$ ${Number(v.valor).toLocaleString("pt-BR",{minimumFractionDigits:2})}</div>
-        <div class="small">Saldo: R$ ${Number(v.saldo).toLocaleString("pt-BR",{minimumFractionDigits:2})}</div>
-        <div class="small">Emitido: ${new Date(v.data_emissao).toLocaleString("pt-BR")}</div>
+
+        ${
+          movV.length
+          ? movV.map(m=>`
+            <div class="resgate">
+              ${m.tipo==="RESGATE"?"−":"+"}
+              R$ ${Math.abs(m.valor).toLocaleString("pt-BR",{minimumFractionDigits:2})}
+              • ${new Date(m.created_at).toLocaleString("pt-BR")}
+            </div>
+          `).join("")
+          : `<div class="resgate">Sem movimentações</div>`
+        }
       </div>
-    </div>
-  `).join("");
+    `;
+  }
 }
 
 /* SAIR */
-function sair(){
-  location.reload();
-}
+function sair(){location.reload();}
 
 /* CPF */
 function maskCPF(el){
