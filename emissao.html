@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Voucher Mercatto • Emissão</title>
+<title>Emissão de Voucher • Mercatto Delícia</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -21,7 +21,6 @@
   --radius:16px;
 }
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
-
 body{
   background:radial-gradient(circle at top,#111,#000);
   color:#fff;
@@ -98,7 +97,7 @@ button{border:none;cursor:pointer}
 .btn-pdf{background:linear-gradient(135deg,#b48a2b,#e5c86f);color:#000}
 .btn-whats{background:linear-gradient(135deg,#1ebd5a,#2de073);color:#fff}
 
-/* IMPRESSÃO TÉRMICA REAL */
+/* IMPRESSÃO TÉRMICA */
 @media print{
   @page{size:80mm auto;margin:0}
   html,body{
@@ -137,17 +136,9 @@ button{border:none;cursor:pointer}
   <div>
     <input id="cliente" placeholder="Nome do Cliente">
     <input id="cpf" placeholder="CPF" oninput="maskCPF(this)">
-    <input id="telefone" placeholder="Telefone" oninput="maskPhone(this)">
   </div>
   <div>
     <input id="valor" placeholder="Valor" oninput="maskValor(this)">
-    <select id="formaPagamento">
-      <option value="" disabled selected>Forma de Pagamento</option>
-      <option>PIX</option>
-      <option>DINHEIRO</option>
-      <option>CARTÃO CRÉDITO</option>
-      <option>CARTÃO DÉBITO</option>
-    </select>
   </div>
 </div>
 
@@ -182,7 +173,7 @@ button{border:none;cursor:pointer}
 <div id="printArea" class="print-area hidden"></div>
 
 <script>
-const sb = supabase.createClient(
+const sb=supabase.createClient(
   "https://ckkqcxbzfkjzicvoeehw.supabase.co",
   "sb_publishable_djiQsCSrnLUm0iA_eNjjMw__7rfP11m"
 );
@@ -205,8 +196,8 @@ async function login(){
 /* GERAR CÓDIGO */
 async function gerarCodigo(){
   while(true){
-    let c=Math.floor(100000000+Math.random()*900000000).toString();
-    let {data}=await sb.from("vouchers").select("id").eq("codigo",c);
+    const c=Math.floor(100000000+Math.random()*900000000).toString();
+    const {data}=await sb.from("vouchers").select("id").eq("codigo",c);
     if(!data.length)return c;
   }
 }
@@ -215,22 +206,31 @@ async function gerarCodigo(){
 async function emitir(){
   const nome=cliente.value.trim();
   const cpfv=cpf.value.replace(/\D/g,"");
-  const val=Number(valor.dataset.raw||0);
-  if(!nome||!cpfv||!val){alert("Dados incompletos");return;}
+  const valor=Number(valor.dataset.raw||0);
+  if(!nome||!cpfv||!valor){alert("Dados inválidos");return;}
 
   const codigo=await gerarCodigo();
   const d=new Date();
   const validade=new Date(d);validade.setDate(validade.getDate()+60);
 
   await sb.from("vouchers").insert([{
-    codigo,cliente:nome,cpf:cpfv,valor:val,saldo:val,
+    codigo,cliente:nome,cpf:cpfv,
+    valor, saldo:valor,
+    status:"ATIVO",
     data_emissao:d.toISOString(),
-    data_validade:validade.toISOString(),
-    status:"ATIVO"
+    data_validade:validade.toISOString()
   }]);
 
-  gerarVoucher(nome,val,codigo,validade);
-  imprimirTermica(nome,cpfv,codigo,val,validade);
+  await sb.from("vouchers_movimentos").insert([{
+    codigo_voucher:codigo,
+    tipo:"EMISSAO",
+    valor:valor,
+    operador,
+    descricao:"Emissão de voucher"
+  }]);
+
+  gerarVoucher(nome,valor,codigo,validade);
+  imprimirTermica(nome,cpfv,codigo,valor,validade);
 }
 
 /* VOUCHER VISUAL */
@@ -245,7 +245,7 @@ function gerarVoucher(nome,val,codigo,validade){
   acoes.classList.remove("hidden");
 }
 
-/* IMPRESSÃO AUTOMÁTICA */
+/* IMPRESSÃO */
 function imprimirTermica(nome,cpf,codigo,valor,validade){
   const agora=new Date().toLocaleString("pt-BR");
   const cpfMasc=cpf.substring(0,3)+"***";
@@ -275,7 +275,6 @@ function imprimirTermica(nome,cpf,codigo,valor,validade){
       <div class="assinatura">Assinatura do Cliente</div>
     </div>
   `;
-
   printArea.classList.remove("hidden");
   window.print();
   setTimeout(()=>printArea.classList.add("hidden"),500);
@@ -305,14 +304,9 @@ function maskCPF(e){
     .replace(/(\d{3})(\d)/,"$1.$2")
     .replace(/(\d{3})(\d{1,2})$/,"$1-$2");
 }
-function maskPhone(e){
-  e.value=e.value.replace(/\D/g,"")
-    .replace(/(\d{2})(\d)/,"($1) $2")
-    .replace(/(\d{5})(\d)/,"$1-$2");
-}
 function maskValor(e){
-  let v=e.value.replace(/\D/g,"");
-  let num=(v/100)||0;
+  const v=e.value.replace(/\D/g,"");
+  const num=(v/100)||0;
   e.dataset.raw=num;
   e.value=num.toLocaleString("pt-BR",{minimumFractionDigits:2});
 }
