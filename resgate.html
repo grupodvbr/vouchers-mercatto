@@ -4,8 +4,7 @@
 <meta charset="UTF-8">
 <title>Resgate de Voucher • Mercatto</title>
 
-<meta name="viewport"
-content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -21,9 +20,6 @@ content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
   --card:#141414;
   --gold:#d4af37;
   --gold2:#b48a2b;
-  --ok:#2ecc71;
-  --danger:#e74c3c;
-  --muted:#999;
   --radius:16px;
 }
 
@@ -31,7 +27,6 @@ content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
 body{background:var(--bg);color:#fff;padding:20px}
 .hidden{display:none}
 
-/* CARD */
 .card{
   max-width:980px;
   margin:24px auto;
@@ -40,9 +35,9 @@ body{background:var(--bg);color:#fff;padding:20px}
   border-radius:var(--radius);
   padding:26px;
 }
+
 h1,h2{color:var(--gold);margin-bottom:16px}
 
-/* INPUT */
 input{
   width:100%;
   padding:14px;
@@ -53,6 +48,7 @@ input{
   margin-bottom:12px;
   font-size:15px;
 }
+
 button{
   padding:14px 22px;
   background:var(--gold);
@@ -63,7 +59,6 @@ button{
   cursor:pointer;
 }
 
-/* RESULTADOS */
 .box{
   background:#181818;
   border-left:4px solid var(--gold);
@@ -71,6 +66,7 @@ button{
   padding:16px;
   margin-top:14px;
 }
+
 .badge{
   padding:4px 10px;
   border-radius:20px;
@@ -80,10 +76,10 @@ button{
 .ATIVO{background:#1f7a4a}
 .RESGATADO{background:#8a1f1f}
 
-/* MODAL */
+/* MODAL SENHA */
 .modal{
   position:fixed; inset:0;
-  background:rgba(0,0,0,.7);
+  background:rgba(0,0,0,.75);
   display:none;
   align-items:center;
   justify-content:center;
@@ -104,7 +100,7 @@ button{
   color:#ccc;
 }
 
-/* FILTRO FLUTUANTE */
+/* FILTRO */
 #filtro{
   position:fixed;
   bottom:24px;
@@ -115,25 +111,19 @@ button{
   padding:10px;
   display:none;
 }
-#filtro button{
-  margin:4px 0;
-  width:100%;
-}
+#filtro button{width:100%;margin:4px 0}
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
 <div id="loginCard" class="card">
   <h2>Acesso Operador</h2>
   <input id="loginUser" placeholder="Usuário">
   <input id="loginPass" type="password" placeholder="Senha">
   <button onclick="login()">Entrar</button>
-  <p id="loginMsg" style="color:#ff6666"></p>
 </div>
 
-<!-- SISTEMA -->
 <div id="sistema" class="hidden">
   <div class="card">
     <h1>Consulta & Resgate</h1>
@@ -143,7 +133,7 @@ button{
   </div>
 </div>
 
-<!-- MODAL SENHA CLIENTE -->
+<!-- MODAL SENHA -->
 <div id="modalSenha" class="modal">
   <div class="modal-box">
     <h3>Senha do Cliente</h3>
@@ -167,141 +157,115 @@ const sb = supabase.createClient(
   "sb_publishable_djiQsCSrnLUm0iA_eNjjMw__7rfP11m"
 );
 
-let usuario = {};
-let vouchersCPF = [];
-let senhaReal = "";
-let senhaConfirmada = false;
+let operador={}, vouchersCPF=[], senhaReal="", senhaOK=false, modoCPF=false;
 
-/* LOGIN */
 async function login(){
-  const { data } = await sb.from("usuarios")
-    .select("*")
-    .eq("usuario",loginUser.value)
-    .eq("senha",loginPass.value);
-
-  if(!data.length){ loginMsg.innerText="Inválido"; return }
-
-  usuario = data[0];
+  let {data}=await sb.from("usuarios")
+    .select("*").eq("usuario",loginUser.value).eq("senha",loginPass.value);
+  if(!data.length) return alert("Inválido");
+  operador=data[0];
   loginCard.classList.add("hidden");
   sistema.classList.remove("hidden");
 }
 
-/* CONSULTA */
 async function consultar(){
   resultado.innerHTML="";
-  senhaConfirmada=false;
   filtro.style.display="none";
+  senhaOK=false;
 
-  let q = busca.value.replace(/\D/g,"");
-  let isCPF = q.length===11;
+  let q=busca.value.replace(/\D/g,"");
+  modoCPF=q.length===11;
 
-  const { data } = await sb.from("vouchers")
-    .select("*")
-    .or(`codigo.eq.${q},cpf.eq.${q}`)
-    .order("data_emissao",{ascending:true});
+  let {data}=await sb.from("vouchers")
+    .select("*").or(`codigo.eq.${q},cpf.eq.${q}`);
 
-  if(!data.length){
-    resultado.innerHTML="<div class='box'>Nada encontrado</div>";
-    return;
-  }
+  if(!data.length) return resultado.innerHTML="<div class='box'>Nada encontrado</div>";
 
-  if(isCPF){
-    vouchersCPF = data;
-    senhaReal = data[0].senha_cliente || "";
+  if(modoCPF){
+    vouchersCPF=data;
+    senhaReal=data[0].senha_cliente||"";
     modalSenha.style.display="flex";
   }else{
     mostrarCodigo(data[0]);
   }
 }
 
-/* CONFIRMAR SENHA */
 function confirmarSenha(){
-  if(senhaCliente.value !== senhaReal){
-    alert("Senha incorreta");
-    return;
-  }
+  if(senhaCliente.value!==senhaReal) return alert("Senha incorreta");
+  senhaOK=true;
   modalSenha.style.display="none";
-  senhaConfirmada=true;
   filtro.style.display="block";
   filtrar("ATIVO");
 }
 
-/* FILTRO */
-function filtrar(status){
-  if(!senhaConfirmada) return;
-
-  let lista = vouchersCPF.filter(v=>v.status===status);
-  resultado.innerHTML = lista.map(v=>`
-    <div class="box">
-      <b>Voucher:</b> ${v.codigo}<br>
-      Saldo: R$ ${Number(v.saldo).toFixed(2)}<br>
-      <span class="badge ${v.status}">${v.status}</span><br><br>
-      ${v.saldo>0 ? `<button onclick="finalizar('${v.codigo}')">Finalizar</button>`:''}
-    </div>
-  `).join("");
+function filtrar(st){
+  if(!senhaOK) return;
+  let lista=vouchersCPF.filter(v=>v.status===st);
+  resultado.innerHTML=lista.map(v=>box(v,true)).join("");
 }
 
-/* POR CÓDIGO */
 function mostrarCodigo(v){
-  resultado.innerHTML=`
-    <div class="box">
-      <b>Cliente:</b> ${v.cliente}<br>
-      <b>Código:</b> ${v.codigo}<br>
-      <b>Saldo:</b> R$ ${Number(v.saldo).toFixed(2)}<br>
-      <span class="badge ${v.status}">${v.status}</span><br><br>
-      ${v.saldo>0 ? `<button onclick="finalizar('${v.codigo}')">Finalizar</button>`:''}
-    </div>
-  `;
+  resultado.innerHTML=box(v,false);
 }
 
-/* FINALIZAR */
-async function finalizar(codigo){
-  if(!senhaConfirmada && busca.value.replace(/\D/g,"").length===11) return;
+function box(v,cpf){
+  return `
+  <div class="box">
+    <b>Cliente:</b> ${v.cliente}<br>
+    <b>Código:</b> ${v.codigo}<br>
+    <b>Saldo:</b> R$ ${Number(v.saldo).toFixed(2)}<br>
+    <span class="badge ${v.status}">${v.status}</span><br><br>
+    ${v.saldo>0?`<button onclick="finalizar('${v.codigo}',${cpf})">Finalizar</button>`:""}
+  </div>`;
+}
 
-  const { data } = await sb.from("vouchers").select("*").eq("codigo",codigo);
+async function finalizar(codigo,cpf){
+  if(cpf && !senhaOK) return;
+
+  let {data}=await sb.from("vouchers").select("*").eq("codigo",codigo);
   let v=data[0];
 
   await sb.from("vouchers").update({
-    saldo:0,
-    status:"RESGATADO",
+    saldo:0,status:"RESGATADO",
     data_resgate:new Date().toISOString(),
-    usuario_resgate:usuario.usuario
+    usuario_resgate:operador.usuario
   }).eq("codigo",codigo);
 
   imprimir(v);
   consultar();
 }
 
-/* IMPRESSÃO */
 function imprimir(v){
   let cpfMasc=v.cpf.substring(0,3)+"***";
 
   const via=(t,cpf)=>`
-  <div style="width:240px;font-family:monospace;font-size:13px">
-    <center><b>MERCATTO DELÍCIA</b><br>${t}<br>-------------------</center>
+  <div style="font-family:monospace;font-size:13px;width:240px">
+    <center>
+      <b>MERCATTO DELÍCIA</b><br>
+      <b>COMPROVANTE DE RESGATE</b><br>
+      ${t}<br>
+      --------------------
+    </center>
     Cliente: ${v.cliente}<br>
     CPF: ${cpf}<br>
     Código: ${v.codigo}<br>
     Valor: R$ ${v.valor}<br>
-    Operador: ${usuario.usuario}<br>
+    Operador: ${operador.usuario}<br>
     Data: ${new Date().toLocaleString("pt-BR")}<br>
-    -------------------
+    --------------------
   </div>`;
 
-  let w=window.open("","","width=260,height=800");
+  let w=window.open("","","width=260,height=700");
   w.document.write(`
     ${via("VIA DO CLIENTE",v.cpf)}
     <div class="page-break"></div>
-    ${via("VIA DO RESTAURANTE",cpfMasc)}
-    <script>
-      window.onload=()=>{window.print();window.close();}
-    <\/script>
+    ${via("VIA DO MERCATTO",cpfMasc)}
+    <script>window.onload=()=>{window.print();window.close()}<\/script>
   `);
 }
 
-/* UTIL */
 function toggleSenha(){
-  senhaCliente.type = senhaCliente.type==="password"?"text":"password";
+  senhaCliente.type=senhaCliente.type==="password"?"text":"password";
 }
 </script>
 
