@@ -27,10 +27,9 @@ body{
   color:#fff;
   padding:24px;
 }
-
 .hidden{display:none}
 
-/* ================== CARD ================== */
+/* CARD */
 .card{
   max-width:1100px;
   margin:auto;
@@ -50,36 +49,23 @@ input,select{
   border-radius:12px;
   color:#fff;
   font-size:15px;
-
-  /* 🔒 SEGURANÇA */
   autocomplete:off;
   autocorrect:off;
   autocapitalize:off;
   spellcheck:false;
 }
 
-button{
-  cursor:pointer;
-  border:none;
-}
+button{border:none;cursor:pointer}
 
-/* ================== LOGIN ================== */
-#loginCard{
-  max-width:420px;
-  margin:120px auto;
-}
+/* LOGIN */
+#loginCard{max-width:420px;margin:120px auto}
 
-/* ================== GRID ================== */
-.grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:20px;
-}
+/* GRID */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 
-/* ================== VOUCHER ================== */
+/* VOUCHER VISUAL */
 #voucherPNG{
-  width:720px;
-  height:300px;
+  width:720px;height:300px;
   display:none;
   margin:30px auto 10px;
   border-radius:18px;
@@ -87,55 +73,18 @@ button{
   border:3px solid var(--gold);
   background:linear-gradient(to right,#000 0%,#0a0a0a 45%,#111 45%,#fdf6e3 100%);
   position:relative;
-  box-shadow:0 14px 40px rgba(0,0,0,.6);
 }
-
-.v-left{
-  position:absolute;
-  left:0;
-  width:45%;
-  height:100%;
-  padding:26px;
-  color:#fff;
-}
-
+.v-left{position:absolute;left:0;width:45%;height:100%;padding:26px}
 .v-cut{
-  position:absolute;
-  left:44%;
-  width:90px;
-  height:100%;
+  position:absolute;left:44%;width:90px;height:100%;
   background:linear-gradient(135deg,#b48a2b,#d4af37,#f7e7b0);
   clip-path:polygon(0 0,100% 0,70% 100%,0 100%);
 }
+.v-right{position:absolute;left:50%;width:50%;height:100%;padding:36px;color:#5a4d29}
+.small{position:absolute;bottom:10px;left:20px;right:20px;font-size:10px;color:#ddd}
 
-.v-right{
-  position:absolute;
-  left:50%;
-  width:50%;
-  height:100%;
-  padding:36px;
-  color:#5a4d29;
-}
-
-.small{
-  position:absolute;
-  bottom:10px;
-  left:20px;
-  right:20px;
-  font-size:10px;
-  color:#ddd;
-  opacity:.85;
-}
-
-/* ================== BOTÕES ================== */
-.actions{
-  display:flex;
-  gap:14px;
-  justify-content:center;
-  margin-top:22px;
-  flex-wrap:wrap;
-}
-
+/* BOTÕES */
+.actions{display:flex;gap:14px;justify-content:center;margin-top:22px}
 .btn{
   min-width:180px;
   padding:10px 18px;
@@ -145,39 +94,25 @@ button{
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:8px;
-  transition:.25s ease;
-  box-shadow:0 6px 14px rgba(0,0,0,.35);
 }
+.btn-pdf{background:linear-gradient(135deg,#b48a2b,#e5c86f);color:#000}
+.btn-whats{background:linear-gradient(135deg,#1ebd5a,#2de073);color:#fff}
 
-.btn-pdf{
-  background:linear-gradient(135deg,#b48a2b,#e5c86f);
-  color:#000;
-}
-.btn-pdf:hover{
-  transform:translateY(-2px);
-  box-shadow:0 10px 22px rgba(212,175,55,.45);
-}
-
-.btn-whats{
-  background:linear-gradient(135deg,#1ebd5a,#2de073);
-  color:#fff;
-}
-.btn-whats:hover{
-  transform:translateY(-2px);
-  box-shadow:0 10px 22px rgba(37,211,102,.45);
-}
-
-/* ================== IMPRESSÃO ================== */
+/* IMPRESSÃO TÉRMICA REAL */
 @media print{
-  body{background:#fff;color:#000}
-  .no-print{display:none}
-  .via{
-    width:80mm;
-    font-family:monospace;
-    font-size:12px;
-    page-break-after:always;
+  @page{size:80mm auto;margin:0}
+  html,body{
+    width:80mm;margin:0;padding:0;
+    background:#fff!important;color:#000!important;
+    font-family:monospace!important;font-size:12px;
   }
+  body *{visibility:hidden}
+  .print-area,.print-area *{visibility:visible}
+  .print-area{position:absolute;left:0;top:0;width:80mm}
+  .via{padding:6mm 4mm;page-break-after:always}
+  .titulo{text-align:center;font-weight:bold;margin-bottom:6px}
+  .sep{border-top:1px dashed #000;margin:6px 0}
+  .assinatura{margin-top:16px;border-top:1px solid #000;padding-top:4px;text-align:center}
 }
 </style>
 </head>
@@ -224,30 +159,27 @@ button{
     <h1 style="font-size:42px">GIFT</h1>
     <h2 style="color:var(--gold)">VOUCHER</h2>
     <p id="vNome"></p>
-    <p id="vForma"></p>
-    <p id="vEmissor"></p>
     <p id="vValidade"></p>
   </div>
-
   <div class="v-cut"></div>
-
   <div class="v-right">
     <h1 style="font-size:72px;font-family:'Great Vibes'">
       R$ <span id="vValor"></span>
     </h1>
     <svg id="barcode"></svg>
   </div>
-
   <div class="small" id="vTextoLegal"></div>
 </div>
 
-<div class="actions no-print hidden" id="acoes">
+<div class="actions hidden" id="acoes">
   <button class="btn btn-pdf" onclick="baixarPDF()">📄 Baixar PDF</button>
   <button class="btn btn-whats" onclick="enviarWhats()">💬 WhatsApp</button>
 </div>
 
 </div>
 </div>
+
+<div id="printArea" class="print-area hidden"></div>
 
 <script>
 const sb = supabase.createClient(
@@ -264,12 +196,8 @@ async function login(){
     .select("usuario")
     .eq("usuario",loginUser.value)
     .eq("senha",loginPass.value);
-
-  if(!data.length){alert("Usuário ou senha inválidos");return;}
-
+  if(!data.length){alert("Acesso inválido");return;}
   operador=data[0].usuario;
-  loginUser.value="";
-  loginPass.value="";
   loginCard.classList.add("hidden");
   sistema.classList.remove("hidden");
 }
@@ -279,95 +207,84 @@ async function gerarCodigo(){
   while(true){
     let c=Math.floor(100000000+Math.random()*900000000).toString();
     let {data}=await sb.from("vouchers").select("id").eq("codigo",c);
-    if(!data.length) return c;
+    if(!data.length)return c;
   }
 }
 
 /* EMITIR */
 async function emitir(){
-  let nome=cliente.value.trim();
-  let cpfv=cpf.value.replace(/\D/g,"");
-  let tel=telefone.value;
-  let val=Number(valor.dataset.raw||0);
-  let forma=formaPagamento.value;
+  const nome=cliente.value.trim();
+  const cpfv=cpf.value.replace(/\D/g,"");
+  const val=Number(valor.dataset.raw||0);
+  if(!nome||!cpfv||!val){alert("Dados incompletos");return;}
 
-  if(!nome||!cpfv||!val||!forma){
-    alert("Preencha todos os campos");
-    return;
-  }
-
-  let codigo=await gerarCodigo();
-  let d=new Date();
-  let validade=new Date(d); validade.setDate(validade.getDate()+60);
+  const codigo=await gerarCodigo();
+  const d=new Date();
+  const validade=new Date(d);validade.setDate(validade.getDate()+60);
 
   await sb.from("vouchers").insert([{
-    codigo,
-    cliente:nome,
-    cpf:cpfv,
-    telefone:tel,
-    valor:val,
-    saldo:val,
-    forma_pagamento:forma,
-    usuario_emissao:operador,
+    codigo,cliente:nome,cpf:cpfv,valor:val,saldo:val,
     data_emissao:d.toISOString(),
     data_validade:validade.toISOString(),
     status:"ATIVO"
   }]);
 
-  gerarVoucher(nome,val,forma,codigo,validade,operador);
-  imprimirTermica(nome,cpfv,codigo,val,forma,operador,validade);
+  gerarVoucher(nome,val,codigo,validade);
+  imprimirTermica(nome,cpfv,codigo,val,validade);
 }
 
-/* VOUCHER */
-function gerarVoucher(nome,val,forma,codigo,validade,emissor){
+/* VOUCHER VISUAL */
+function gerarVoucher(nome,val,codigo,validade){
   voucherAtual={nome,val};
   vNome.innerHTML="<b>Cliente:</b> "+nome;
-  vForma.innerHTML="<b>Pagamento:</b> "+forma;
-  vEmissor.innerHTML="<b>Emissor:</b> "+emissor;
   vValidade.innerHTML="<b>Válido até:</b> "+validade.toLocaleDateString("pt-BR");
   vValor.innerText=val.toLocaleString("pt-BR",{minimumFractionDigits:2});
-  vTextoLegal.innerText=`Válido até ${validade.toLocaleDateString("pt-BR")} • 60 dias após emissão.`;
+  vTextoLegal.innerText=`Válido até ${validade.toLocaleDateString("pt-BR")}`;
   JsBarcode("#barcode",codigo,{width:2,height:42});
   voucherPNG.style.display="block";
   acoes.classList.remove("hidden");
 }
 
-/* IMPRESSÃO */
-function imprimirTermica(nome,cpf,codigo,valor,forma,emissor,validade){
-  const html=`
-  <div class="via">
-    <center><b>MERCATTO DELÍCIA</b><br>VIA CLIENTE</center><br>
-    Cliente:${nome}<br>
-    CPF:${cpf}<br>
-    Código:${codigo}<br>
-    Valor:R$ ${valor.toLocaleString("pt-BR",{minimumFractionDigits:2})}<br>
-    Pagamento:${forma}<br>
-    Emissor:${emissor}<br>
-    Validade:${validade.toLocaleDateString("pt-BR")}
-  </div>
+/* IMPRESSÃO AUTOMÁTICA */
+function imprimirTermica(nome,cpf,codigo,valor,validade){
+  const agora=new Date().toLocaleString("pt-BR");
+  const cpfMasc=cpf.substring(0,3)+"***";
 
-  <div class="via">
-    <center><b>MERCATTO DELÍCIA</b><br>VIA RESTAURANTE</center><br>
-    Cliente:${nome}<br>
-    CPF:${cpf.substring(0,3)}***<br>
-    Código:${codigo}<br>
-    Valor:R$ ${valor.toLocaleString("pt-BR",{minimumFractionDigits:2})}<br>
-    Pagamento:${forma}<br>
-    Emissor:${emissor}<br>
-    Validade:${validade.toLocaleDateString("pt-BR")}
-  </div>
+  printArea.innerHTML=`
+    <div class="via">
+      <div class="titulo">MERCATTO DELÍCIA</div>
+      <div class="titulo">VIA DO CLIENTE</div>
+      <div class="sep"></div>
+      Cliente: ${nome}<br>
+      CPF: ${cpf}<br>
+      Código: ${codigo}<br>
+      Valor: R$ ${valor.toLocaleString("pt-BR",{minimumFractionDigits:2})}<br>
+      Validade: ${validade.toLocaleDateString("pt-BR")}<br>
+      <div class="sep"></div>
+      Data: ${agora}
+    </div>
+
+    <div class="via">
+      <div class="titulo">MERCATTO DELÍCIA</div>
+      <div class="titulo">VIA DO RESTAURANTE</div>
+      <div class="sep"></div>
+      Cliente: ${nome}<br>
+      CPF: ${cpfMasc}<br>
+      Valor: R$ ${valor.toLocaleString("pt-BR",{minimumFractionDigits:2})}<br>
+      Validade: ${validade.toLocaleDateString("pt-BR")}<br>
+      <div class="assinatura">Assinatura do Cliente</div>
+    </div>
   `;
 
-  const w=window.open("");
-  w.document.write(`<body>${html}</body>`);
-  w.document.close();
-  w.onload=()=>{w.print();w.close();}
+  printArea.classList.remove("hidden");
+  window.print();
+  setTimeout(()=>printArea.classList.add("hidden"),500);
 }
 
 /* PDF */
 function baixarPDF(){
   html2canvas(voucherPNG,{scale:3}).then(c=>{
-    let a=document.createElement("a");
+    const a=document.createElement("a");
     a.download="voucher.pdf";
     a.href=c.toDataURL();
     a.click();
