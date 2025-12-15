@@ -214,6 +214,7 @@ async function emitir(){
     status:"ATIVO"
   }]);
 
+
   if(error){hide();alert(error.message);return;}
 
   v_nome.innerHTML="<b>Cliente:</b> "+nome;
@@ -248,6 +249,7 @@ function imprimirRecibo(nome,cpf,codigo,valor,forma){
 
   let w=window.open("","","width=260,height=600");
   w.document.write(`
+
     ${via("VIA DO CLIENTE")}<br><br>${via("VIA DO RESTAURANTE")}
     <script>window.onload=()=>{window.print();window.close();}<\/script>
   `);
