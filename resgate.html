@@ -28,7 +28,7 @@ body{background:var(--bg);color:#fff;padding:20px}
   padding:26px;
 }
 
-h1,h2{color:var(--gold);margin-bottom:16px}
+h1,h2,h3{color:var(--gold);margin-bottom:16px}
 
 input{
   width:100%;padding:14px;
@@ -51,6 +51,8 @@ button{
   padding:14px;
   margin-top:12px;
 }
+.box.click{cursor:pointer}
+.box.click:hover{background:#202020}
 
 hr{border:none;border-top:1px solid #333;margin:14px 0}
 
@@ -102,8 +104,19 @@ hr{border:none;border-top:1px solid #333;margin:14px 0}
   </div>
 
   <div class="box">
-    <h2>Extrato de Vouchers</h2>
-    <div id="extrato"></div>
+    <h2>Vouchers do Cliente</h2>
+    <div id="listaVouchers"></div>
+  </div>
+</div>
+
+<!-- EXTRATO INDIVIDUAL -->
+<div id="extratoVoucher" class="hidden">
+  <div class="box">
+    <h2>Extrato do Voucher</h2>
+    <div id="detalheVoucher"></div>
+    <hr>
+    <h3>Histórico de Resgates</h3>
+    <div id="historicoResgates"></div>
   </div>
 </div>
 
@@ -150,8 +163,9 @@ async function login(){
 /* CONSULTA */
 async function consultar(){
   resumoCPF.classList.add("hidden");
+  extratoVoucher.classList.add("hidden");
   resultadoCodigo.innerHTML="";
-  extrato.innerHTML="";
+  listaVouchers.innerHTML="";
   senhaOK=false;
   vouchers=[];
 
@@ -193,34 +207,52 @@ function mostrarResumoCPF(){
   let saldo=vouchers.reduce((s,v)=>s+Number(v.saldo),0);
   saldoTotal.innerText="R$ "+saldo.toFixed(2).replace(".",",");
 
-  extrato.innerHTML=vouchers.map(v=>`
-    <div class="box">
+  listaVouchers.innerHTML=vouchers.map(v=>`
+    <div class="box click" onclick="abrirExtrato('${v.codigo}')">
       <b>Código:</b> ${v.codigo}<br>
-      <b>Emitido:</b> ${new Date(v.data_emissao).toLocaleString("pt-BR")}<br>
       <b>Status:</b> ${v.status}<br>
-      <b>Saldo atual:</b> R$ ${Number(v.saldo).toFixed(2)}<br>
-      ${v.valor_resgatado?`
-        <hr>
-        <b>Total resgatado:</b> R$ ${Number(v.valor_resgatado).toFixed(2)}<br>
-        <b>Último resgate:</b> ${new Date(v.data_resgate).toLocaleString("pt-BR")}<br>
-        <b>Operador:</b> ${v.usuario_resgate}
-      `:""}
+      <b>Saldo:</b> R$ ${Number(v.saldo).toFixed(2)}
     </div>
   `).join("");
 
   resumoCPF.classList.remove("hidden");
 }
 
-/* RESGATE CPF (FIFO) */
+/* EXTRATO INDIVIDUAL */
+async function abrirExtrato(codigo){
+  let v = vouchers.find(x=>x.codigo===codigo);
+
+  detalheVoucher.innerHTML=`
+    <b>Código:</b> ${v.codigo}<br>
+    <b>Emitido:</b> ${new Date(v.data_emissao).toLocaleString("pt-BR")}<br>
+    <b>Saldo atual:</b> R$ ${Number(v.saldo).toFixed(2)}
+  `;
+
+  let {data}=await sb.from("vouchers_resgates")
+    .select("*")
+    .eq("codigo_voucher",codigo)
+    .order("data",{ascending:false});
+
+  historicoResgates.innerHTML=data.length
+    ? data.map(r=>`
+      <div class="box">
+        <b>Valor:</b> R$ ${Number(r.valor).toFixed(2)}<br>
+        <b>Data:</b> ${new Date(r.data).toLocaleString("pt-BR")}<br>
+        <b>Operador:</b> ${r.operador}
+      </div>
+    `).join("")
+    : "<div class='box'>Nenhum resgate</div>";
+
+  extratoVoucher.classList.remove("hidden");
+}
+
+/* RESGATE CPF FIFO */
 async function resgatarCPF(){
   if(!senhaOK) return;
 
   let valor=parseFloat(valorResgate.value.replace(",","."));  
   let saldoTotal=vouchers.reduce((s,v)=>s+Number(v.saldo),0);
-
-  if(valor<=0 || valor>saldoTotal){
-    alert("Valor inválido"); return;
-  }
+  if(valor<=0||valor>saldoTotal){alert("Valor inválido");return;}
 
   for(let v of vouchers){
     if(valor<=0) break;
@@ -237,9 +269,15 @@ async function resgatarCPF(){
       usuario_resgate:operador.usuario
     }).eq("codigo",v.codigo);
 
+    await sb.from("vouchers_resgates").insert({
+      codigo_voucher:v.codigo,
+      valor:usar,
+      data:new Date().toISOString(),
+      operador:operador.usuario
+    });
+
     imprimirRecibo(v,usar);
   }
-
   consultar();
 }
 
@@ -251,10 +289,10 @@ function mostrarVoucherCodigo(v){
       <b>Código:</b> ${v.codigo}<br>
       <b>Saldo:</b> R$ ${Number(v.saldo).toFixed(2)}<br>
       ${v.saldo>0?`<button onclick="resgatarCodigo('${v.codigo}')">Resgatar</button>`:""}
-    </div>
-  `;
+    </div>`;
 }
 
+/* RESGATE CÓDIGO */
 async function resgatarCodigo(codigo){
   let v=vouchers.find(x=>x.codigo===codigo);
   if(v.saldo<=0) return;
@@ -266,37 +304,33 @@ async function resgatarCodigo(codigo){
     usuario_resgate:operador.usuario
   }).eq("codigo",codigo);
 
+  await sb.from("vouchers_resgates").insert({
+    codigo_voucher:v.codigo,
+    valor:v.saldo,
+    data:new Date().toISOString(),
+    operador:operador.usuario
+  });
+
   imprimirRecibo(v,v.saldo);
   consultar();
 }
 
-/* RECIBOS */
+/* RECIBO */
 function imprimirRecibo(v,valor){
   let cpfMasc=v.cpf.substring(0,3)+"***";
-
-  const via=(titulo,cpf,showCodigo)=>`
+  const via=(t,c,s)=>`
   <div style="width:240px;font-family:monospace;font-size:13px">
-    <center>
-      <b>MERCATTO DELÍCIA</b><br>
-      <b>COMPROVANTE DE RESGATE</b><br>${titulo}<br>
-      --------------------
-    </center>
-    Cliente: ${v.cliente}<br>
-    CPF: ${cpf}<br>
-    ${showCodigo?`Código: ${v.codigo}<br>`:""}
+    <center><b>MERCATTO DELÍCIA</b><br><b>COMPROVANTE</b><br>${t}<br>----------------</center>
+    Cliente: ${v.cliente}<br>CPF: ${c}<br>${s?`Código:${v.codigo}<br>`:""}
     Valor: R$ ${valor.toFixed(2)}<br>
     Operador: ${operador.usuario}<br>
-    Data: ${new Date().toLocaleString("pt-BR")}<br>
-    ${!showCodigo?`<br>Assinatura:<br>__________________________`:""}
+    Data: ${new Date().toLocaleString("pt-BR")}
   </div>`;
-
   let w=window.open("","","width=260,height=800");
-  w.document.write(`
-    ${via("VIA DO CLIENTE",v.cpf,true)}
-    <div style="page-break-after:always"></div>
-    ${via("VIA DO MERCATTO",cpfMasc,false)}
-    <script>window.onload=()=>{window.print();window.close()}<\/script>
-  `);
+  w.document.write(via("VIA CLIENTE",v.cpf,true)+
+  "<div style='page-break-after:always'></div>"+
+  via("VIA MERCATTO",cpfMasc,false)+
+  "<script>window.onload=()=>{window.print();window.close()}<\/script>");
 }
 </script>
 
